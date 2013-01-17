@@ -128,21 +128,16 @@ class Bar
 {
 protected:
 	float mValue;
-	std::vector<glm::vec3> mVertices;
-	std::vector<unsigned short> mFaces;
 	glm::vec4 mColor;
 	glm::mat4 mWorld;		// Object in world space.
 
 public:
-	Bar() : mWorld(1.0f), mValue(1.0f) { createBar3D(); }
-	void createBar3D();
+	Bar() : mWorld(1.0f), mValue(1.0f) {  }
 	void setColor(float r,float g,float b, float a)		{ mColor.x = r; mColor.y = g; mColor.z = b; mColor.w = a; }
 	void setValue(float val) {mValue = val;}
 	float getValue() {return mValue;}
 	glm::mat4x4 &getMatrix() {return mWorld;}
 	void setMatrix(glm::mat4 &m) {mWorld = m;}
-	std::vector<glm::vec3>& vertices() {return mVertices;}
-	std::vector<unsigned short>& faces() {return mFaces;}
 };
 
 /*
@@ -156,13 +151,20 @@ protected:
 	int	mEnd;					// incase displaying from .. to
 	int mStart;
 	float mStep;
+	std::vector<glm::vec3> mVertices;
+	std::vector<unsigned short> mFaces;
+
+	void createBar3D();
 
 public:
+	BarMgr() {createBar3D();}
 	void addBars(int n) {mBars.resize(n);}
 	void addBar(Bar &b) {mBars.push_back(b);}
 	std::vector<Bar> &getBars() {return mBars;}
 	int size()	{mBars.size();}
 	Bar &getBar(int i) {return mBars[i];}
+	std::vector<glm::vec3>& vertices() {return mVertices;}
+	std::vector<unsigned short>& faces() {return mFaces;}
 
 };
 

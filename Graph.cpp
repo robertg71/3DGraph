@@ -13,7 +13,7 @@ namespace Graph
 	/*
 	 * helper function to set the vertex array index array
 	 */
-	void Bar::createBar3D()
+	void BarMgr::createBar3D()
 	{
 		// Define quad vertices. origo Y = 0
 	 const float Vertices[] = {

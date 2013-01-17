@@ -816,7 +816,7 @@ void main( void )
 */
 
 		char blank[]=STRINGIFY(
-		precision mediump float;
+		precision lowp float;
 		varying vec4 v_color;
 		uniform vec2 resolution;
 		uniform float time;
@@ -829,12 +829,14 @@ void main( void )
 
 		char vertexShaderSource[]=STRINGIFY(
 		attribute vec4 vPosition;
-		uniform mat4 MVP;
+		uniform mat4 Projection;
+		uniform mat4 View;
+		uniform mat4 World;
 		varying vec4 v_color;
 		void main( void )
 		{
 			v_color = vPosition;
-			gl_Position = MVP * vPosition;
+			gl_Position = (Projection * View * World) * vPosition;
 		}
 		);
 
@@ -952,9 +954,15 @@ private:
 	GLuint mShader;
 	GLuint mTimeLoc;
 	GLuint mResolutionLoc;
-	GLuint mMatrixMVP;
+//	GLuint mMatrixMVP;
+	GLuint mMatrixP;
+	GLuint mMatrixV;
+	GLuint mMatrixM;
 	GLuint mElementbuffer;
 	GLuint mVertexbuffer;
+	glm::mat4 mProjection;
+	glm::mat4 mView;
+
 	Graph::BarMgr mBars;		//only temp
 	std::vector<unsigned short> mIndices;
 
@@ -994,6 +1002,15 @@ public:
 		GLuint programObject;
 		GLint linked;
 
+
+		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+		mProjection = glm::perspective(45.0f, 3.0f / 4.0f, 0.1f, 100.0f);
+		// Camera matrix
+		mView       = glm::lookAt(
+			glm::vec3(0.0f,10.0f,20.0f), // Camera is at (4,3,3), in World Space
+			glm::vec3(0,0,0), // and looks at the origin
+			glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
+		);
 
 
 		// Enable depth test
@@ -1058,25 +1075,24 @@ public:
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		mTimeLoc = glGetUniformLocation(mShader, "time");
-		mResolutionLoc = glGetUniformLocation(mShader, "resolution");
-		// Get a handle for our "MVP" uniform.
-		// Only at initialisation time.
-		mMatrixMVP = glGetUniformLocation(mShader, "MVP");
+		// todo send all data as struct one item to transfer
+		mTimeLoc 		= glGetUniformLocation(mShader, "time");
+		mResolutionLoc 	= glGetUniformLocation(mShader, "resolution");
+		mMatrixP 		= glGetUniformLocation(mShader, "Projection");
+		mMatrixV 		= glGetUniformLocation(mShader, "View");
+		mMatrixM 		= glGetUniformLocation(mShader, "World");
 
-		mBars.addBars(100);
+		mBars.addBars(200);
 		// make a copy for now because we might need to add multiple indicies to this obj (there is only one index list)
-		Graph::Bar &bar = mBars.getBar(0);
-		for(int i=0;i<bar.faces().size();i++)
+		for(int i=0;i<mBars.faces().size();i++)
 		{
-			mIndices.push_back(bar.faces()[i]);
+			mIndices.push_back(mBars.faces()[i]);
 		}
-		lprintfln("Indices to:%d",mIndices.size());
-		lprintfln("Indices to:%d",bar.vertices().size());
+
 		// Generate a buffer for the vertices
 		glGenBuffers(1, &mVertexbuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
-		glBufferData(GL_ARRAY_BUFFER, bar.vertices().size() * sizeof(glm::vec3), &bar.vertices()[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, mBars.vertices().size() * sizeof(glm::vec3), &mBars.vertices()[0], GL_STATIC_DRAW);
 
 
 		// Generate a buffer for the indices
@@ -1100,40 +1116,22 @@ public:
 		mStartTime = maGetMilliSecondCount();
 	}
 
-	glm::mat4 calculateMatrix(float tick, glm::mat4 &Model, float value)
-	{
-		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-		glm::mat4 Projection = glm::perspective(45.0f, 3.0f / 4.0f, 0.1f, 100.0f);
-		// Camera matrix
-		glm::mat4 View       = glm::lookAt(
-			glm::vec3(0.0f,5.0f,10.0f), // Camera is at (4,3,3), in World Space
-			glm::vec3(0,0,0), // and looks at the origin
-			glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
-		);
-	//	Model matrix : an identity matrix (model will be at the origin)
-//		Model				= glm::mat4(1);
-//		Model 				= glm::scale(Model,1.0f,value,1.0f);
-//		Model 				= glm::rotate(Model,20.0f*tick,0.0f,1.0f,0.0f);
-//		Model 				= glm::translate(Model,1.0f,0.0f,0.0f);
-		// Our ModelViewProjection : multiplication of our 3 matrices
-		return Projection * View * Model; // Remember, matrix multiplication is the other way around
-	}
-
 	void draw()
 	{
 
 		float tick = (maGetMilliSecondCount() - mStartTime) * 0.001f;
 		// Set the viewport
 		glViewport(0, 0, mWidth, mHeight);
+		checkGLError("glViewport");
 
 		// Clear the color buffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//	glCullFace(GL_FRONT);
+		checkGLError("glClear");
+
 		// Use the program object   shader and its specific arguments
 		glUseProgram(mShader);
 		checkGLError("glUseProgram");
 
-		// Generate a buffer for the vertices
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
@@ -1149,70 +1147,51 @@ public:
 
 		// Index buffer
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementbuffer);
-		glm::mat4 r = glm::rotate(20.0f*tick,2.0f,1.0f,0.0f);
+
+		glm::mat4 r = glm::rotate(20.0f*tick,0.0f,1.0f,0.0f);
 
 
 		int grid = static_cast<int>(static_cast<float>(mBars.size())*0.1f);
+
 		for(int j=0; j<grid; j++)
 		{
+			for(int i=0; i<grid; i++)
+			{
+				Graph::Bar &bar = mBars.getBar(i*j);
+				float sc = 1.0f;
+				bar.setValue(sc*1.1f+sc*1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
+				glm::mat4 s 	= glm::scale(0.5f,bar.getValue(),0.5f);
+				glm::mat4 t 	= glm::translate(s,0.5f-grid*0.5f+i*1.0f,0.0f,0.5f-grid*0.5f+j*1.0f);
+				glm::mat4 m 	= r*t;
 
-		for(int i=0; i<grid; i++)
-		{
-			Graph::Bar &bar = mBars.getBar(i*j);
-			float sc = 1.0f;
-			bar.setValue(sc*1.1f+sc*1.0f*sin(j*0.1f+i*0.1f+1.3f*tick));
-			glm::mat4 t = glm::translate(0.5f-grid*0.5f+i*1.0f,0.0f,0.5f-grid*0.5f+j*1.0f);
-			glm::mat4 s = glm::scale(0.5f,bar.getValue(),0.5f);
-			glm::mat4 m = r*s*t;
-			bar.setMatrix(m);
 
-			glm::mat4 MVP = calculateMatrix(tick, bar.getMatrix(),bar.getValue());
-/*
-			// Use the program object   shader and its specific arguments
-			glUseProgram(mShader);
-			checkGLError("glUseProgram");
-*/
-			glUniform1f(mTimeLoc, tick);
-			checkGLError("glUniform1f");
+				// For each model you render, since the MVP will be different (at least the M part)
+				// TODO try send everything as one stuct for faster access..
 
-			glUniform2f(mResolutionLoc, 1.0f/(float)mWidth, 1.0f/(float)mHeight);
-			checkGLError("glUniform2f");
+				glUniform1f(mTimeLoc, tick);
+//				checkGLError("glUniform1f");
+				glUniform2f(mResolutionLoc, 1.0f/(float)mWidth, 1.0f/(float)mHeight);
+//				checkGLError("glUniform2f");
+				glUniformMatrix4fv(mMatrixP, 1, GL_FALSE, &mProjection[0][0]);
+//				checkGLError("glUniformMatrix4fv");
+				glUniformMatrix4fv(mMatrixV, 1, GL_FALSE, &mView[0][0]);
+//				checkGLError("glUniformMatrix4fv");
+				glUniformMatrix4fv(mMatrixM, 1, GL_FALSE, &m[0][0]);
+//				checkGLError("glUniformMatrix4fv");
 
-			// Send our transformation to the currently bound shader,
-			// in the "MVP" uniform
-			// For each model you render, since the MVP will be different (at least the M part)
-			glUniformMatrix4fv(mMatrixMVP, 1, GL_FALSE, &MVP[0][0]);
-/*
-			// Generate a buffer for the vertices
-			// 1rst attribute buffer : vertices
-			glEnableVertexAttribArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
-			glVertexAttribPointer(
-				0,                  // attribute
-				3,                  // size
-				GL_FLOAT,           // type
-				GL_FALSE,           // normalized?
-				0,                  // stride
-				(void*)0            // array buffer offset
-			);
-			checkGLError("glEnableVertexAttribArray");
+				 // Draw the triangles !
+				 glDrawElements(
+					 GL_TRIANGLES,      // mode
+					 mIndices.size(),    // count
+					 GL_UNSIGNED_SHORT,   // type
+					 (void*)0           // element array buffer offset
+				 );
+//				 checkGLError("glDrawElements");
 
-			// Index buffer
-			 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementbuffer);
-*/
-			 // Draw the triangles !
-			 glDrawElements(
-				 GL_TRIANGLES,      // mode
-				 mIndices.size(),    // count
-				 GL_UNSIGNED_SHORT,   // type
-				 (void*)0           // element array buffer offset
-			 );
-			 checkGLError("glDrawElements");
-
-		}
+			}
 		}
 
-	//	 glDisableVertexAttribArray(0);
+		 glDisableVertexAttribArray(0);
 	}
 };
 

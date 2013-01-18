@@ -960,8 +960,11 @@ private:
 	GLuint mMatrixM;
 	GLuint mElementbuffer;
 	GLuint mVertexbuffer;
+	float  mGrid;
+
 	glm::mat4 mProjection;
 	glm::mat4 mView;
+	glm::mat4 mWorld;
 
 	Graph::BarMgr mBars;		//only temp
 	std::vector<unsigned short> mIndices;
@@ -1082,7 +1085,8 @@ public:
 		mMatrixV 		= glGetUniformLocation(mShader, "View");
 		mMatrixM 		= glGetUniformLocation(mShader, "World");
 
-		mBars.addBars(200);
+		mGrid = 20;
+		mBars.addBars(mGrid*mGrid);
 		// make a copy for now because we might need to add multiple indicies to this obj (there is only one index list)
 		for(int i=0;i<mBars.faces().size();i++)
 		{
@@ -1099,6 +1103,30 @@ public:
 		glGenBuffers(1, &mElementbuffer);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementbuffer);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(unsigned short), &mIndices[0], GL_STATIC_DRAW);
+
+
+		// NOTE THIS NEEDS TO INITIATED FOR THE RENDERER IF MULTIPLE TYPE OF OBJECTS WILL BE USED.
+
+		// 1rst attribute buffer : vertices
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
+		glVertexAttribPointer(
+			0,                  // attribute
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			0,                  // stride
+			(void*)0            // array buffer offset
+		);
+		checkGLError("glEnableVertexAttribArray");
+
+		// Index buffer
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementbuffer);
+
+		// Use the program object   shader and its specific arguments
+		glUseProgram(mShader);
+		checkGLError("glUseProgram");
+
 
 		return TRUE;
 	}
@@ -1128,31 +1156,23 @@ public:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		checkGLError("glClear");
 
-		// Use the program object   shader and its specific arguments
-		glUseProgram(mShader);
-		checkGLError("glUseProgram");
 
-		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
-		glVertexAttribPointer(
-			0,                  // attribute
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
-		);
-		checkGLError("glEnableVertexAttribArray");
-
-		// Index buffer
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementbuffer);
 
 		glm::mat4 r = glm::rotate(20.0f*tick,0.0f,1.0f,0.0f);
 
+		// update to shader projection and view that are identical trough out the obj calls.
 
-		int grid = static_cast<int>(static_cast<float>(mBars.size())*0.1f);
+		glUniform1f(mTimeLoc, tick);
+//				checkGLError("glUniform1f");
+		glUniform2f(mResolutionLoc, 1.0f/(float)mWidth, 1.0f/(float)mHeight);
+//				checkGLError("glUniform2f");
+		glUniformMatrix4fv(mMatrixP, 1, GL_FALSE, &mProjection[0][0]);
+//				checkGLError("glUniformMatrix4fv");
+		glUniformMatrix4fv(mMatrixV, 1, GL_FALSE, &mView[0][0]);
+//				checkGLError("glUniformMatrix4fv");
 
+
+		float grid = mGrid;
 		for(int j=0; j<grid; j++)
 		{
 			for(int i=0; i<grid; i++)
@@ -1164,18 +1184,8 @@ public:
 				glm::mat4 t 	= glm::translate(s,0.5f-grid*0.5f+i*1.0f,0.0f,0.5f-grid*0.5f+j*1.0f);
 				glm::mat4 m 	= r*t;
 
-
 				// For each model you render, since the MVP will be different (at least the M part)
-				// TODO try send everything as one stuct for faster access..
 
-				glUniform1f(mTimeLoc, tick);
-//				checkGLError("glUniform1f");
-				glUniform2f(mResolutionLoc, 1.0f/(float)mWidth, 1.0f/(float)mHeight);
-//				checkGLError("glUniform2f");
-				glUniformMatrix4fv(mMatrixP, 1, GL_FALSE, &mProjection[0][0]);
-//				checkGLError("glUniformMatrix4fv");
-				glUniformMatrix4fv(mMatrixV, 1, GL_FALSE, &mView[0][0]);
-//				checkGLError("glUniformMatrix4fv");
 				glUniformMatrix4fv(mMatrixM, 1, GL_FALSE, &m[0][0]);
 //				checkGLError("glUniformMatrix4fv");
 
@@ -1191,7 +1201,7 @@ public:
 			}
 		}
 
-		 glDisableVertexAttribArray(0);
+	//	 glDisableVertexAttribArray(0);
 	}
 };
 

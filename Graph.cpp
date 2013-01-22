@@ -7,6 +7,9 @@
 
 #include "graph.h"
 #include <GLES2/gl2.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 namespace Graph
 {
@@ -60,8 +63,38 @@ namespace Graph
 
 	}
 
+	void Scene::create(int gridX, int gridZ,bool bFitToScreen)
+	{
+		mGridX = gridX;
+		mGridZ = gridZ;
+		mBarMgr.addBars(gridX*gridZ);
+		mFitToScreen = bFitToScreen;
+		float cx = getCx();
+		float cz = getCz();
+		float res = glm::sqrt(cx*cx+cz*cz);
+		mDistToCam = res;
 
-
+		float aspect = 3.0f/4.0f;
+		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+		mProjection = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
+		// Camera matrix
+		mView       = glm::lookAt(
+			glm::vec3(0.0f,res*0.5f,res*1.0f/aspect), // Camera is at (4,3,3), in World Space
+			glm::vec3(0,0,0), // and looks at the origin
+			glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
+		);
+		mWorld		= glm::mat4(1.0f);	// set up an identity matrix
+	}
 }
+
+
+
+
+
+
+
+
+
+
 
 

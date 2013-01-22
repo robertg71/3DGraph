@@ -36,16 +36,7 @@ using namespace MAUtil;
 
 #define STRINGIFY(A)  #A
 
-/**
- * A OpenGL|ES 2.0 GLMoblet application that
- * draws a quad covering the whole screen with
- * a fragment shader that generates a trippy
- * pattern. Shows how to load and create
- * shaders, do more advanced error handling,
- * draw primitives using OpenGL|ES 2.0.
- * A pretty complex shader is run per pixel on the screen
- * and might be slow on some devices with older gpu:s.
- */
+
 
 /*
  *
@@ -815,11 +806,11 @@ void main( void )
 		"}                           \n";
 */
 
-		char blank[]=STRINGIFY(
-		precision lowp float;
-		varying vec4 v_color;
-		uniform vec2 resolution;
-		uniform float time;
+		char fragmentShaderBars[]=STRINGIFY(
+		precision lowp 	float;
+		varying vec4 	v_color;
+		uniform vec2 	resolution;
+		uniform float 	time;
 		void main( void )
 		{
 		    gl_FragColor = vec4(v_color.x*0.5,v_color.y*1.0,v_color.z*0.5,1.0);
@@ -827,16 +818,25 @@ void main( void )
 		);
 
 
-		char vertexShaderSource[]=STRINGIFY(
+		char vertexShaderBars[]=STRINGIFY(
+
 		attribute vec4 vPosition;
+
 		uniform mat4 Projection;
 		uniform mat4 View;
 		uniform mat4 World;
+		uniform vec3 ScaleV;
+
 		varying vec4 v_color;
 		void main( void )
 		{
+			mat4 sm = mat4(1.0);
+			sm[0][0] = ScaleV.x;
+			sm[1][1] = ScaleV.y;
+			sm[2][2] = ScaleV.z;
+
 			v_color = vPosition;
-			gl_Position = (Projection * View * World) * vPosition;
+			gl_Position = (Projection * View * sm * World) * vPosition;
 		}
 		);
 
@@ -949,27 +949,88 @@ GLuint loadShader(const char *shaderSrc, GLenum type) {
 	return shader;
 }
 
+GLuint loadShaders(const char *shader_vtx, const char *shader_frg)
+{
+	GLuint vertexShader;
+	GLuint fragmentShader;
+	GLuint programObject;
+	GLint linked;
+
+
+	// Load the vertex/fragment shaders
+	vertexShader = loadShader(shader_vtx, GL_VERTEX_SHADER);
+	checkGLError("Load vertex shader");
+
+	fragmentShader = loadShader(shader_frg, GL_FRAGMENT_SHADER);
+	checkGLError("Load fragment shader");
+
+	// Create the program object
+	programObject = glCreateProgram();
+	if (programObject == 0) {
+		lprintfln("Could not create program!");
+		return FALSE;
+	}
+	checkGLError("Create program");
+
+	glAttachShader(programObject, vertexShader);
+	checkGLError("Attach vertex shader");
+
+	glAttachShader(programObject, fragmentShader);
+	checkGLError("Attach fragment shader");
+
+	// Bind vPosition to attribute 0
+	glBindAttribLocation(programObject, 0, "vPosition");
+	checkGLError("Bind vPosition to vertex shader");
+
+
+	// Link the program
+	glLinkProgram(programObject);
+
+	// Check the link status
+	glGetProgramiv(programObject, GL_LINK_STATUS, &linked);
+	if (!linked) {
+		lprintfln("Failed to link shader!");
+		GLint infoLen = 0;
+		glGetProgramiv(programObject, GL_INFO_LOG_LENGTH, &infoLen);
+		if (infoLen == 0) // android bug.
+			infoLen = 1024;
+		if (infoLen > 1) {
+			char* infoLog = (char*) malloc(sizeof(char) * infoLen);
+			glGetProgramInfoLog(programObject, infoLen, NULL, infoLog);
+			//esLogMessage("Error linking program:\n%s\n", infoLog);
+			lprintfln("Error linking program:\n%s\n", infoLog);
+			free(infoLog);
+		}
+		glDeleteProgram(programObject);
+		return FALSE;
+	}
+	// Store the program object
+	return programObject;
+}
+
 class MyGLMoblet: public GLMoblet {
 private:
-	GLuint mShader;
-	GLuint mTimeLoc;
-	GLuint mResolutionLoc;
-//	GLuint mMatrixMVP;
-	GLuint mMatrixP;
-	GLuint mMatrixV;
-	GLuint mMatrixM;
-	GLuint mElementbuffer;
-	GLuint mVertexbuffer;
-	float  mGrid;
+	GLuint mShader;				// shader for bars
+	GLuint mAttribVtxLoc;
+	GLuint mTimeLoc;			// time tick variable for shaders (fragment)
+	GLuint mResolutionLoc;		// screen resulution
+	GLuint mMatrixP;			// Shader Perspective Projection
+	GLuint mMatrixV;			// Shader Camera View
+	GLuint mMatrixM;			// Shader World
+	GLuint mScaleV;				// Scale vector of bars. its height...
+	GLuint mElementbuffer;		// Element buffer holding the index buffer for bars
+	GLuint mVertexbuffer;		// Vertex buffer for bars. (cube)
+	int  mGrid;				// Grid of X,Z
+/*
+	glm::mat4 mProjection;		// Projection Matrix
+	glm::mat4 mView;			// View Matrix
+	glm::mat4 mWorld;			// World Matrix
+*/
+	Graph::Scene mBarsScene;
+//	Graph::BarMgr mBars;		// Manager class of Bars contain all bars and vertex / face data
+	std::vector<unsigned short> mIndices;	// Index list of faces
 
-	glm::mat4 mProjection;
-	glm::mat4 mView;
-	glm::mat4 mWorld;
-
-	Graph::BarMgr mBars;		//only temp
-	std::vector<unsigned short> mIndices;
-
-	int mWidth, mHeight;
+	int mWidth, mHeight;		// Screen resolution in ABS form e.g. 640,480
 
 public:
 	MyGLMoblet() :
@@ -997,106 +1058,57 @@ public:
 		}
 	}
 
-	int initGL() {
+	int initShaderBars()
+	{
+
+	}
+
+	int initGL()
+	{
 
 
-		GLuint vertexShader;
-		GLuint fragmentShader;
-		GLuint programObject;
-		GLint linked;
-
-
-		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-		mProjection = glm::perspective(45.0f, 3.0f / 4.0f, 0.1f, 100.0f);
-		// Camera matrix
-		mView       = glm::lookAt(
-			glm::vec3(0.0f,10.0f,20.0f), // Camera is at (4,3,3), in World Space
-			glm::vec3(0,0,0), // and looks at the origin
-			glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
-		);
-
+		// Set up common gl options
 
 		// Enable depth test
 		glEnable(GL_DEPTH_TEST);
+
 		// Accept fragment if it closer to the camera than the former one
 		glDepthFunc(GL_LESS);
-		// enable back face culling
+
+		// Enable back face culling
 		glFrontFace(GL_CCW);
 		glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
 
+		// set up clear color
+		glClearColor(0.0f, 0.0f, 0.0f, 2.0f);		// why alpha 2.0f ?
 
-		// Load the vertex/fragment shaders
-		vertexShader = loadShader(vertexShaderSource, GL_VERTEX_SHADER);
-		checkGLError("Load vertex shader");
+		initShaderBars();
 
-		fragmentShader = loadShader(blank, GL_FRAGMENT_SHADER);
-		checkGLError("Load fragment shader");
-
-		// Create the program object
-		programObject = glCreateProgram();
-		if (programObject == 0) {
-			lprintfln("Could not create program!");
-			return FALSE;
-		}
-		checkGLError("Create program");
-
-		glAttachShader(programObject, vertexShader);
-		checkGLError("Attach vertex shader");
-
-		glAttachShader(programObject, fragmentShader);
-		checkGLError("Attach fragment shader");
-
-		// Bind vPosition to attribute 0
-		glBindAttribLocation(programObject, 0, "vPosition");
-		checkGLError("Bind vPosition to vertex shader");
+		mShader = loadShaders(vertexShaderBars,fragmentShaderBars);
 
 
-		// Link the program
-		glLinkProgram(programObject);
-
-		// Check the link status
-		glGetProgramiv(programObject, GL_LINK_STATUS, &linked);
-		if (!linked) {
-			lprintfln("Failed to link shader!");
-			GLint infoLen = 0;
-			glGetProgramiv(programObject, GL_INFO_LOG_LENGTH, &infoLen);
-			if (infoLen == 0) // android bug.
-				infoLen = 1024;
-			if (infoLen > 1) {
-				char* infoLog = (char*) malloc(sizeof(char) * infoLen);
-				glGetProgramInfoLog(programObject, infoLen, NULL, infoLog);
-				//esLogMessage("Error linking program:\n%s\n", infoLog);
-				lprintfln("Error linking program:\n%s\n", infoLog);
-				free(infoLog);
-			}
-			glDeleteProgram(programObject);
-			return FALSE;
-		}
-		// Store the program object
-		mShader = programObject;
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// todo send all data as struct one item to transfer
 		mTimeLoc 		= glGetUniformLocation(mShader, "time");
 		mResolutionLoc 	= glGetUniformLocation(mShader, "resolution");
 		mMatrixP 		= glGetUniformLocation(mShader, "Projection");
 		mMatrixV 		= glGetUniformLocation(mShader, "View");
 		mMatrixM 		= glGetUniformLocation(mShader, "World");
+		mScaleV			= glGetUniformLocation(mShader, "ScaleV");
+		mAttribVtxLoc	= glGetAttribLocation( mShader, "vPosition");
 
-		mGrid = 20;
-		mBars.addBars(mGrid*mGrid);
+		mGrid 			= 25;
+		mBarsScene.create(mGrid,mGrid);
+		Graph::BarMgr &bars = mBarsScene.getBarMgr();
 		// make a copy for now because we might need to add multiple indicies to this obj (there is only one index list)
-		for(int i=0;i<mBars.faces().size();i++)
+		for(int i=0;i<bars.faces().size();i++)
 		{
-			mIndices.push_back(mBars.faces()[i]);
+			mIndices.push_back(bars.faces()[i]);
 		}
 
 		// Generate a buffer for the vertices
 		glGenBuffers(1, &mVertexbuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
-		glBufferData(GL_ARRAY_BUFFER, mBars.vertices().size() * sizeof(glm::vec3), &mBars.vertices()[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, bars.vertices().size() * sizeof(glm::vec3), &bars.vertices()[0], GL_STATIC_DRAW);
 
 
 		// Generate a buffer for the indices
@@ -1108,10 +1120,10 @@ public:
 		// NOTE THIS NEEDS TO INITIATED FOR THE RENDERER IF MULTIPLE TYPE OF OBJECTS WILL BE USED.
 
 		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(mAttribVtxLoc);
 		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
 		glVertexAttribPointer(
-			0,                  // attribute
+			mAttribVtxLoc,      // attribute
 			3,                  // size
 			GL_FLOAT,           // type
 			GL_FALSE,           // normalized?
@@ -1127,7 +1139,6 @@ public:
 		glUseProgram(mShader);
 		checkGLError("glUseProgram");
 
-
 		return TRUE;
 	}
 
@@ -1135,7 +1146,7 @@ public:
 
 	void init()
 	{
-		mWidth = EXTENT_X(maGetScrSize());
+		mWidth 	= EXTENT_X(maGetScrSize());
 		mHeight = EXTENT_Y(maGetScrSize());
 
 		if(!initGL())
@@ -1144,9 +1155,63 @@ public:
 		mStartTime = maGetMilliSecondCount();
 	}
 
-	void draw()
+	void drawBars(float tick)
+	{
+		// Update variables to the shader, that is only updated commonly for all bars once per frame such as ParojactionMatrix, ViewMatrix, should be World Matrix aswell
+		// projectionMatrix and viewMatrix tick time, resolution constants for pixel shader that are identical trough out the obj calls. hence update only once.
+		glUniform1f(mTimeLoc, tick);
+		checkGLError("glUniform1f");
+		glUniform2f(mResolutionLoc, 1.0f/(float)mWidth, 1.0f/(float)mHeight);
+		checkGLError("glUniform2f");
+		glUniformMatrix4fv(mMatrixP, 1, GL_FALSE, &mBarsScene.getProjectionMat()[0][0]);
+		checkGLError("glUniformMatrix4fv");
+		glUniformMatrix4fv(mMatrixV, 1, GL_FALSE, &mBarsScene.getViewMat()[0][0]);
+		checkGLError("glUniformMatrix4fv");
+
+		// setting up a 2D grid.  prepare const variable for a tight loop
+		Graph::BarMgr &bars = mBarsScene.getBarMgr();
+		const float gridx 	= mBarsScene.gridX();
+		const int iGridX	= mBarsScene.gridX();
+		const float gridz 	= mBarsScene.gridZ();
+		const int iGridZ	= mBarsScene.gridZ();
+		const float centerX = mBarsScene.getCx();
+		const float centerZ = mBarsScene.getCz();
+		glm::vec3 sv(0.5f,0.5f,0.5f);
+
+		for(int j=0; j<iGridZ; j++)
+		{
+			for(int i=0; i<iGridX; i++)
+			{
+				Graph::Bar &bar = bars.getBar(i*j);
+				bar.setValue(1.1f+1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
+				glm::mat4 m 	= glm::translate(mBarsScene.getWorldMat(),centerX+i,0.0f,centerZ+j);	// does a mat mul
+				sv.y 			= bar.getValue();
+
+				// upload our obj matrix to the vertex shader.
+				glUniformMatrix4fv(mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
+				glUniform3fv(mScaleV,1, (float *)&sv.x);				// mScale location => variable "ScaleV" in vertex shader
+				glDrawElements(
+					 GL_TRIANGLES,      	// mode
+					 mIndices.size(),    	// count
+					 GL_UNSIGNED_SHORT,   	// type
+					 (void*)0           	// element array buffer offset
+				 );
+			}
+		}
+	}
+
+	void drawGrid(float tick)
 	{
 
+	}
+
+	void drawText(float tick)
+	{
+
+	}
+
+	void draw()
+	{
 		float tick = (maGetMilliSecondCount() - mStartTime) * 0.001f;
 		// Set the viewport
 		glViewport(0, 0, mWidth, mHeight);
@@ -1156,52 +1221,13 @@ public:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		checkGLError("glClear");
 
+		// Create a rotation matrix.
+		glm::mat4 m = glm::rotate(20.0f*tick,0.0f,1.0f,0.0f);
+		mBarsScene.setWorldMat( m );
 
-
-		glm::mat4 r = glm::rotate(20.0f*tick,0.0f,1.0f,0.0f);
-
-		// update to shader projection and view that are identical trough out the obj calls.
-
-		glUniform1f(mTimeLoc, tick);
-//				checkGLError("glUniform1f");
-		glUniform2f(mResolutionLoc, 1.0f/(float)mWidth, 1.0f/(float)mHeight);
-//				checkGLError("glUniform2f");
-		glUniformMatrix4fv(mMatrixP, 1, GL_FALSE, &mProjection[0][0]);
-//				checkGLError("glUniformMatrix4fv");
-		glUniformMatrix4fv(mMatrixV, 1, GL_FALSE, &mView[0][0]);
-//				checkGLError("glUniformMatrix4fv");
-
-
-		float grid = mGrid;
-		for(int j=0; j<grid; j++)
-		{
-			for(int i=0; i<grid; i++)
-			{
-				Graph::Bar &bar = mBars.getBar(i*j);
-				float sc = 1.0f;
-				bar.setValue(sc*1.1f+sc*1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
-				glm::mat4 s 	= glm::scale(0.5f,bar.getValue(),0.5f);
-				glm::mat4 t 	= glm::translate(s,0.5f-grid*0.5f+i*1.0f,0.0f,0.5f-grid*0.5f+j*1.0f);
-				glm::mat4 m 	= r*t;
-
-				// For each model you render, since the MVP will be different (at least the M part)
-
-				glUniformMatrix4fv(mMatrixM, 1, GL_FALSE, &m[0][0]);
-//				checkGLError("glUniformMatrix4fv");
-
-				 // Draw the triangles !
-				 glDrawElements(
-					 GL_TRIANGLES,      // mode
-					 mIndices.size(),    // count
-					 GL_UNSIGNED_SHORT,   // type
-					 (void*)0           // element array buffer offset
-				 );
-//				 checkGLError("glDrawElements");
-
-			}
-		}
-
-	//	 glDisableVertexAttribArray(0);
+		drawBars(tick);
+		drawGrid(tick);
+		drawText(tick);
 	}
 };
 

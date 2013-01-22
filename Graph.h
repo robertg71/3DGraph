@@ -165,7 +165,6 @@ public:
 	Bar &getBar(int i) {return mBars[i];}
 	std::vector<glm::vec3>& vertices() {return mVertices;}
 	std::vector<unsigned short>& faces() {return mFaces;}
-
 };
 
 /*
@@ -222,11 +221,34 @@ public:
  */
 class Scene
 {
-public:
+protected:
+	int 	mGridX;
+	int 	mGridZ;
 	AxisMgr mAxisMgr;
 	BarMgr  mBarMgr;		// note bars have to be dynamically build in order to handle different type of graph displays
 	TextMgr mTextMgr;
+	bool 	mFitToScreen;
+
+	glm::mat4 mProjection;		// Projection Matrix
+	glm::mat4 mView;			// View Matrix
+	glm::mat4 mWorld;			// World Matrix
+
+
+	float 	mDistToCam;		// internally calculated for fit to screen.
 	// need other display element to use.
+	//void createScene(int bars,int type,int grid);
+	// view perspective matrices should be stored here. and other stuff that is currently in main.
+public:
+	void create(int gridX,int gridZ, bool bFitToScreen = true); // { mBarMgr.addBars(gridX*gridZ);}
+	BarMgr &getBarMgr() 	{return mBarMgr;}
+	int 	gridX()			{return mGridX;}
+	int		gridZ() 		{return mGridZ;}
+	float	getCx()			{return 0.5f-mGridX*0.5f;}
+	float	getCz()			{return 0.5f-mGridZ*0.5f;}
+	glm::mat4 & getProjectionMat() {return mProjection;}
+	glm::mat4 & getViewMat()	{return mView;}
+	glm::mat4 & getWorldMat()	{return mWorld;}
+	void setWorldMat(glm::mat4 &m) {mWorld = m;}
 };
 
 /*

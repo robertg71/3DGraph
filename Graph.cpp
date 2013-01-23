@@ -4,7 +4,7 @@
  *  Created on: Jan 14, 2013
  *      Author: CodeArt
  */
-
+#include <mavsprintf.h>
 #include "graph.h"
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
@@ -65,25 +65,42 @@ namespace Graph
 
 	void Scene::create(int gridX, int gridZ,bool bFitToScreen)
 	{
+		mFitToScreen = bFitToScreen;
 		mGridX = gridX;
 		mGridZ = gridZ;
+		int newSize = gridX*gridZ;
+		lprintfln("Scene::create: %i*%i=%i",mGridX,mGridZ,newSize);
 		mBarMgr.addBars(gridX*gridZ);
-		mFitToScreen = bFitToScreen;
-		float cx = getCx();
-		float cz = getCz();
-		float res = glm::sqrt(cx*cx+cz*cz);
+
+		lprintfln("vector<Bar> bars, size() = %i == %i", mBarMgr.size(),gridX*gridZ);
+
+		const float aspect = 3.0f/4.0f;
+		const float cx = getCx();		// requires grid to be set
+		const float cz = getCz();		// requires grid to be set
+		const float res = glm::sqrt(cx*cx+cz*cz);
 		mDistToCam = res;
 
-		float aspect = 3.0f/4.0f;
 		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 		mProjection = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
-		// Camera matrix
-		mView       = glm::lookAt(
-			glm::vec3(0.0f,res*0.5f,res*1.0f/aspect), // Camera is at (4,3,3), in World Space
+		mWorld		= glm::mat4(1.0f);	// set up an identity matrix
+
+		if (bFitToScreen == true)
+		{
+			// Camera matrix
+			mView       = glm::lookAt(
+			glm::vec3(0.0f,res*0.5f,res*1.0f/aspect), // Camera is at (0,x/2,x*(1/aspec)), in World Space
 			glm::vec3(0,0,0), // and looks at the origin
 			glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
-		);
-		mWorld		= glm::mat4(1.0f);	// set up an identity matrix
+			);
+		}
+		else	// set up a default camera matrix
+		{
+			mView       = glm::lookAt(
+			glm::vec3(0.0f,10.0f,20.0f), // Camera is at (0,10,20), in World Space
+			glm::vec3(0,0,0), // and looks at the origin
+			glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
+			);
+		}
 	}
 }
 

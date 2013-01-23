@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
+#include <MAUtil/vector.h>
 // during development I lake to keep all data public. cleanup will be done later.
 
 
@@ -129,15 +130,13 @@ class Bar
 protected:
 	float mValue;
 	glm::vec4 mColor;
-	glm::mat4 mWorld;		// Object in world space.
 
 public:
-	Bar() : mWorld(1.0f), mValue(1.0f) {  }
+	Bar() : mValue(1.0f), mColor(1.0f,1.0f,1.0f,1.0f){}
 	void setColor(float r,float g,float b, float a)		{ mColor.x = r; mColor.y = g; mColor.z = b; mColor.w = a; }
 	void setValue(float val) {mValue = val;}
 	float getValue() {return mValue;}
-	glm::mat4x4 &getMatrix() {return mWorld;}
-	void setMatrix(glm::mat4 &m) {mWorld = m;}
+	glm::vec4 & getColor() {return mColor;}
 };
 
 /*
@@ -160,8 +159,9 @@ public:
 	BarMgr() {createBar3D();}
 	void addBars(int n) {mBars.resize(n);}
 	void addBar(Bar &b) {mBars.push_back(b);}
+//	MAUtil::Vector<Bar> &getBars() {return mBars;}
 	std::vector<Bar> &getBars() {return mBars;}
-	int size()	{mBars.size();}
+	int size()	{return mBars.size();}
 	Bar &getBar(int i) {return mBars[i];}
 	std::vector<glm::vec3>& vertices() {return mVertices;}
 	std::vector<unsigned short>& faces() {return mFaces;}
@@ -175,13 +175,9 @@ class Axis
 public:
 	float mAxisMax;
 	float mAxisMin;
-	float mGrid;
 	float mStep;
 	glm::vec2 mPoint;
-	std::vector<glm::vec3> mVertices;
-	std::vector<int> mFaces;		// optional how to draw the lines between the vector points
 	int type;				// type of axis lines or more 3d? future ref
-	std::string mText;		// Axis text
 };
 
 /*
@@ -189,8 +185,14 @@ public:
  */
 class AxisMgr
 {
+protected:
+	std::vector<Axis> mAxis;	// value and time  can support up to 3D X,Y,Z
+	std::vector<glm::vec3> mVertices;
+
 public:
-	Axis mAxis[3];	// value and time  can support up to 3D X,Y,Z
+	enum {AXIS_X,AXIS_Y,AXIS_Z};
+	Axis &getAxis(int i) {return mAxis[i];}
+	std::vector<glm::vec3>& vertices()	{return mVertices;}
 };
 
 /*
@@ -241,6 +243,7 @@ protected:
 public:
 	void create(int gridX,int gridZ, bool bFitToScreen = true); // { mBarMgr.addBars(gridX*gridZ);}
 	BarMgr &getBarMgr() 	{return mBarMgr;}
+	AxisMgr &getAxisMgr()	{return mAxisMgr;}
 	int 	gridX()			{return mGridX;}
 	int		gridZ() 		{return mGridZ;}
 	float	getCx()			{return 0.5f-mGridX*0.5f;}

@@ -29,7 +29,6 @@ MA 02110-1301, USA.
 #include <glm/gtx/transform.hpp>
 #include <maheap.h>
 #include <conprint.h>
-#include <mavsprintf.h>
 #include "graph.h"
 
 using namespace MAUtil;
@@ -806,39 +805,77 @@ void main( void )
 		"}                           \n";
 */
 
+
+//--------------------------------------------------------------------------------------
+// BARS
+//--------------------------------------------------------------------------------------
+		// BARS FRAGMENT SHADER
 		char fragmentShaderBars[]=STRINGIFY(
-		precision lowp 	float;
-		varying vec4 	v_color;
-		uniform vec2 	resolution;
-		uniform float 	time;
-		void main( void )
-		{
-		    gl_FragColor = vec4(v_color.x*0.5,v_color.y*1.0,v_color.z*0.5,1.0);
-		}
+			precision lowp 	float;
+			varying vec4 	v_color;
+			uniform vec2 	resolution;
+			uniform float 	time;
+			void main( void )
+			{
+				gl_FragColor = vec4(v_color.x,v_color.y,v_color.z,v_color.w);
+			}
 		);
 
-
+		// BARS VERTEX SHADER
 		char vertexShaderBars[]=STRINGIFY(
+			attribute vec4 vPosition;
+			uniform mat4 Projection;
+			uniform mat4 View;
+			uniform mat4 World;
+			uniform vec3 ScaleV;
+			uniform vec4 Color;
+			varying vec4 v_color;
+			void main( void )
+			{
+				mat4 sm = mat4(1.0);
+				sm[0][0] = ScaleV.x;
+				sm[1][1] = ScaleV.y;
+				sm[2][2] = ScaleV.z;
 
-		attribute vec4 vPosition;
-
-		uniform mat4 Projection;
-		uniform mat4 View;
-		uniform mat4 World;
-		uniform vec3 ScaleV;
-
-		varying vec4 v_color;
-		void main( void )
-		{
-			mat4 sm = mat4(1.0);
-			sm[0][0] = ScaleV.x;
-			sm[1][1] = ScaleV.y;
-			sm[2][2] = ScaleV.z;
-
-			v_color = vPosition;
-			gl_Position = (Projection * View * sm * World) * vPosition;
-		}
+				v_color = vec4(Color.x*vPosition.y, Color.y*vPosition.y, Color.z*vPosition.y, Color.w);
+				gl_Position = (Projection * View * sm * World) * vPosition;
+			}
 		);
+
+//--------------------------------------------------------------------------------------
+// LINES
+//--------------------------------------------------------------------------------------
+				// LINES FRAGMENT SHADER
+				char fragmentShaderLines[]=STRINGIFY(
+					precision lowp 	float;
+					varying vec4 	v_color;
+					uniform vec2 	resolution;
+					uniform float 	time;
+					void main( void )
+					{
+						gl_FragColor = v_color;
+					}
+				);
+
+				// LINES VERTEX SHADER
+				char vertexShaderLines[]=STRINGIFY(
+					attribute vec4 vPosition;
+					uniform mat4 Projection;
+					uniform mat4 View;
+					uniform mat4 World;
+					uniform vec3 ScaleV;
+					varying vec4 v_color;
+					void main( void )
+					{
+						mat4 sm = mat4(1.0);
+						sm[0][0] = ScaleV.x;
+						sm[1][1] = ScaleV.y;
+						sm[2][2] = ScaleV.z;
+
+						v_color = vec4(0.5,0.5,0.5,1.0);
+						gl_Position = (Projection * View * sm * World) * vPosition;
+					}
+				);
 
 /*
  *
@@ -1010,31 +1047,40 @@ GLuint loadShaders(const char *shader_vtx, const char *shader_frg)
 
 class MyGLMoblet: public GLMoblet {
 private:
-	GLuint mShader;				// shader for bars
-	GLuint mAttribVtxLoc;
-	GLuint mTimeLoc;			// time tick variable for shaders (fragment)
-	GLuint mResolutionLoc;		// screen resulution
-	GLuint mMatrixP;			// Shader Perspective Projection
-	GLuint mMatrixV;			// Shader Camera View
-	GLuint mMatrixM;			// Shader World
-	GLuint mScaleV;				// Scale vector of bars. its height...
-	GLuint mElementbuffer;		// Element buffer holding the index buffer for bars
-	GLuint mVertexbuffer;		// Vertex buffer for bars. (cube)
-	int  mGrid;				// Grid of X,Z
-/*
-	glm::mat4 mProjection;		// Projection Matrix
-	glm::mat4 mView;			// View Matrix
-	glm::mat4 mWorld;			// World Matrix
-*/
-	Graph::Scene mBarsScene;
-//	Graph::BarMgr mBars;		// Manager class of Bars contain all bars and vertex / face data
-	std::vector<unsigned short> mIndices;	// Index list of faces
+	// Bars location parameters
+	GLuint 	mShader;			// shader for bars
+	GLuint 	mAttribVtxLoc;		// Attribute to the vertex shader of vpos location
+	GLuint 	mTimeLoc;			// time tick variable for shaders (fragment)
+	GLuint 	mResolutionLoc;		// screen resulution
+	GLuint 	mMatrixP;			// Shader Perspective Projection
+	GLuint 	mMatrixV;			// Shader Camera View
+	GLuint 	mMatrixM;			// Shader World
+	GLuint 	mScaleV;			// Scale vector of bars. its height...
+	GLuint	mColor;				// individual color of a bar.
+	GLuint 	mElementbuffer;		// Element buffer holding the index buffer for bars
+	GLuint 	mVertexbuffer;		// Vertex buffer for bars. (cube)
 
-	int mWidth, mHeight;		// Screen resolution in ABS form e.g. 640,480
+	// Line location parameters
+	GLuint 	mLShader;			// shader for bars
+	GLuint 	mLAttribVtxLoc;		// Attribute to the vertex shader of vpos location
+	GLuint 	mLTimeLoc;			// time tick variable for shaders (fragment)
+	GLuint 	mLResolutionLoc;		// screen resulution
+	GLuint 	mLMatrixP;			// Shader Perspective Projection
+	GLuint 	mLMatrixV;			// Shader Camera View
+	GLuint 	mLMatrixM;			// Shader World
+	GLuint 	mLScaleV;			// Scale vector of bars. its height...
+//	GLuint 	mLElementbuffer;		// Element buffer holding the index buffer for bars
+	GLuint 	mLVertexbuffer;		// Vertex buffer for bars. (cube)
+
+	int 	mWidth, mHeight;	// Screen resolution in ABS form e.g. 640,480
+	int  	mGrid;				// Grid of X,Z
+	Graph::Scene 				mScene;
+	std::vector<unsigned short> mIndices;	// Index list of faces
 
 public:
 	MyGLMoblet() :
-		GLMoblet(GLMoblet::GL2) {
+		GLMoblet(GLMoblet::GL2)
+	{
 	}
 
 	/**
@@ -1058,15 +1104,82 @@ public:
 		}
 	}
 
+	int initShaderLines()
+	{
+		// set up all locations for each variable in the shaders..
+		mLShader 		= loadShaders(vertexShaderLines,fragmentShaderLines);
+		mLTimeLoc 		= glGetUniformLocation(mShader, "time");
+		mLResolutionLoc = glGetUniformLocation(mShader, "resolution");
+		mLMatrixP 		= glGetUniformLocation(mShader, "Projection");
+		mLMatrixV 		= glGetUniformLocation(mShader, "View");
+		mLMatrixM 		= glGetUniformLocation(mShader, "World");
+		mLScaleV		= glGetUniformLocation(mShader, "ScaleV");
+		mLAttribVtxLoc	= glGetAttribLocation( mShader, "vPosition");
+		mGrid 			= 70;	// 70 ish as most.
+
+		// create a braph with grid times grid
+//		mScene.create(mGrid,mGrid);
+//		Graph::AxisMgr &axis = mScene.getAxisMgr();
+
+
+/*
+		// make a copy for now because we might need to add multiple indicies to this obj (there is only one index list)
+		for(int i=0;i<bars.faces().size();i++)
+		{
+			mIndices.push_back(bars.faces()[i]);
+		}
+*/
+		// Generate a buffer for the vertices
+/*		glGenBuffers(1, &mVertexbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, bars.vertices().size() * sizeof(glm::vec3), &bars.vertices()[0], GL_STATIC_DRAW);
+*/
+/*
+		// Generate a buffer for the indices
+		glGenBuffers(1, &mElementbuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementbuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(unsigned short), &mIndices[0], GL_STATIC_DRAW);
+*/
+		return TRUE;
+
+	}
+
 	int initShaderBars()
 	{
+		// set up all locations for each variable in the shaders..
+		mShader 		= loadShaders(vertexShaderBars,fragmentShaderBars);
+		mTimeLoc 		= glGetUniformLocation(mShader, "time");
+		mResolutionLoc 	= glGetUniformLocation(mShader, "resolution");
+		mMatrixP 		= glGetUniformLocation(mShader, "Projection");
+		mMatrixV 		= glGetUniformLocation(mShader, "View");
+		mMatrixM 		= glGetUniformLocation(mShader, "World");
+		mScaleV			= glGetUniformLocation(mShader, "ScaleV");
+		mColor			= glGetUniformLocation(mShader, "Color");
+		mAttribVtxLoc	= glGetAttribLocation( mShader, "vPosition");
 
+		Graph::BarMgr &bars = mScene.getBarMgr();
+
+		// make a copy for now because we might need to add multiple indicies to this obj (there is only one index list)
+		for(size_t i=0;i<bars.faces().size();i++)
+		{
+			mIndices.push_back(bars.faces()[i]);
+		}
+
+		// Generate a buffer for the vertices
+		glGenBuffers(1, &mVertexbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, bars.vertices().size() * sizeof(glm::vec3), &bars.vertices()[0], GL_STATIC_DRAW);
+
+		// Generate a buffer for the indices
+		glGenBuffers(1, &mElementbuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementbuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(unsigned short), &mIndices[0], GL_STATIC_DRAW);
+
+		return TRUE;
 	}
 
 	int initGL()
 	{
-
-
 		// Set up common gl options
 
 		// Enable depth test
@@ -1083,42 +1196,47 @@ public:
 		// set up clear color
 		glClearColor(0.0f, 0.0f, 0.0f, 2.0f);		// why alpha 2.0f ?
 
+		// create a braph with grid times grid
 		initShaderBars();
+		initShaderLines();
+		return TRUE;
+	}
 
-		mShader = loadShaders(vertexShaderBars,fragmentShaderBars);
+	int mStartTime;
 
+	void init()
+	{
+		lprintfln("init2");
+		mWidth 	= EXTENT_X(maGetScrSize());
+		mHeight = EXTENT_Y(maGetScrSize());
+		mGrid 	= 50;	// 70 ish as most.
+		lprintfln("mGrid: %i", mGrid);
+		mScene.create(mGrid,mGrid);
 
-		mTimeLoc 		= glGetUniformLocation(mShader, "time");
-		mResolutionLoc 	= glGetUniformLocation(mShader, "resolution");
-		mMatrixP 		= glGetUniformLocation(mShader, "Projection");
-		mMatrixV 		= glGetUniformLocation(mShader, "View");
-		mMatrixM 		= glGetUniformLocation(mShader, "World");
-		mScaleV			= glGetUniformLocation(mShader, "ScaleV");
-		mAttribVtxLoc	= glGetAttribLocation( mShader, "vPosition");
-
-		mGrid 			= 25;
-		mBarsScene.create(mGrid,mGrid);
-		Graph::BarMgr &bars = mBarsScene.getBarMgr();
-		// make a copy for now because we might need to add multiple indicies to this obj (there is only one index list)
-		for(int i=0;i<bars.faces().size();i++)
+		Graph::BarMgr & bars = mScene.getBarMgr();
+		lprintfln("size: %i", bars.size());
+/*
+		srand(10);
+		for (int i=0; i<bars.size(); ++i)
 		{
-			mIndices.push_back(bars.faces()[i]);
+			float r = (float)(rand()&127);
+			float g = (float)(rand()&127);
+			float b = (float)(rand()&127);
+			r /=127.0f;
+			g /=127.0f;
+			b /=127.0f;
+			Graph::Bar &bar = bars.getBar(i);
+			bar.setColor(r,g,b,1.0f);
 		}
+*/
+		if(!initGL())
+			maPanic(1, "Failed to initialize!");
 
-		// Generate a buffer for the vertices
-		glGenBuffers(1, &mVertexbuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
-		glBufferData(GL_ARRAY_BUFFER, bars.vertices().size() * sizeof(glm::vec3), &bars.vertices()[0], GL_STATIC_DRAW);
+		mStartTime = maGetMilliSecondCount();
+	}
 
-
-		// Generate a buffer for the indices
-		glGenBuffers(1, &mElementbuffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementbuffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(unsigned short), &mIndices[0], GL_STATIC_DRAW);
-
-
-		// NOTE THIS NEEDS TO INITIATED FOR THE RENDERER IF MULTIPLE TYPE OF OBJECTS WILL BE USED.
-
+	void drawBars(float tick)
+	{
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(mAttribVtxLoc);
 		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
@@ -1132,72 +1250,61 @@ public:
 		);
 		checkGLError("glEnableVertexAttribArray");
 
-		// Index buffer
+		// bind the Index buffer with vertex buffer
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementbuffer);
 
 		// Use the program object   shader and its specific arguments
 		glUseProgram(mShader);
 		checkGLError("glUseProgram");
 
-		return TRUE;
-	}
-
-	int mStartTime;
-
-	void init()
-	{
-		mWidth 	= EXTENT_X(maGetScrSize());
-		mHeight = EXTENT_Y(maGetScrSize());
-
-		if(!initGL())
-			maPanic(1, "Failed to initialize!");
-
-		mStartTime = maGetMilliSecondCount();
-	}
-
-	void drawBars(float tick)
-	{
 		// Update variables to the shader, that is only updated commonly for all bars once per frame such as ParojactionMatrix, ViewMatrix, should be World Matrix aswell
 		// projectionMatrix and viewMatrix tick time, resolution constants for pixel shader that are identical trough out the obj calls. hence update only once.
 		glUniform1f(mTimeLoc, tick);
 		checkGLError("glUniform1f");
 		glUniform2f(mResolutionLoc, 1.0f/(float)mWidth, 1.0f/(float)mHeight);
 		checkGLError("glUniform2f");
-		glUniformMatrix4fv(mMatrixP, 1, GL_FALSE, &mBarsScene.getProjectionMat()[0][0]);
+		glUniformMatrix4fv(mMatrixP, 1, GL_FALSE, &mScene.getProjectionMat()[0][0]);
 		checkGLError("glUniformMatrix4fv");
-		glUniformMatrix4fv(mMatrixV, 1, GL_FALSE, &mBarsScene.getViewMat()[0][0]);
+		glUniformMatrix4fv(mMatrixV, 1, GL_FALSE, &mScene.getViewMat()[0][0]);
 		checkGLError("glUniformMatrix4fv");
 
 		// setting up a 2D grid.  prepare const variable for a tight loop
-		Graph::BarMgr &bars = mBarsScene.getBarMgr();
-		const float gridx 	= mBarsScene.gridX();
-		const int iGridX	= mBarsScene.gridX();
-		const float gridz 	= mBarsScene.gridZ();
-		const int iGridZ	= mBarsScene.gridZ();
-		const float centerX = mBarsScene.getCx();
-		const float centerZ = mBarsScene.getCz();
+		Graph::BarMgr &bars = mScene.getBarMgr();
+//		const float gridx 	= mScene.gridX();
+		const int iGridX	= mScene.gridX();
+//		const float gridz 	= mScene.gridZ();
+		const int iGridZ	= mScene.gridZ();
+		const float centerX = mScene.getCx();
+		const float centerZ = mScene.getCz();
 		glm::vec3 sv(0.5f,0.5f,0.5f);
-
+		int k = 0;
 		for(int j=0; j<iGridZ; j++)
 		{
+		//	k++;
 			for(int i=0; i<iGridX; i++)
 			{
-				Graph::Bar &bar = bars.getBar(i*j);
+				Graph::Bar &bar = bars.getBar(j*iGridX+i);
 				bar.setValue(1.1f+1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
-				glm::mat4 m 	= glm::translate(mBarsScene.getWorldMat(),centerX+i,0.0f,centerZ+j);	// does a mat mul
+				glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX+i,0.0f,centerZ+j);	// does a mat mul
 				sv.y 			= bar.getValue();
+				float c = 0.5f+0.5f*(float)(k&1);
+				bar.setColor(1.0f-c,0.75f,c,1.0f);
 
 				// upload our obj matrix to the vertex shader.
 				glUniformMatrix4fv(mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
 				glUniform3fv(mScaleV,1, (float *)&sv.x);				// mScale location => variable "ScaleV" in vertex shader
+				glUniform4fv(mColor,1, (float *)&bar.getColor().x);
 				glDrawElements(
 					 GL_TRIANGLES,      	// mode
 					 mIndices.size(),    	// count
 					 GL_UNSIGNED_SHORT,   	// type
 					 (void*)0           	// element array buffer offset
 				 );
+				k++;
 			}
 		}
+		glDisableVertexAttribArray(mAttribVtxLoc);
+
 	}
 
 	void drawGrid(float tick)
@@ -1223,7 +1330,7 @@ public:
 
 		// Create a rotation matrix.
 		glm::mat4 m = glm::rotate(20.0f*tick,0.0f,1.0f,0.0f);
-		mBarsScene.setWorldMat( m );
+		mScene.setWorldMat( m );
 
 		drawBars(tick);
 		drawGrid(tick);

@@ -16,7 +16,7 @@ namespace Graph
 	/*
 	 * helper function to set the vertex array index array
 	 */
-	void BarMgr::createBar3D()
+	void BarMgr::create3D()
 	{
 		// Define quad vertices. origo Y = 0
 	 const float Vertices[] = {
@@ -69,10 +69,14 @@ namespace Graph
 		mGridX = gridX;
 		mGridZ = gridZ;
 		int newSize = gridX*gridZ;
+
 		lprintfln("Scene::create: %i*%i=%i",mGridX,mGridZ,newSize);
 		mBarMgr.addBars(gridX*gridZ);
-
 		lprintfln("vector<Bar> bars, size() = %i == %i", mBarMgr.size(),gridX*gridZ);
+
+		int axis = ((gridX>1)&&(gridZ>1))?3:2;	// how many axis should be displayed 2 or 3 dependent on layout... 2d => 2 => 3d => 3
+		mAxisMgr.addAxis(axis);
+
 
 		const float aspect = 3.0f/4.0f;
 		const float cx = getCx();		// requires grid to be set
@@ -102,6 +106,40 @@ namespace Graph
 			);
 		}
 	}
+
+	void AxisMgr::create3D()
+	{
+		float v[] = { 	0.0f, 0.0f, 0.0f,
+						1.0f, 0.0f, 0.0f,
+						0.0f, 0.0f, 0.0f,
+						0.0f, 1.0f, 0.0f,
+						0.0f, 0.0f, 0.0f,
+						0.0f, 0.0f, 1.0f
+		};
+
+		mAxis[0].vertices().push_back(glm::vec3(v[0],v[1],v[2]));
+		mAxis[0].vertices().push_back(glm::vec3(v[3],v[4],v[5]));
+		mAxis[1].vertices().push_back(glm::vec3(v[6],v[7],v[8]));
+		mAxis[1].vertices().push_back(glm::vec3(v[9],v[10],v[11]));
+
+		if(mAxis.size()>2)
+		{
+			mAxis[2].vertices().push_back(glm::vec3(v[12],v[13],v[14]));
+			mAxis[2].vertices().push_back(glm::vec3(v[15],v[16],v[17]));
+		}
+		else
+		{
+			// error not declared.
+		}
+	}
+
+	void AxisMgr::addAxis(int n)
+	{
+		mAxis.resize(n);
+		create3D();
+	}
+
+
 }
 
 

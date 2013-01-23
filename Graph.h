@@ -153,13 +153,12 @@ protected:
 	std::vector<glm::vec3> mVertices;
 	std::vector<unsigned short> mFaces;
 
-	void createBar3D();
+	void create3D();			// create 3D obj. one instance of a cube with origo at bottom with indices
 
 public:
-	BarMgr() {createBar3D();}
+	BarMgr() {create3D();}
 	void addBars(int n) {mBars.resize(n);}
 	void addBar(Bar &b) {mBars.push_back(b);}
-//	MAUtil::Vector<Bar> &getBars() {return mBars;}
 	std::vector<Bar> &getBars() {return mBars;}
 	int size()	{return mBars.size();}
 	Bar &getBar(int i) {return mBars[i];}
@@ -172,12 +171,18 @@ public:
  */
 class Axis
 {
-public:
+protected:
 	float mAxisMax;
 	float mAxisMin;
 	float mStep;
 	glm::vec2 mPoint;
-	int type;				// type of axis lines or more 3d? future ref
+	int mType;				// type of axis lines or more 3d? future ref
+
+	std::vector<glm::vec3> mVertices;
+
+public:
+	std::vector<glm::vec3>& vertices()	{return mVertices;}
+	int size() {return mVertices.size();}
 };
 
 /*
@@ -187,12 +192,15 @@ class AxisMgr
 {
 protected:
 	std::vector<Axis> mAxis;	// value and time  can support up to 3D X,Y,Z
-	std::vector<glm::vec3> mVertices;
 
+	void create3D();
 public:
 	enum {AXIS_X,AXIS_Y,AXIS_Z};
+	void addAxis(int axis);
 	Axis &getAxis(int i) {return mAxis[i];}
-	std::vector<glm::vec3>& vertices()	{return mVertices;}
+	std::vector<Axis>& getAxisArray() {return mAxis;}
+	int size() {return mAxis.size();}
+
 };
 
 /*
@@ -235,17 +243,14 @@ protected:
 	glm::mat4 mView;			// View Matrix
 	glm::mat4 mWorld;			// World Matrix
 
-
 	float 	mDistToCam;		// internally calculated for fit to screen.
-	// need other display element to use.
-	//void createScene(int bars,int type,int grid);
-	// view perspective matrices should be stored here. and other stuff that is currently in main.
+
 public:
 	void create(int gridX,int gridZ, bool bFitToScreen = true); // { mBarMgr.addBars(gridX*gridZ);}
 	BarMgr &getBarMgr() 	{return mBarMgr;}
 	AxisMgr &getAxisMgr()	{return mAxisMgr;}
-	int 	gridX()			{return mGridX;}
-	int		gridZ() 		{return mGridZ;}
+	int 	getGridX()			{return mGridX;}
+	int		getGridZ() 		{return mGridZ;}
 	float	getCx()			{return 0.5f-mGridX*0.5f;}
 	float	getCz()			{return 0.5f-mGridZ*0.5f;}
 	glm::mat4 & getProjectionMat() {return mProjection;}

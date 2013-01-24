@@ -863,8 +863,9 @@ void main( void )
 					uniform mat4 Projection;
 					uniform mat4 View;
 					uniform mat4 World;
-					uniform vec3 ScaleV;
+					uniform vec3 Length;
 					uniform vec4 Color;
+					uniform vec3 ScaleV;
 					varying vec4 v_color;
 					void main( void )
 					{
@@ -874,7 +875,7 @@ void main( void )
 						sm[2][2] = ScaleV.z;
 
 						v_color = Color;
-						gl_Position = (Projection * View * sm * World) * (vPosition * vec4(50.0,5.0,50.0,1.0));
+						gl_Position = (Projection * View * sm * World) * (vPosition * vec4(Length.xyz,1.0));
 					}
 				);
 
@@ -1069,6 +1070,7 @@ private:
 	GLuint 	mLMatrixP;			// Shader Perspective Projection
 	GLuint 	mLMatrixV;			// Shader Camera View
 	GLuint 	mLMatrixM;			// Shader World
+	GLuint	mLLength;			// Shader Line Length (line scales up 0..LineLength)
 	GLuint 	mLScaleV;			// Scale vector of bars. its height...
 	GLuint	mLColor;				// individual color of a bar.
 //	GLuint 	mLElementbuffer;		// Element buffer holding the index buffer for bars
@@ -1115,6 +1117,7 @@ public:
 		mLMatrixP 		= glGetUniformLocation(mLShader, "Projection");
 		mLMatrixV 		= glGetUniformLocation(mLShader, "View");
 		mLMatrixM 		= glGetUniformLocation(mLShader, "World");
+		mLLength		= glGetUniformLocation(mLShader, "Length");
 		mLScaleV		= glGetUniformLocation(mLShader, "ScaleV");
 		mLColor			= glGetUniformLocation(mLShader, "Color");			// Color of line (vertex shader)
 		mLAttribVtxLoc	= glGetAttribLocation( mLShader, "vPosition");
@@ -1199,7 +1202,7 @@ public:
 		lprintfln("init2");
 		mWidth 	= EXTENT_X(maGetScrSize());
 		mHeight = EXTENT_Y(maGetScrSize());
-		mGrid 	= 100;	// 70 ish as most.
+		mGrid 	= 30;	// 70 ish as most.
 		lprintfln("mGrid: %i", mGrid);
 		mScene.create(mGrid,mGrid);
 
@@ -1229,6 +1232,10 @@ public:
 	{
 		glEnable(GL_CULL_FACE);
 
+		// Use the program object   shader and its specific arguments
+		glUseProgram(mShader);
+		checkGLError("glUseProgram");
+
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(mAttribVtxLoc);
 		glBindBuffer(GL_ARRAY_BUFFER, mVertexbuffer);
@@ -1244,10 +1251,6 @@ public:
 
 		// bind the Index buffer with vertex buffer
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mElementbuffer);
-
-		// Use the program object   shader and its specific arguments
-		glUseProgram(mShader);
-		checkGLError("glUseProgram");
 
 		// Update variables to the shader, that is only updated commonly for all bars once per frame such as ParojactionMatrix, ViewMatrix, should be World Matrix aswell
 		// projectionMatrix and viewMatrix tick time, resolution constants for pixel shader that are identical trough out the obj calls. hence update only once.
@@ -1277,12 +1280,13 @@ public:
 				Graph::Bar &bar = bars.getBar(j*iGridX+i);
 //				bar.setValue(1.1f+1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
 				bar.setValue(1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick)));
-				glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX+i,0.0f,centerZ+j);	// does a mat mul
+				glm::mat4 m 	= glm::translate(mScene.getWorldMat(),(centerX-i)-0.5f,0.0f,(-centerZ+j)+0.5f);	// does a mat mul
 				sv.y 			= bar.getValue();
 
 				// set test colors for bars.. every second bar
 				float c = 0.5f+0.5f*(float)(k&1);
 				bar.setColor(1.0f-c,0.75f,c,1.0f);
+//				bar.setColor(i/30.0f,0.0f,j/30.0f,1.0f);
 
 				// upload our obj matrix to the vertex shader.
 				glUniformMatrix4fv(mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
@@ -1310,6 +1314,8 @@ public:
 		glUseProgram(mLShader);
 		checkGLError("glUseProgram");
 
+		glm::vec3 sv(0.5f,1.0f,0.5f);
+
 		// Update variables to the shader, that is only updated commonly for all bars once per frame such as ParojactionMatrix, ViewMatrix, should be World Matrix aswell
 		// projectionMatrix and viewMatrix tick time, resolution constants for pixel shader that are identical trough out the obj calls. hence update only once.
 		glUniform1f(mLTimeLoc, tick);
@@ -1320,10 +1326,12 @@ public:
 		checkGLError("glUniformMatrix4fv");
 		glUniformMatrix4fv(mLMatrixV, 1, GL_FALSE, &mScene.getViewMat()[0][0]);
 		checkGLError("glUniformMatrix4fv");
+		glUniform3fv(mLScaleV,1, (float *)&sv.x);				// mScale location => variable "ScaleV" in vertex shader
+		checkGLError("glUniform3fv");
 
 		Graph::AxisMgr &axisMgr = mScene.getAxisMgr();
-		const float centerX = mScene.getCx();
-		const float centerZ = mScene.getCz();
+		const float centerX = mScene.getCx()*1.01f;
+		const float centerZ = mScene.getCz()*1.01f;
 
 		for(int i=0; i<axisMgr.size(); i++)
 		{
@@ -1339,15 +1347,42 @@ public:
 				(void*)0            // array buffer offset
 			);
 			checkGLError("glEnableVertexAttribArray");
+			glLineWidth(2);
 
-			glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX-0.5f,0.0f,centerZ-0.5f);	// does a mat mul
-			glm::vec3 sv(0.5f,1.0f,0.5f);
-
-			glm::vec4 col(1.0f,1.0f,1.0f,1.0f);
-			glUniformMatrix4fv(mLMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
-			glUniform3fv(mLScaleV,1, (float *)&sv.x);				// mScale location => variable "ScaleV" in vertex shader
+			glm::vec4 col(0.5f,0.5f,0.5f,1.0f);
+			glm::vec3 llength(-centerX*2.0f,5.0f,centerZ*2.0f);
 			glUniform4fv(mLColor,1, (float *)&col.x);
+			glUniform3fv(mLLength,1, (float *)&llength.x);				// mScale location => variable "ScaleV" in vertex shader
+
+			glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX,0.0f,-centerZ);	// does a mat mul
+			glUniformMatrix4fv(mLMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
 			glDrawArrays(GL_LINES, 0, 2);
+
+			// Set up grid lines on height for X-Axis
+			if (i == 0)
+			{
+				glLineWidth(1);
+				glm::vec4 col(0.25f,0.25f,0.25f,1.0f);
+				glUniform4fv(mLColor,1, (float *)&col.x);
+				for (int l=0;l<5;l++)
+				{
+					glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX,(float)l,-centerZ);	// does a mat mul
+					glUniformMatrix4fv(mLMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
+					glDrawArrays(GL_LINES, 0, 2);
+				}
+			}
+			else if (i==2)	// Set up grid lines in height for Z-Axis
+			{
+				glLineWidth(1);
+				glm::vec4 col(0.25f,0.25f,0.25f,1.0f);
+				glUniform4fv(mLColor,1, (float *)&col.x);
+				for (int l=0;l<5;l++)
+				{
+					glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX,(float)l,-centerZ);	// does a mat mul
+					glUniformMatrix4fv(mLMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
+					glDrawArrays(GL_LINES, 0, 2);
+				}
+			}
 
 			glDisableVertexAttribArray(mLAttribVtxLoc);
 		}
@@ -1376,6 +1411,11 @@ public:
 
 		drawBars(tick);
 		drawAxis(tick);
+		glm::mat4 m2 = glm::rotate(180.0f+20.0f*tick,0.0f,1.0f,0.0f);
+		mScene.setWorldMat( m2 );
+		drawAxis(tick);
+
+
 		drawText(tick);
 	}
 };

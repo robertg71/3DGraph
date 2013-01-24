@@ -251,8 +251,8 @@ public:
 	AxisMgr &getAxisMgr()	{return mAxisMgr;}
 	int 	getGridX()			{return mGridX;}
 	int		getGridZ() 		{return mGridZ;}
-	float	getCx()			{return 0.5f-mGridX*0.5f;}
-	float	getCz()			{return 0.5f-mGridZ*0.5f;}
+	float	getCx()			{return /*0.5f+*/mGridX*0.5f;}
+	float	getCz()			{return /*0.5f+*/mGridZ*0.5f;}
 	glm::mat4 & getProjectionMat() {return mProjection;}
 	glm::mat4 & getViewMat()	{return mView;}
 	glm::mat4 & getWorldMat()	{return mWorld;}

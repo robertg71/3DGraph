@@ -92,7 +92,7 @@ namespace Graph
 		{
 			// Camera matrix
 			mView       = glm::lookAt(
-			glm::vec3(0.0f,res*0.5f,res*1.0f/aspect), // Camera is at (0,x/2,x*(1/aspec)), in World Space
+			glm::vec3(0.0f,res*0.5f,res*1.2f/aspect), // Camera is at (0,x/2,x*(1/aspec)), in World Space
 			glm::vec3(0,0,0), // and looks at the origin
 			glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
 			);

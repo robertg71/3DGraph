@@ -36,14 +36,14 @@ using namespace MAUtil;
 
 
 
-class MyGLMoblet: public GLMoblet {
+class MyGLMoblet: public GLMoblet
+{
 private:
 	// Bars location parameters
-
-
-	int 	mWidth, mHeight;	// Screen resolution in ABS form e.g. 640,480
-	int  	mGrid;				// Grid of X,Z
-	Graph::Scene 				mScene;
+	int 			mWidth;
+	int				mHeight;			// Screen resolution in ABS form e.g. 640,480
+	int  			mGrid;				// Grid of X,Z
+	Graph::Scene 	mScene;
 
 public:
 	MyGLMoblet() :
@@ -85,6 +85,12 @@ public:
 		return TRUE;
 	}
 
+	int initShaderText()
+	{
+		//mScene.getTextMgr().init();
+		return TRUE;
+	}
+
 	int initGL()
 	{
 		// Set up common gl options
@@ -106,6 +112,7 @@ public:
 		// create a braph with grid times grid
 		initShaderBars();
 		initShaderLines();
+		initShaderText();
 		return TRUE;
 	}
 
@@ -131,7 +138,6 @@ public:
 	void drawBars(float tick)
 	{
 		mScene.getBarMgr().draw();
-
 	}
 
 	void drawAxis(float tick)
@@ -141,7 +147,7 @@ public:
 
 	void drawText(float tick)
 	{
-
+//		mScene.getTextMgr().draw();
 	}
 
 	void draw()
@@ -162,11 +168,11 @@ public:
 
 		drawBars(tick);
 		drawAxis(tick);
-		glm::mat4 m2 = glm::rotate(180.0f+20.0f*tick,0.0f,1.0f,0.0f);
+		glm::mat4 m2 = glm::rotate(180.0f+20.0f*tick,0.0f,1.0f,0.0f);	// make an other rot matrix rotated 180 deg. for Axis needs to be drawn twice.. if all items should be clamped by a grid
 		mScene.setWorldMat( m2 );
 		drawAxis(tick);
 
-		mScene.setWorldMat( m );
+		mScene.setWorldMat( m );	// set up ordinary world matrix for the text.
 		drawText(tick);
 	}
 };

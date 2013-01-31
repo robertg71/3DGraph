@@ -7,11 +7,11 @@
 
 #ifndef GRAPH_H_
 #define GRAPH_H_
+#include "GFont.h"
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
-#include <MAUtil/vector.h>
 #include "Shaders.h"
 // during development I lake to keep all data public. cleanup will be done later.
 
@@ -271,6 +271,9 @@ protected:
 	AxisMgr 	mAxisMgr;			// Axis mangaer contains all Axis and Grid lineups dependent on graph type
 	BarMgr  	mBarMgr;			// Bar manager contains all bars and vertices common for them
 	TextMgr 	mTextMgr;			// Text manager handles fonts for text printouts.
+
+	FontClass	mFont;
+	RenderText	mText;
 
 	std::vector<unsigned short> mIndices;	// Index list of faces
 

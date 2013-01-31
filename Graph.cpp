@@ -6,6 +6,8 @@
  */
 #include <mavsprintf.h>
 #include "graph.h"
+#include "GFont.h"
+#include "MAHeaders.h"
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -77,6 +79,10 @@ namespace Graph
 		int axis = ((gridX>1)&&(gridZ>1))?3:2;	// how many axis should be displayed 2 or 3 dependent on layout... 2d => 2 => 3d => 3
 		mAxisMgr.addAxis(axis);
 
+		std::vector<MAHandle> fontTexArray;
+		fontTexArray.push_back(R_BOX_TEXTURE);
+		mFont.Initialize(R_BOX_FNT, fontTexArray);
+		mText.SetFont(&mFont);
 
 		const float aspect = 3.0f/4.0f;
 		const float cx = getCx();		// requires grid to be set

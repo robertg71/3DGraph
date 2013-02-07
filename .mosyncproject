@@ -21,7 +21,7 @@
 <property key="build.prefs:extra.link.sw/Release" value=""/>
 <property key="build.prefs:extra.res.sw/Debug" value=""/>
 <property key="build.prefs:extra.res.sw/Release" value=""/>
-<property key="build.prefs:gcc.warnings/Debug" value="10"/>
+<property key="build.prefs:gcc.warnings/Debug" value="2"/>
 <property key="build.prefs:gcc.warnings/Release" value="10"/>
 <property key="build.prefs:ignore.default.include.paths/Debug" value="true"/>
 <property key="build.prefs:ignore.default.include.paths/Release" value="true"/>

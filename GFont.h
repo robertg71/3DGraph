@@ -9,7 +9,7 @@
 #define GFONT_H_
 
 
-// Filename: fontclass.h
+// Filename: BMFont.h
 //---------------------------------------------------------------------------------
 
 #include <glm/glm.hpp>
@@ -22,6 +22,7 @@
 class ParseBMFont;
 struct BMChar;
 struct BMKerning;
+struct VertexType;
 
 typedef std::pair <std::string, ParseBMFont> String_ParseBMFont_Pair;
 typedef std::pair <int,BMChar> Int_BMChar_Pair;
@@ -31,7 +32,7 @@ struct TextureStore
 {
 	GLuint m_texture;
 };
-// Class name: FontClass
+// Class name: BMFont
 //---------------------------------------------------------------------------------
 struct BMInfo
 {
@@ -54,6 +55,7 @@ struct BMInfo
 
 struct BMCommon
 {
+
 	int m_lineHeight;
 	int m_base;
 	int m_scaleW;
@@ -95,6 +97,12 @@ struct BMKerning
 
 struct BMPage
 {
+/*	BMPage(const BMPage &p)
+	{
+		m_id 	= p.m_id;
+		m_file 	= p.m_file;
+	}
+*/
 	int			m_id;
 	std::string m_file;
 
@@ -107,8 +115,13 @@ struct FontType
 	int size;
 };
 
+struct VertexType
+{
+	glm::vec2 position;
+    glm::vec2 texture;
+};
 
-class FontClass
+class BMFont
 {
 private:
 
@@ -124,25 +137,16 @@ private:
 		PBM_KERNING,
 	};
 
-	struct VertexType
-	{
-		glm::vec3 position;
-	    glm::vec2 texture;
-	};
-
 public:
 
-	FontClass();
-	FontClass(const FontClass&);
-	~FontClass();
+	BMFont();
+	BMFont(const BMFont&);
+	~BMFont();
 
-	bool Initialize(MAHandle fontResource, std::vector<MAHandle> &textureResources);
-//	bool Initialize(std::string& fontTable, std::string& textureFile);
+	bool Init(MAHandle fontResource, std::vector<MAHandle> &textureResources);
 	void Clear();
-
 	GLuint GetTexture(int i=0);
-
-	float BuildVertexArray(void*, const char*, float, float);
+	float BuildVertexArray(glm::vec3 * vertexPtr, glm::vec2 * texCoord, const char * str, float dX, float dY, float scaleX, float scaleY);
 
 private:
 	bool LoadFontData(MAHandle resource);
@@ -152,7 +156,7 @@ private:
 
 private:
 
-	std::hash_map<std::string, ParseBMFont> 	m_string2enum;
+	std::hash_map<std::string, ParseBMFont> 	m_string2enum;	// parsing setup should be static! or singleton
 	BMInfo										m_info;
 	BMCommon									m_common;
 	std::hash_map<int,BMChar>					m_chars;
@@ -163,45 +167,6 @@ private:
 	int											m_nkernings;
 };
 
-class RenderText
-{
-public:
-	RenderText();
-	~RenderText();
-
-	bool Initiate(/*LPDIRECT3DDEVICE pDevice, LPDEVICECONTEXT pContext,*/ float screenWidth, float screenHeight,FontClass *font=0);
-	void SetFont(FontClass *font);
-	float DrawText(const char*str,float x,float y,glm::vec4 &rgba);
-	void Release();
-
-	void SetProjMatrix(glm::mat4 &proj)	{m_proj = proj;}
-	void SetWorldMatrix(glm::mat4 &world) {m_world = world;}
-	void SetViewMatrix(glm::mat4 &view)	{m_view = view;}
-
-protected:
-	bool createDefaultBuffers(int strSz);
-	void releaseDefaultBuffer();
-
-	FontClass		*m_font;
-	float			m_width;
-	float			m_height;
-	glm::mat4		m_world;
-	glm::mat4		m_view;
-	glm::mat4		m_proj;
-//	glm::mat4		*m_matrixParam[3];
-
-/*
-	LPDIRECT3DBLENDSTATE	m_alphaEnableBlendingState;
-	LPDIRECT3DBLENDSTATE	m_alphaDisableBlendingState;
-	LPDIRECT3DDEVICE		m_pDevice;
-	LPDEVICECONTEXT			m_pContext;
-	LPDIRECT3DSAMPLERSTATE  m_pSampleState;
-	LPDIRECT3DVERTEXBUFFER	m_pVertexBuffer;
-	LPDIRECT3DINDEXBUFFER   m_pIndexBuffer;
-	ShaderStore				*m_pShader;
-	int						m_nIndex;
-*/
-};
 
 
 

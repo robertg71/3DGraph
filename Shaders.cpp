@@ -44,7 +44,7 @@
 			sm[2][2] = ScaleV.z;
 
 			v_color = vec4(Color.x*vPosition.y, Color.y*vPosition.y, Color.z*vPosition.y, Color.w);
-			gl_Position = (Projection * View * sm * World) * vPosition;
+			gl_Position = (Projection * View  * World * sm) * vPosition;
 		}
 	);
 
@@ -81,19 +81,112 @@
 			sm[2][2] = ScaleV.z;
 
 			v_color = Color;
-			gl_Position = (Projection * View * sm * World) * (vPosition * vec4(Length.xyz,1.0));
+			gl_Position = (Projection * View * World * sm) * (vPosition * vec4(Length.xyz,1.0));
 		}
 	);
+
+	//--------------------------------------------------------------------------------------
+	// TEXT SHADERS
+	//--------------------------------------------------------------------------------------
+/*
+		// TEXT FRAGMENT SHADER
+		char fragmentShaderText[]=STRINGIFY(
+			precision lowp 	float;
+			varying vec4 	v_color;
+			uniform vec2 	resolution;
+			uniform float 	time;
+			void main( void )
+			{
+				gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+			}
+		);
+
+		// BARS VERTEX SHADER
+		char vertexShaderText[]=STRINGIFY(
+			attribute vec3 vPosition;
+			uniform mat4 Projection;
+			uniform mat4 View;
+			uniform mat4 World;
+			uniform vec3 ScaleV;
+			uniform vec4 Color;
+			varying vec4 v_color;
+			void main( void )
+			{
+				mat4 sm = mat4(1.0);
+				sm[0][0] = ScaleV.x;
+				sm[1][1] = ScaleV.y;
+				sm[2][2] = ScaleV.z;
+
+				vec4 pos 	= vec4(vPosition.xyz ,1.0);
+				v_color 	= Color;
+				gl_Position = (Projection * View * World * sm) * pos;
+			}
+		);
+*/
+
+		// TEXT FRAGMENT SHADER
+		char fragmentShaderText[]=STRINGIFY(
+			precision highp 	float;
+			varying highp vec2	v_tex;
+			varying vec4 		v_color;
+			uniform vec2 		resolution;
+			uniform float 		time;
+			uniform sampler2D 	myTexture;
+			void main( void )
+			{
+				vec4 texval 	= texture2D(myTexture, v_tex);
+				gl_FragColor 	= texval*v_color;
+			}
+		);
+
+		// BARS VERTEX SHADER
+		char vertexShaderText[]=STRINGIFY(
+			attribute vec3 vPosition;
+			attribute highp vec2 vTexCoord;
+			uniform mat4 Projection;
+			uniform mat4 View;
+			uniform mat4 World;
+			uniform vec3 ScaleV;
+			uniform vec4 Color;
+			varying highp vec2 v_tex;
+			varying vec4 v_color;
+			void main( void )
+			{
+				mat4 sm = mat4(1.0);
+				sm[0][0] = ScaleV.x;
+				sm[1][1] = ScaleV.y;
+				sm[2][2] = ScaleV.z;
+
+				v_tex	 	= vTexCoord;
+				v_color 	= Color;
+				gl_Position = (Projection * View * World * sm) * vec4(vPosition.xyz,1.0);
+			}
+		);
 
 
 	// HELPER FUNCTIONS FOR LOADING SHADER & Error detection
 	//----------------------------------------------------------------
+
+		/*
+		 * #define GL_NO_ERROR                       0
+#define GL_INVALID_ENUM                   0x0500
+#define GL_INVALID_VALUE                  0x0501
+#define GL_INVALID_OPERATION              0x0502
+#define GL_OUT_OF_MEMORY                  0x0505
+		 *
+		 */
+
 	void checkGLError(const char* where)
 	{
 		GLenum err = glGetError();
-		if (err != GL_NO_ERROR)
+		switch (err)
 		{
-			lprintfln("%s: glGetError returned %x", where, err);
+			case GL_NO_ERROR: break;
+			case GL_INVALID_ENUM:  lprintfln("%s: glGetError returned %x = GL_INVALID_ENUM", where, err);				break;
+			case GL_INVALID_VALUE: lprintfln("%s: glGetError returned %x = GL_INVALID_VALUE", where, err);				break;
+			case GL_INVALID_OPERATION:  lprintfln("%s: glGetError returned %x = GL_INVALID_OPERATION", where, err);		break;
+			case GL_OUT_OF_MEMORY:  lprintfln("%s: glGetError returned %x = GL_OUT_OF_MEMORY", where, err);				break;
+			default: lprintfln("%s: glGetError returned %x", where, err); 												break;
 		}
 	}
 
@@ -145,13 +238,15 @@
 			return 0;
 		}
 
+		checkGLError("Shader compiled");
+
 		return shader;
 	}
 
 	///
 	// Loads both Vertex and Fragment Shader into one shader setup
 	//
-	GLuint loadShaders(const char *shader_vtx, const char *shader_frg)
+	GLuint loadShaders(const char *shader_vtx, const char *shader_frg, bool isUsingTexCoord)
 	{
 		GLuint vertexShader;
 		GLuint fragmentShader;
@@ -182,8 +277,13 @@
 
 		// Bind vPosition to attribute 0
 		glBindAttribLocation(programObject, 0, "vPosition");
-		checkGLError("Bind vPosition to vertex shader");
+		checkGLError("Bind 0 vPosition to vertex shader");
 
+		if (isUsingTexCoord)
+		{
+			glBindAttribLocation(programObject, 1, "vTexCoord");
+			checkGLError("Bind 1 vTexCoord to vertex shader");
+		}
 
 		// Link the program
 		glLinkProgram(programObject);
@@ -216,7 +316,14 @@
 //
 void LineShader::init()
 {
-	mShader 		= loadShaders(vertexShaderLines,fragmentShaderLines);
+	mShader 		= loadShaders(vertexShaderLines,fragmentShaderLines,false);
+	if (mShader == 0)
+	{
+		checkGLError("loadShader LineShader");
+		lprintfln("LineShader::init: failed");
+		maPanic(1,"Failed to init LineShader");
+	}
+
 	mTimeLoc 		= glGetUniformLocation(mShader, "time");
 	mResolutionLoc 	= glGetUniformLocation(mShader, "resolution");
 	mMatrixP 		= glGetUniformLocation(mShader, "Projection");
@@ -226,8 +333,8 @@ void LineShader::init()
 	mScaleV			= glGetUniformLocation(mShader, "ScaleV");
 	mColor			= glGetUniformLocation(mShader, "Color");			// Color of line (vertex shader)
 	mAttribVtxLoc	= glGetAttribLocation( mShader, "vPosition");
+	lprintfln("LineShader::init: initiate");
 }
-
 
 ///
 // LineShader class, contains all indexed references to locations of parameters.
@@ -235,7 +342,13 @@ void LineShader::init()
 //
 void BarShader::init()
 {
-	mShader 		= loadShaders(vertexShaderBars,fragmentShaderBars);
+	mShader 		= loadShaders(vertexShaderBars,fragmentShaderBars,false);
+	if (mShader == 0)
+	{
+		checkGLError("loadShader BarShader");
+		lprintfln("BarShader::init: failed");
+		maPanic(1,"Failed to init BarShader");
+	}
 	mTimeLoc 		= glGetUniformLocation(mShader, "time");			// time tick variable (fragment)
 	mResolutionLoc 	= glGetUniformLocation(mShader, "resolution");		// constant resolution of screen (fragment)
 	mMatrixP 		= glGetUniformLocation(mShader, "Projection");		// Projection Matrix
@@ -244,5 +357,27 @@ void BarShader::init()
 	mScaleV			= glGetUniformLocation(mShader, "ScaleV");			// scale vector (height of bar)
 	mColor			= glGetUniformLocation(mShader, "Color");			// Color of one bar (vertex shader)
 	mAttribVtxLoc	= glGetAttribLocation( mShader, "vPosition");		// input vertex attrib
+	lprintfln("BarShader::init: initiate");
 }
 
+void TextShader::init()
+{
+	mShader 		= loadShaders(vertexShaderText,fragmentShaderText,true);
+	if (mShader == 0)
+	{
+		checkGLError("loadShader TextShader");
+		lprintfln("TextShader::init: failed");
+		maPanic(1,"Failed to init TextShader");
+	}
+	mTimeLoc 		= glGetUniformLocation(mShader, "time");			// time tick variable (fragment)
+	mResolutionLoc 	= glGetUniformLocation(mShader, "resolution");		// constant resolution of screen (fragment)
+	mMatrixP 		= glGetUniformLocation(mShader, "Projection");		// Projection Matrix
+	mMatrixV 		= glGetUniformLocation(mShader, "View");			// View Matrix
+	mMatrixM 		= glGetUniformLocation(mShader, "World");			// World Matrix
+	mScaleV			= glGetUniformLocation(mShader, "ScaleV");			// scale vector (height of bar)
+	mColor			= glGetUniformLocation(mShader, "Color");			// Color of one bar (vertex shader)
+	mTexture		= glGetUniformLocation(mShader, "myTexture");
+	mAttribVtxLoc	= glGetAttribLocation( mShader, "vPosition");		// input stream vertex attrib
+	mAttribTCoordLoc= glGetAttribLocation( mShader, "vTexCoord");		// input stream texture coord attrib
+	lprintfln("TextShader::init: initiate");
+}

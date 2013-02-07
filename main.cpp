@@ -31,8 +31,73 @@ MA 02110-1301, USA.
 #include <conprint.h>
 #include "graph.h"
 #include "Shaders.h"
+#include "RenderText.h"
+#include "MAHeaders.h"
+
 
 using namespace MAUtil;
+
+
+
+bool TestHashTable()
+{
+	bool failed = false;
+	std::hash_map<int,std::string> table;
+	std::hash_map<int,std::string>::iterator it;
+	std::string test = "taste this ";
+	lprintfln("Test %s",test.c_str());
+	char val[2] = "a";
+	for(int i=0; i<1000; i++)
+	{
+		if (i%100==0)
+		{
+			val[0]++;
+			test = std::string(val);
+		}
+		else
+			test+=std::string(val);
+
+		table[i] = test;
+	}
+
+	lprintfln("Testing Hash_map iterator (%d)",table.size());
+	lprintfln("Testing Hash_map iterator (%d)",table.size());
+	lprintfln("Testing Hash_map iterator (%d)",table.size());
+	int i=0;
+	for(it = table.begin();it!=table.end();it++,i++)
+	{
+		lprintfln("%d. table[%d] = \'%s\' it->second=\'%s\'\n",i,i,table[i].c_str(),it->second.c_str());
+	}
+	if (i == 0)
+	{
+		lprintfln("Hash map iterator failed expected %d entries got zero\n",table.size());
+		failed = true;
+	}
+	else
+		lprintfln("Hash map iterator OK\n");
+
+	lprintfln("Testing hash_map[] array lookup\n");
+	for(i=0; i<table.size(); i++)
+	{
+		lprintfln("%d. table[%d] = \'%s\' \n",i,i,table.find(i)->second.c_str());
+	}
+
+
+	if (i == 0)
+	{
+		lprintfln("Hash map iterator failed expected %d entries got zero\n",table.size());
+		failed = true;
+	}
+	else
+		lprintfln("Hash map look up OK\n");
+
+	return failed;
+}
+
+
+
+
+
 
 
 
@@ -44,6 +109,8 @@ private:
 	int				mHeight;			// Screen resolution in ABS form e.g. 640,480
 	int  			mGrid;				// Grid of X,Z
 	Graph::Scene 	mScene;
+	BMFont			mFont;
+	Graph::RenderText		mRenderText;
 
 public:
 	MyGLMoblet() :
@@ -94,6 +161,7 @@ public:
 	int initGL()
 	{
 		// Set up common gl options
+		glViewport(0, 0, mWidth, mHeight);
 
 		// Enable depth test
 		glEnable(GL_DEPTH_TEST);
@@ -107,12 +175,21 @@ public:
 		glEnable(GL_CULL_FACE);
 
 		// set up clear color
-		glClearColor(0.0f, 0.0f, 0.0f, 2.0f);		// why alpha 2.0f ?
+		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);		// why alpha 2.0f ?
+
+		std::vector<MAHandle> fontTexArray;
+		fontTexArray.push_back(R_BOX_TEXTURE);
+		mFont.Init(R_BOX_FNT, fontTexArray);
+		lprintfln("Init RenderText w=%d h=%d\n",mWidth,mHeight);
+		mRenderText.Init(mWidth,mHeight,&mFont);
 
 		// create a braph with grid times grid
 		initShaderBars();
 		initShaderLines();
 		initShaderText();
+
+
+
 		return TRUE;
 	}
 
@@ -120,10 +197,16 @@ public:
 
 	void init()
 	{
+		// TESTING HASHTABLE
+/*		if (TestHashTable() == true)
+			return;
+*/
+
+
 		lprintfln("init2");
 		mWidth 	= EXTENT_X(maGetScrSize());
 		mHeight = EXTENT_Y(maGetScrSize());
-		mGrid 	= 30;	// 70 ish as most.
+		mGrid 	= 10;	// 70 ish as most.
 		lprintfln("mGrid: %i", mGrid);
 		mScene.create(mGrid,mGrid);
 		mScene.setWidth(mWidth);
@@ -148,32 +231,62 @@ public:
 	void drawText(float tick)
 	{
 //		mScene.getTextMgr().draw();
+		glm::vec4 rgba(1.0f,1.0f,1.0f,1.0f);
+		std::string str = "Robert Hajduk";
+		lprintfln("Render text \"%s\"\n",str.c_str());
+		mRenderText.DrawText(str.c_str(),0.0f,0.0f, rgba, mScene);
 	}
 
 	void draw()
 	{
+		static int cnt = 0;
+		cnt++;
+		glViewport(0, 0, mWidth, mHeight);
+			checkGLError("glViewport");
+		lprintfln("%d. draw()::glViewport w=%d h=%d\n",cnt,mWidth,mHeight);
+
 		float tick = (maGetMilliSecondCount() - mStartTime) * 0.001f;
 		mScene.setTick(tick);
 		// Set the viewport
-		glViewport(0, 0, mWidth, mHeight);
-		checkGLError("glViewport");
+		lprintfln("draw()::glViewport w=%d h=%d\n",mWidth,mHeight);
+
 
 		// Clear the color buffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		checkGLError("glClear");
 
+		lprintfln("HEJ! 1\n");
+
+		glm::vec3 axis(0.1f,0.5f,1.0f);
 		// Create a rotation matrix.
-		glm::mat4 m = glm::rotate(20.0f*tick,0.0f,1.0f,0.0f);
+		glm::mat4 m = glm::rotate(20.0f*tick,axis);
+
+		lprintfln("HEJ! 2\n");
+
 		mScene.setWorldMat( m );
 
-		drawBars(tick);
-		drawAxis(tick);
-		glm::mat4 m2 = glm::rotate(180.0f+20.0f*tick,0.0f,1.0f,0.0f);	// make an other rot matrix rotated 180 deg. for Axis needs to be drawn twice.. if all items should be clamped by a grid
-		mScene.setWorldMat( m2 );
+		lprintfln("HEJ! 3\n");
+
+	//	drawBars(tick);
 		drawAxis(tick);
 
+		lprintfln("HEJ! 4\n");
+/*
+		glm::mat4 m2 = glm::rotate(180.0f+20.0f*tick,axis);	// make an other rot matrix rotated 180 deg. for Axis needs to be drawn twice.. if all items should be clamped by a grid
+		mScene.setWorldMat( m2 );
+
+		lprintfln("HEJ! 5\n");
+
+		drawAxis(tick);
+
+		lprintfln("HEJ! 6\n");
+*/
 		mScene.setWorldMat( m );	// set up ordinary world matrix for the text.
 		drawText(tick);
+
+		lprintfln("HEJ! 7\n");
+
 	}
 };
 

@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include "Shaders.h"
+#include "RenderText.h"
 // during development I lake to keep all data public. cleanup will be done later.
 
 
@@ -272,8 +273,8 @@ protected:
 	BarMgr  	mBarMgr;			// Bar manager contains all bars and vertices common for them
 	TextMgr 	mTextMgr;			// Text manager handles fonts for text printouts.
 
-	FontClass	mFont;
-	RenderText	mText;
+//	BMFont		mFont;
+//	RenderText	mRenderText;
 
 	std::vector<unsigned short> mIndices;	// Index list of faces
 

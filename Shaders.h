@@ -20,7 +20,7 @@ public:
 
 struct BarShader : public Shader
 {
-	BarShader() {init();}
+	BarShader() {}				// NOTE common problem do not initiate in constr.
 	virtual ~BarShader(){}
 
 	GLuint 	mShader;			// shader for bars
@@ -40,7 +40,7 @@ struct BarShader : public Shader
 
 struct LineShader : public Shader
 {
-	LineShader() {init();}
+	LineShader() {}
 	virtual ~LineShader(){}
 
 	// Line location parameters
@@ -55,6 +55,26 @@ struct LineShader : public Shader
 	GLuint 	mScaleV;			// Scale vector of bars. its height...
 	GLuint	mColor;				// individual color of a bar.
 	GLuint 	mVertexbuffer[3];		// Vertex buffer for Axis aligned lines. (world)
+
+	virtual void init();
+};
+
+struct TextShader : public Shader
+{
+	TextShader() {}
+	virtual ~TextShader(){}
+
+	GLuint 	mShader;			// shader for Text
+	GLuint 	mAttribVtxLoc;		// Attribute to the vertex shader of vpos location
+	GLuint  mAttribTCoordLoc;	// Attribute to the texture coordingate
+	GLuint 	mTimeLoc;			// time tick variable for shaders (fragment)
+	GLuint 	mResolutionLoc;		// screen resulution
+	GLuint 	mMatrixP;			// Shader Perspective Projection
+	GLuint 	mMatrixV;			// Shader Camera View
+	GLuint 	mMatrixM;			// Shader World
+	GLuint 	mScaleV;			// Scale vector of bars. its height...
+	GLuint	mColor;				// individual color of a Text.
+	GLuint	mTexture;			// Texture for the font
 
 	virtual void init();
 };

@@ -7,6 +7,7 @@
 #include <mavsprintf.h>
 #include "graph.h"
 #include "GFont.h"
+#include "RenderText.h"
 #include "MAHeaders.h"
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
@@ -79,20 +80,22 @@ namespace Graph
 		int axis = ((gridX>1)&&(gridZ>1))?3:2;	// how many axis should be displayed 2 or 3 dependent on layout... 2d => 2 => 3d => 3
 		mAxisMgr.addAxis(axis);
 
-		std::vector<MAHandle> fontTexArray;
+		// set up the font
+/*		std::vector<MAHandle> fontTexArray;
 		fontTexArray.push_back(R_BOX_TEXTURE);
-		mFont.Initialize(R_BOX_FNT, fontTexArray);
-		mText.SetFont(&mFont);
+		mFont.Init(R_BOX_FNT, fontTexArray);
+		mRenderText.Init(10.0f,10.0f,&mFont);
+*/
 
 		const float aspect = 3.0f/4.0f;
 		const float cx = getCx();		// requires grid to be set
 		const float cz = getCz();		// requires grid to be set
 		const float res = glm::sqrt(cx*cx+cz*cz);
-		mDistToCam = res;
+		mDistToCam 		= res;
 
 		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-		mProjection = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
-		mWorld		= glm::mat4(1.0f);	// set up an identity matrix
+		mProjection 	= glm::perspective(45.0f, aspect, 0.1f, 100.0f);
+		mWorld			= glm::mat4(1.0f);	// set up an identity matrix
 
 		if (bFitToScreen == true)
 		{
@@ -148,6 +151,7 @@ namespace Graph
 
 	void AxisMgr::init()
 	{
+		mShader.init();
 		for (size_t i=0; i<mAxis.size();i++)
 		{
 			Graph::Axis &axis = mAxis[i];
@@ -242,7 +246,11 @@ namespace Graph
 			}
 
 			glDisableVertexAttribArray(shader.mAttribVtxLoc);
+			glBindBuffer(GL_ARRAY_BUFFER,0);
 		}
+		// Clean-up
+		//glDisableVertexAttribArray(shader.mAttribVtxLoc);
+		glUseProgram(0);
 
 	}
 
@@ -256,6 +264,7 @@ namespace Graph
 			indices.push_back(mFaces[i]);
 		}
 
+		mShader.init();
 		// Generate a buffer for the vertices
 		glGenBuffers(1, &mShader.mVertexbuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, mShader.mVertexbuffer);
@@ -345,8 +354,12 @@ namespace Graph
 				k++;
 			}
 		}
-		glDisableVertexAttribArray(shader.mAttribVtxLoc);
 
+		// Clean-up
+		glDisableVertexAttribArray(shader.mAttribVtxLoc);
+		glBindBuffer(GL_ARRAY_BUFFER,0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glUseProgram(0);
 	}
 }
 

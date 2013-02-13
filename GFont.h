@@ -146,7 +146,7 @@ public:
 	bool Init(MAHandle fontResource, std::vector<MAHandle> &textureResources);
 	void Clear();
 	GLuint GetTexture(int i=0);
-	float BuildVertexArray(glm::vec3 * vertexPtr, glm::vec2 * texCoord, const char * str, float dX, float dY, float scaleX, float scaleY);
+	float BuildVertexArray(glm::vec4 * vertexPtr, const char * str, float dX, float dY, float scaleX, float scaleY);
 
 private:
 	bool LoadFontData(MAHandle resource);

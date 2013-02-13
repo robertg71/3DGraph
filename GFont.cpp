@@ -30,8 +30,6 @@ GLuint CreateTexture(MAHandle resource)
 	GLuint textureHandle;
 
 	lprintfln("CreateTexture\n");
-	lprintfln("CreateTexture\n");
-	lprintfln("CreateTexture\n");
 	//Create an OpenGL 2D texture from the R_BOX resource.
 	glGenTextures(1, &textureHandle);
 	checkGLError("CreateTexture::glGenTextures(1, &textureHandle)");
@@ -57,12 +55,6 @@ GLuint CreateTexture(MAHandle resource)
 	checkGLError("glTexParameteri");
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR /*  GL_NEAREST*/);
 	checkGLError("glTexParameteri");
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-//	checkGLError("glTexParameteri");
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-//	checkGLError("glTexParameteri");
-//	glDisable(GL_TEXTURE_2D);
-//	checkGLError("glDisable(GL_TEXTURE_2D)");
 	return textureHandle;
 }
 
@@ -463,7 +455,7 @@ GLuint BMFont::GetTexture(int i)
 	}
 }
 
-float BMFont::BuildVertexArray(glm::vec3 * vertexPtr,glm::vec2 *texCoord, const char* sentence, float drawX, float drawY, float scaleX, float scaleY)
+float BMFont::BuildVertexArray(glm::vec4 * vertexPtr, const char* sentence, float drawX, float drawY, float scaleX, float scaleY)
 {
 	int numLetters, index, i, letter, second;
 	float start = drawX;
@@ -475,7 +467,7 @@ float BMFont::BuildVertexArray(glm::vec3 * vertexPtr,glm::vec2 *texCoord, const 
 	index = 0;
 //	lprintfln("chars:%d\n",m_chars.size());
 
-	int cnt=0;
+//	int cnt=0;
 /*	for(std::hash_map<int,BMChar>::iterator it = m_chars.begin(); it != m_chars.end();it++,cnt++)
 	{
 		lprintfln("%d",cnt);
@@ -523,7 +515,7 @@ float BMFont::BuildVertexArray(glm::vec3 * vertexPtr,glm::vec2 *texCoord, const 
 			nTri++;
 //			lprintfln("Building a quad with 2 triangles cnt=%d (%d) vertexPtr[%d]",nTri,2*nTri,index);
 			// First triangle in quad.
-			float tx,ty,tw,th,sw,sh,w,h,ox,oy,posX,posY,ax,ks,sx,sy;
+			float tx,ty,tw,th,sw,sh,w,h,ox,oy,posX,posY,ax,ks;
 			// positions and relative ofsets etc.
 
 			ox = ((float)bc->m_xoffset) 	* scaleX;
@@ -545,55 +537,24 @@ float BMFont::BuildVertexArray(glm::vec3 * vertexPtr,glm::vec2 *texCoord, const 
 
 			posX = drawX + ox;	// move offset position for char
 			posY = drawY - oy;
-/*
-			vertexPtr[index] = glm::vec3(posX, posY, 0.0f);  // Top left.
-			texCoord[index] = glm::vec2(tx, 1.0f-ty);
+
+			vertexPtr[index] = glm::vec4(posX, posY, tx, ty);  // Top left.
 			index++;
 
-			vertexPtr[index] = glm::vec3(posX, (posY-h), 0.0f);  // Bottom left.
-			texCoord[index] = glm::vec2(tx, 1.0f-(ty+th));
+			vertexPtr[index] = glm::vec4(posX, (posY-h), tx, (ty+th));  // Bottom left.
 			index++;
 
-			vertexPtr[index] = glm::vec3((posX+w), (posY-h), 0.0f);  // Bottom right.
-			texCoord[index] = glm::vec2(tx+tw, 1.0f-(ty+th));
+			vertexPtr[index] = glm::vec4((posX+w), (posY-h), tx+tw, (ty+th));  // Bottom right.
 			index++;
 
 			// Second triangle in quad.
-			vertexPtr[index] = glm::vec3(posX, posY, 0.0f);  // Top left.
-			texCoord[index] = glm::vec2(tx, 1.0f-ty);
+			vertexPtr[index] = glm::vec4(posX, posY, tx, ty);  // Top left.
 			index++;
 
-			vertexPtr[index] = glm::vec3((posX+w), (posY-h), 0.0f);  // Bottom right.
-			texCoord[index] = glm::vec2(tx+tw, 1.0f-(ty+th));
+			vertexPtr[index] = glm::vec4((posX+w), (posY-h), tx+tw, (ty+th));  // Bottom right.
 			index++;
 
-			vertexPtr[index] = glm::vec3(posX+w, posY, 0.0f);  // Top right.
-			texCoord[index] = glm::vec2(tx+tw, 1.0f-ty);
-			index++;
-*/
-			vertexPtr[index] = glm::vec3(posX, posY, 0.0f);  // Top left.
-			texCoord[index] = glm::vec2(tx, ty);
-			index++;
-
-			vertexPtr[index] = glm::vec3(posX, (posY-h), 0.0f);  // Bottom left.
-			texCoord[index] = glm::vec2(tx, (ty+th));
-			index++;
-
-			vertexPtr[index] = glm::vec3((posX+w), (posY-h), 0.0f);  // Bottom right.
-			texCoord[index] = glm::vec2(tx+tw, (ty+th));
-			index++;
-
-			// Second triangle in quad.
-			vertexPtr[index] = glm::vec3(posX, posY, 0.0f);  // Top left.
-			texCoord[index] = glm::vec2(tx, ty);
-			index++;
-
-			vertexPtr[index] = glm::vec3((posX+w), (posY-h), 0.0f);  // Bottom right.
-			texCoord[index] = glm::vec2(tx+tw, (ty+th));
-			index++;
-
-			vertexPtr[index] = glm::vec3(posX+w, posY, 0.0f);  // Top right.
-			texCoord[index] = glm::vec2(tx+tw, ty);
+			vertexPtr[index] = glm::vec4(posX+w, posY, tx+tw, ty);  // Top right.
 			index++;
 
 			// Update the x location for drawing by the size of the letter and one pixel.
@@ -615,7 +576,7 @@ float BMFont::BuildVertexArray(glm::vec3 * vertexPtr,glm::vec2 *texCoord, const 
 	//			lprintfln("No kerning detected for =%c\n",letter);
 
 			//      start posX + width + advanceX + kerning (negative values)
-			drawX = posX + w + ax + ks;	
+			drawX = posX - ox + ax + ks;
 		}
 	}
 

@@ -88,41 +88,7 @@
 	//--------------------------------------------------------------------------------------
 	// TEXT SHADERS
 	//--------------------------------------------------------------------------------------
-/*
-		// TEXT FRAGMENT SHADER
-		char fragmentShaderText[]=STRINGIFY(
-			precision lowp 	float;
-			varying vec4 	v_color;
-			uniform vec2 	resolution;
-			uniform float 	time;
-			void main( void )
-			{
-				gl_FragColor = vec4(1.0,1.0,1.0,1.0);
-			}
-		);
 
-		// BARS VERTEX SHADER
-		char vertexShaderText[]=STRINGIFY(
-			attribute vec3 vPosition;
-			uniform mat4 Projection;
-			uniform mat4 View;
-			uniform mat4 World;
-			uniform vec3 ScaleV;
-			uniform vec4 Color;
-			varying vec4 v_color;
-			void main( void )
-			{
-				mat4 sm = mat4(1.0);
-				sm[0][0] = ScaleV.x;
-				sm[1][1] = ScaleV.y;
-				sm[2][2] = ScaleV.z;
-
-				vec4 pos 	= vec4(vPosition.xyz ,1.0);
-				v_color 	= Color;
-				gl_Position = (Projection * View * World * sm) * pos;
-			}
-		);
-*/
 
 		// TEXT FRAGMENT SHADER
 		char fragmentShaderText[]=STRINGIFY(
@@ -141,8 +107,7 @@
 
 		// BARS VERTEX SHADER
 		char vertexShaderText[]=STRINGIFY(
-			attribute vec3 vPosition;
-			attribute highp vec2 vTexCoord;
+			attribute vec4 vPosition;
 			uniform mat4 Projection;
 			uniform mat4 View;
 			uniform mat4 World;
@@ -153,13 +118,13 @@
 			void main( void )
 			{
 				mat4 sm = mat4(1.0);
-				sm[0][0] = ScaleV.x;
+				sm[0][0] = -ScaleV.x;
 				sm[1][1] = ScaleV.y;
 				sm[2][2] = ScaleV.z;
 
-				v_tex	 	= vTexCoord;
+				v_tex	 	= vPosition.zw;
 				v_color 	= Color;
-				gl_Position = (Projection * View * World * sm) * vec4(vPosition.xyz,1.0);
+				gl_Position = (Projection * View * World * sm) * vec4(vPosition.xy, 0.0, 1.0);
 			}
 		);
 
@@ -378,6 +343,5 @@ void TextShader::init()
 	mColor			= glGetUniformLocation(mShader, "Color");			// Color of one bar (vertex shader)
 	mTexture		= glGetUniformLocation(mShader, "myTexture");
 	mAttribVtxLoc	= glGetAttribLocation( mShader, "vPosition");		// input stream vertex attrib
-	mAttribTCoordLoc= glGetAttribLocation( mShader, "vTexCoord");		// input stream texture coord attrib
 	lprintfln("TextShader::init: initiate");
 }

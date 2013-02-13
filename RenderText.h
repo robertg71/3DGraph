@@ -12,7 +12,8 @@
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
 #include "Shaders.h"
-namespace Graph{
+namespace MoGraph
+{
 class Scene;
 
 class RenderText
@@ -21,9 +22,9 @@ public:
 	RenderText();
 	~RenderText();
 
-	bool Init(/*LPDIRECT3DDEVICE pDevice, LPDEVICECONTEXT pContext,*/ float screenWidth, float screenHeight,BMFont *font=0);
+	bool Init(float screenWidth, float screenHeight,BMFont *font=0);
 	void SetFont(BMFont *font);
-	float DrawText(const char*str,float x,float y,glm::vec4 &rgba, Scene &scene);
+	float DrawText(const char*str,float x,float y,float z,glm::vec4 &rgba, Scene &scene);
 	void Release();
 
 	void SetProjMatrix(glm::mat4 &proj)		{m_proj = proj;}
@@ -31,30 +32,16 @@ public:
 	void SetViewMatrix(glm::mat4 &view)		{m_view = view;}
 
 protected:
-	bool createDefaultBuffers(int strSz);
-	void releaseDefaultBuffer();
+//	bool createDefaultBuffers(int strSz);
+//	void releaseDefaultBuffer();
 
-	BMFont			*m_font;
-	float			m_width;
-	float			m_height;
-	glm::mat4		m_world;
-	glm::mat4		m_view;
-	glm::mat4		m_proj;
-//	glm::mat4		*m_matrixParam[3];
-
-/*
-	LPDIRECT3DBLENDSTATE	m_alphaEnableBlendingState;
-	LPDIRECT3DBLENDSTATE	m_alphaDisableBlendingState;
-	LPDIRECT3DDEVICE		m_pDevice;
-	LPDEVICECONTEXT			m_pContext;
-	LPDIRECT3DSAMPLERSTATE  m_pSampleState;
-	LPDIRECT3DVERTEXBUFFER	m_pVertexBuffer;
-	LPDIRECT3DINDEXBUFFER   m_pIndexBuffer;
-	ShaderStore				*m_pShader;*/
-//	int						m_nIndex;
-//	GLuint					m_shader;
-	TextShader				m_textShader;
-
+	BMFont			*m_font;		// current pointer for the font to use
+	float			m_width;		// screen width
+	float			m_height;		// screen height
+	glm::mat4		m_world;		// World matrix
+	glm::mat4		m_view;			// View matrix
+	glm::mat4		m_proj;			// Perspective projection matrix
+	TextShader		m_textShader;	// Text shader to be used for the rendering
 };
 
 }

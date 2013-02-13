@@ -76,8 +76,12 @@ protected:
 /*
  * Graph namespace , that contains all graph and input of data classes into the same namespace..
  */
-namespace Graph
+namespace MoGraph
 {
+
+class Scene;
+
+
 
 /*
  * Input class for Graphs handling Static or Dynamic or Stream of data.
@@ -112,7 +116,6 @@ protected:
 
 };
 
-class Scene;
 class Render
 {
 public:
@@ -305,6 +308,60 @@ public:
 /*
  * Layout
  */
+class Graph /* should include a interface here. */
+{
+protected:
+	Scene 	mScene;
+	BMFont *mFont;
+	int 	mWidth;
+	int 	mHeight;
+	int		mGridX;
+	int 	mGridZ;
+	int 	mStartTime;
+
+	MoGraph::RenderText		mRenderText;
+
+public:
+	Graph() {}
+	virtual ~Graph() {}
+
+	virtual void init(int x,int z,bool bFitScreen, BMFont* font,int width,int height)
+	{
+		mWidth 	= width;
+		mHeight = height;
+		mGridX	= x;
+		mGridZ	= z;
+		mFont	= font;
+		mScene.create(x,z,bFitScreen);
+		mScene.setWidth(width);
+		mScene.setHeight(height);
+	//	mScene.setFont(font);
+	}
+/*	virtual void setValues(float *valuesArray,int sz) 			{ mScene.setValues(valuesArray,sz); }
+	virtual void setValues(std::vector<float> &valuesArray) 	{ mScene.setValues(&valuesArray[0],valuesArray.size()); }
+	virtual void setColors(int *colorArray,sz)					{ mScene.setColors(colorArray,sz);}
+	virtual void setColors(std::vector<int> &colorArray)		{ mScene.setColors(&colorArray[0],sz);}
+	virtual void draw()											{ mScene.draw();}
+*/
+
+	void drawBars(float tick)	{	mScene.getBarMgr().draw();	}
+	void drawAxis(float tick)	{	mScene.getAxisMgr().draw();	}
+	void drawText(float tick)
+	{
+		glm::vec4 rgba(1.0f,1.0f,1.0f,1.0f);
+		std::string str = "MoSync 3D Graph Library";
+		mRenderText.DrawText(str.c_str(),-(float)mGridX*0.5f,0.0f,(float)mGridZ*0.5f, rgba, mScene);
+	}
+
+	void initShaderLines()		{	mScene.getAxisMgr().init();	}
+	void initShaderBars()		{	mScene.getBarMgr().init();	}
+	void initShaderText()		{}
+
+	virtual int initGL();
+	virtual void draw();
+};
+
+/*
 class Layout
 {
 public:
@@ -312,7 +369,7 @@ public:
 	// add layout properties
 	int 	mGraphType;	// an enum table displaying what type of graph to use.
 };
-
+*/
 
 }
 #endif /* GRAPH_H_ */

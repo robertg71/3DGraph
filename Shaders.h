@@ -66,7 +66,6 @@ struct TextShader : public Shader
 
 	GLuint 	mShader;			// shader for Text
 	GLuint 	mAttribVtxLoc;		// Attribute to the vertex shader of vpos location
-	GLuint  mAttribTCoordLoc;	// Attribute to the texture coordingate
 	GLuint 	mTimeLoc;			// time tick variable for shaders (fragment)
 	GLuint 	mResolutionLoc;		// screen resulution
 	GLuint 	mMatrixP;			// Shader Perspective Projection

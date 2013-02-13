@@ -14,23 +14,26 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-namespace Graph
+
+// Name space Graph
+namespace MoGraph
 {
 	/*
 	 * helper function to set the vertex array index array
+	 * Creates default vertex buffer
 	 */
 	void BarMgr::create3D()
 	{
 		// Define quad vertices. origo Y = 0
 	 const float Vertices[] = {
-		    0.5f, 0.0f, 0.5f,
-		    0.5f, 1.0f, 0.5f,
-		    -0.5f, 1.0f, 0.5f,
-		    -0.5f, 0.0f, 0.5f,
-		    0.5f, 0.0f, -0.5f,
-		    0.5f, 1.0f, -0.5f,
-		    -0.5f, 1.0f, -0.5f,
-		    -0.5f, 0.0f, -0.5f,
+		    1.0f, 0.0f, 1.0f,
+		    1.0f, 1.0f, 1.0f,
+		    -1.0f, 1.0f, 1.0f,
+		    -1.0f, 0.0f, 1.0f,
+		    1.0f, 0.0f, -1.0f,
+		    1.0f, 1.0f, -1.0f,
+		    -1.0f, 1.0f, -1.0f,
+		    -1.0f, 0.0f, -1.0f,
 		};
 
 		const unsigned short Indices[] = {
@@ -66,56 +69,48 @@ namespace Graph
 
 	}
 
+	// Create whole scene by using Axis,Bars,Text
 	void Scene::create(int gridX, int gridZ,bool bFitToScreen)
 	{
-		mFitToScreen = bFitToScreen;
-		mGridX = gridX;
-		mGridZ = gridZ;
-		int newSize = gridX*gridZ;
+		mFitToScreen 		= bFitToScreen;
+		mGridX 				= gridX;
+		mGridZ 				= gridZ;
+		int newSize 		= gridX*gridZ;
 
 		lprintfln("Scene::create: %i*%i=%i",mGridX,mGridZ,newSize);
 		mBarMgr.addBars(gridX*gridZ);
 		lprintfln("vector<Bar> bars, size() = %i == %i", mBarMgr.size(),gridX*gridZ);
 
-		int axis = ((gridX>1)&&(gridZ>1))?3:2;	// how many axis should be displayed 2 or 3 dependent on layout... 2d => 2 => 3d => 3
+		int axis 			= ((gridX>1)&&(gridZ>1))?3:2;	// how many axis should be displayed 2 or 3 dependent on layout... 2d => 2 => 3d => 3
 		mAxisMgr.addAxis(axis);
 
-		// set up the font
-/*		std::vector<MAHandle> fontTexArray;
-		fontTexArray.push_back(R_BOX_TEXTURE);
-		mFont.Init(R_BOX_FNT, fontTexArray);
-		mRenderText.Init(10.0f,10.0f,&mFont);
-*/
-
-		const float aspect = 3.0f/4.0f;
-		const float cx = getCx();		// requires grid to be set
-		const float cz = getCz();		// requires grid to be set
-		const float res = glm::sqrt(cx*cx+cz*cz);
-		mDistToCam 		= res;
-
-		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-		mProjection 	= glm::perspective(45.0f, aspect, 0.1f, 100.0f);
-		mWorld			= glm::mat4(1.0f);	// set up an identity matrix
+		const float aspect 	= 3.0f/4.0f;
+		const float cx 		= getCx();
+		const float cz 		= getCz();
+		const float res 	= glm::sqrt(cx*cx+cz*cz);
+		mDistToCam 			= res;
+		mProjection 		= glm::perspective(45.0f, aspect, 0.1f, 100.0f); 		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+		mWorld				= glm::mat4(1.0f);			// set up an identity matrix
 
 		if (bFitToScreen == true)
-		{
-			// Camera matrix
+		{												// Camera matrix
 			mView       = glm::lookAt(
-			glm::vec3(0.0f,res*0.5f,res*1.2f/aspect), // Camera is at (0,x/2,x*(1/aspec)), in World Space
-			glm::vec3(0,0,0), // and looks at the origin
-			glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
+			glm::vec3(0.0f,res*0.5f,res*2.0f/aspect), 	// Camera is at (0,x/2,x*(1/aspec)), in World Space
+			glm::vec3(0,0,0), 							// and looks at the origin
+			glm::vec3(0,1,0)  							// Head is up (set to 0,-1,0 to look upside-down)
 			);
 		}
-		else	// set up a default camera matrix
+		else											// set up a default camera matrix
 		{
 			mView       = glm::lookAt(
-			glm::vec3(0.0f,10.0f,20.0f), // Camera is at (0,10,20), in World Space
-			glm::vec3(0,0,0), // and looks at the origin
-			glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
+			glm::vec3(0.0f,10.0f,20.0f), 				// Camera is at (0,10,20), in World Space
+			glm::vec3(0,0,0), 							// and looks at the origin
+			glm::vec3(0,1,0)  							// Head is up (set to 0,-1,0 to look upside-down)
 			);
 		}
 	}
 
+	// AxisMgr::create3D  creates default vertex buffer
 	void AxisMgr::create3D()
 	{
 		float v[] = { 	0.0f, 0.0f, 0.0f,
@@ -148,16 +143,13 @@ namespace Graph
 		create3D();
 	}
 
-
 	void AxisMgr::init()
 	{
 		mShader.init();
 		for (size_t i=0; i<mAxis.size();i++)
 		{
-			Graph::Axis &axis = mAxis[i];
-
-			// Generate a vertex buffer for all axis (line)
-			glGenBuffers(1, &mShader.mVertexbuffer[i]);
+			Axis &axis = mAxis[i];								// get reference of obj.
+			glGenBuffers(1, &mShader.mVertexbuffer[i]);					// Generate a vertex buffer for all axis (line)
 			glBindBuffer(GL_ARRAY_BUFFER, mShader.mVertexbuffer[i]);
 			glBufferData(GL_ARRAY_BUFFER, axis.size() * sizeof(glm::vec3), &axis.vertices()[0], GL_STATIC_DRAW);
 		}
@@ -165,18 +157,13 @@ namespace Graph
 
 	void AxisMgr::draw()
 	{
-		float tick = mScene.getTick();
-
-		LineShader &shader = getShader();
-
-//		glCullFace(GL_BACK);
-//		glFrontFace(GL_CCW);
+		float tick 			= mScene.getTick();
+		LineShader &shader 	= getShader();
 		glDisable(GL_CULL_FACE);
-
 		glUseProgram(shader.mShader);
 		checkGLError("glUseProgram");
 
-		glm::vec3 sv(0.5f,1.0f,0.5f);
+		glm::vec3 sv(1.0f,1.0f,1.0f);
 
 		// Update variables to the shader, that is only updated commonly for all bars once per frame such as ParojactionMatrix, ViewMatrix, should be World Matrix aswell
 		// projectionMatrix and viewMatrix tick time, resolution constants for pixel shader that are identical trough out the obj calls. hence update only once.
@@ -248,8 +235,8 @@ namespace Graph
 			glDisableVertexAttribArray(shader.mAttribVtxLoc);
 			glBindBuffer(GL_ARRAY_BUFFER,0);
 		}
+
 		// Clean-up
-		//glDisableVertexAttribArray(shader.mAttribVtxLoc);
 		glUseProgram(0);
 
 	}
@@ -265,6 +252,7 @@ namespace Graph
 		}
 
 		mShader.init();
+
 		// Generate a buffer for the vertices
 		glGenBuffers(1, &mShader.mVertexbuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, mShader.mVertexbuffer);
@@ -282,7 +270,6 @@ namespace Graph
 		float tick = mScene.getTick();
 
 		glEnable(GL_CULL_FACE);
-
 		BarShader &shader = getShader();
 		std::vector<unsigned short> &indices = mScene.getIndices();	// Index list of faces
 
@@ -301,6 +288,7 @@ namespace Graph
 			0,                  // stride
 			(void*)0            // array buffer offset
 		);
+
 		checkGLError("glEnableVertexAttribArray");
 
 		// bind the Index buffer with vertex buffer
@@ -330,7 +318,7 @@ namespace Graph
 			k += 1-(iGridX&1);
 			for(int i=0; i<iGridX; i++)
 			{
-				Graph::Bar &bar = getBar(j*iGridX+i);
+				Bar &bar = getBar(j*iGridX+i);
 //				bar.setValue(1.1f+1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
 				bar.setValue(1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick)));
 				glm::mat4 m 	= glm::translate(mScene.getWorldMat(),(centerX-i)-0.5f,0.0f,(-centerZ+j)+0.5f);	// does a mat mul
@@ -361,6 +349,79 @@ namespace Graph
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glUseProgram(0);
 	}
+
+	void Graph::draw()
+	{
+		static int cnt = 0;
+		cnt++;
+		glViewport(0, 0, mWidth, mHeight);
+			checkGLError("glViewport");
+//		lprintfln("%d. draw()::glViewport w=%d h=%d\n",cnt,mWidth,mHeight);
+
+		float tick = (maGetMilliSecondCount() - mStartTime) * 0.001f;
+		mScene.setTick(tick);
+
+		// Clear the color buffer
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		checkGLError("glClear");
+
+		glm::vec3 axis(0.0f,0.5f,0.0f);
+
+		// Create a rotation matrix.
+		glm::mat4 m = glm::rotate(20.0f*tick,axis);
+
+		mScene.setWorldMat( m );
+
+		drawBars(tick);
+		drawAxis(tick);
+
+/*
+		glm::mat4 m2 = glm::rotate(180.0f+20.0f*tick,axis);	// make an other rot matrix rotated 180 deg. for Axis needs to be drawn twice.. if all items should be clamped by a grid
+		mScene.setWorldMat( m2 );
+
+		lprintfln("HEJ! 5\n");
+
+		drawAxis(tick);
+
+		lprintfln("HEJ! 6\n");
+*/
+		mScene.setWorldMat( m );	// set up ordinary world matrix for the text.
+		drawText(tick);
+
+	}
+
+
+	int Graph::initGL()
+	{
+		// Set up common gl options
+		glViewport(0, 0, mWidth, mHeight);
+
+		// Enable depth test
+		glEnable(GL_DEPTH_TEST);
+
+		// Accept fragment if it closer to the camera than the former one
+		glDepthFunc(GL_LESS);
+
+		// Enable back face culling
+		glFrontFace(GL_CCW);
+		glCullFace(GL_BACK);
+		glEnable(GL_CULL_FACE);
+
+		// set up clear color
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// why alpha 2.0f ?
+
+		mRenderText.Init(mWidth,mHeight,mFont);
+
+		// create a braph with grid times grid
+		initShaderBars();
+		initShaderLines();
+		initShaderText();
+
+		mStartTime = maGetMilliSecondCount();
+		return TRUE;
+	}
+
+
 }
 
 

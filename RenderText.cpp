@@ -39,7 +39,7 @@ void RenderText::Release()
 }
 
 // Suppose we could use text box support with the width / height
-bool RenderText::Init(/*LPDIRECT3DDEVICE pDevice, LPDEVICECONTEXT pContext,*/ float width, float height, BMFont *font)
+bool RenderText::Init(float width, float height, BMFont *font)
 {
 	m_width		= width;
 	m_height	= height;
@@ -50,17 +50,7 @@ bool RenderText::Init(/*LPDIRECT3DDEVICE pDevice, LPDEVICECONTEXT pContext,*/ fl
 	// TODO create a common blend state class that holds all blendstates we need.
 	return true;
 }
-/*	Obsolete
-void RenderText::releaseDefaultBuffer()
-{
 
-}
-
-bool RenderText::createDefaultBuffers(int strSz)
-{
-	return true;
-}
-*/
 void RenderText::SetFont(BMFont *font)
 {
 	m_font = font;
@@ -69,29 +59,30 @@ void RenderText::SetFont(BMFont *font)
 
 //TODO DISABLE SCENE DEPENDENCY HERE
 // should have a separate draw text a direct and a cashed.
-float RenderText::DrawText(const char*str,float x,float y,float z, glm::vec4 &rgba, Scene &scene)
+float RenderText::DrawText(const char*str,glm::vec3 &pos, glm::vec4 &rgba, Scene &scene)
+{
+	return DrawText(str, pos, rgba, (float)scene.getGridX(), (float)scene.getGridZ(), scene.getProjectionMat(), scene.getViewMat(), scene.getWorldMat(), scene.getTick());
+}
+
+float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, float gridWidth, float gridHeight, glm::mat4 &projectionMat, glm::mat4 &viewMat, glm::mat4 &worldMat, float tick)
 {
 	checkGLError("RenderText::DrawText   Should be ok!");
 
 	float width = 0;
-
-	float drawX = x;
-	float drawY = y;
-	float drawZ	= z;
+	float drawX = pos.x;
+	float drawY = pos.y;
+	float drawZ	= pos.z;
 
 	// Use the font class to build the vertex array from the sentence text and sentence draw location.
 	// Create the vertex array.
-	int num			= strlen(str);											// get number chars
+	int num		= strlen(str);											// get number chars
 
 //	lprintfln("RenderText::DrawText size=%d string=\"%s\"\n",num,str);
-	glm::vec4 *vertices	= new glm::vec4[6*num];									// quad  * num (quad is 2 tri = 6 vertices / char)
+	glm::vec4 *vertices	= new glm::vec4[6*num];
 	if(!vertices)
 		return false;
 
-//	glDisable(GL_CULL_FACE);
-
-	width = m_font->BuildVertexArray(vertices, str, drawX, drawY, 0.10f, 0.10f);			// get vertex array from string,
-
+	width = m_font->BuildVertexArray(vertices, str, drawX, drawY, 2.0f/gridWidth, 2.0f/gridHeight);			// get vertex array from string,
 	TextShader &shader= m_textShader;
 
 //	lprintfln("shader.mShader = %d",shader.mShader);
@@ -119,37 +110,35 @@ float RenderText::DrawText(const char*str,float x,float y,float z, glm::vec4 &rg
 	checkGLError("RenderText::DrawText   glUniform1i");
 
 	// Once per frame
-	glUniform1f(shader.mTimeLoc, scene.getTick());
+	glUniform1f(shader.mTimeLoc, tick);
 	checkGLError("RenderText::DrawText   glUniform1f");
 	glUniform2f(shader.mResolutionLoc, 1.0f/(float)m_width, 1.0f/(float)m_height);
 	checkGLError("RenderText::DrawText   glUniform2f");
-	glUniformMatrix4fv(shader.mMatrixP, 1, GL_FALSE, &scene.getProjectionMat()[0][0]);
+	glUniformMatrix4fv(shader.mMatrixP, 1, GL_FALSE, &projectionMat[0][0]);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
-	glUniformMatrix4fv(shader.mMatrixV, 1, GL_FALSE, &scene.getViewMat()[0][0]);
+	glUniformMatrix4fv(shader.mMatrixV, 1, GL_FALSE, &viewMat[0][0]);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
 
 	glm::vec3 sv(1.0f, 1.0f, 1.0f);
 	glUniform3fv(shader.mScaleV,1, (float *)&sv.x);				// mScale location => variable "ScaleV" in vertex shader
 	checkGLError("RenderText::DrawText   glUniformMatrix3fv");
 
-	glm::vec4 color(1.0f,1.0f,1.0f,1.0f);
+	glm::vec4 color = rgba;
 	glUniform4fv(shader.mColor,1, (float *)&color.x);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
 
 	// Allways
-	glm::mat4 m 	= glm::translate(scene.getWorldMat(),0.0f,0.0f,-drawZ);	// does a mat mul
+	glm::mat4 m 	= glm::translate(worldMat,0.0f,0.0f,-drawZ);	// does a mat mul
 	glUniformMatrix4fv(shader.mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
 
 	glDrawArrays(GL_TRIANGLES, 0, 6*num);
 	checkGLError("RenderText::DrawText   glDrawArrays");
 
-
 	// Clean-up
 	glDisableVertexAttribArray(shader.mAttribVtxLoc);
 	checkGLError("RenderText::DrawText   glDisableVertexAttribArray (Vtx)");
 
-//	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
 	checkGLError("RenderText::DrawText   glUseProgram(0)");

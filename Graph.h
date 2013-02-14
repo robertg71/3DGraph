@@ -201,21 +201,25 @@ public:
 class AxisMgr : public Render
 {
 protected:
-	std::vector<Axis> 	mAxis;	// value and time  can support up to 3D X,Y,Z
-	LineShader			mShader;
-
+	std::vector<Axis> 	mAxis;		// value and time  can support up to 3D X,Y,Z
+	LineShader			mShader; 	// Shader to be used for rendering the lines.
+	float				mGridStep;	// Step of each grid bars in height. (note total height is amount*step)
+	int 				mGridLines;	// Grid lines for graph bar in Y... stepped with mStep, to get height grid,
 	void create3D();
 public:
-	AxisMgr(Scene &scene) : Render(scene) {}
+	AxisMgr(Scene &scene) : Render(scene), mGridStep(1.0f), mGridLines(2) {}
 	virtual ~AxisMgr() {}
 
 	enum {AXIS_X,AXIS_Y,AXIS_Z};
-	void addAxis(int axis);
 	Axis &getAxis(int i) 				{return mAxis[i];}
 	std::vector<Axis>& getAxisArray() 	{return mAxis;}
 	int size() 							{return mAxis.size();}
 	LineShader &getShader() 			{return mShader;}
-
+	void addAxis(int axis);
+	void setGridStep(float step)		{mGridStep  = step;}
+	void setGridLines(int nLines)		{mGridLines = nLines;}
+	float getGridStep()					{return mGridStep;}
+	int	getGridLines()					{return mGridLines;}
 	// virtuals from render class
 	virtual void init();
 	virtual void draw();
@@ -276,15 +280,11 @@ protected:
 	BarMgr  	mBarMgr;			// Bar manager contains all bars and vertices common for them
 	TextMgr 	mTextMgr;			// Text manager handles fonts for text printouts.
 
-//	BMFont		mFont;
-//	RenderText	mRenderText;
-
 	std::vector<unsigned short> mIndices;	// Index list of faces
 
-
 public:
-	Scene() : mAxisMgr(*this),mBarMgr(*this),mTextMgr(*this){}
-	void 	create(int gridX,int gridZ, bool bFitToScreen = true); // { mBarMgr.addBars(gridX*gridZ);}
+	Scene() : mFitToScreen(true), mGridX(1), mGridZ(1), mWidth(1), mHeight(1), mTick(0.0f), mDistToCam(1.0f), mAxisMgr(*this),mBarMgr(*this),mTextMgr(*this){}
+	void 	create(int gridX,int gridZ, int lines = 5, float stepY = 1.0f, bool bFitToScreen = true);
 	BarMgr 	&getBarMgr() 			{return mBarMgr;}
 	AxisMgr &getAxisMgr()			{return mAxisMgr;}
 	TextMgr &getTextMgr()			{return mTextMgr;}
@@ -318,58 +318,43 @@ protected:
 	int		mGridX;
 	int 	mGridZ;
 	int 	mStartTime;
+	glm::vec4 mBKColor;
 
 	MoGraph::RenderText		mRenderText;
-
-public:
-	Graph() {}
-	virtual ~Graph() {}
-
-	virtual void init(int x,int z,bool bFitScreen, BMFont* font,int width,int height)
-	{
-		mWidth 	= width;
-		mHeight = height;
-		mGridX	= x;
-		mGridZ	= z;
-		mFont	= font;
-		mScene.create(x,z,bFitScreen);
-		mScene.setWidth(width);
-		mScene.setHeight(height);
-	//	mScene.setFont(font);
-	}
-/*	virtual void setValues(float *valuesArray,int sz) 			{ mScene.setValues(valuesArray,sz); }
-	virtual void setValues(std::vector<float> &valuesArray) 	{ mScene.setValues(&valuesArray[0],valuesArray.size()); }
-	virtual void setColors(int *colorArray,sz)					{ mScene.setColors(colorArray,sz);}
-	virtual void setColors(std::vector<int> &colorArray)		{ mScene.setColors(&colorArray[0],sz);}
-	virtual void draw()											{ mScene.draw();}
-*/
-
 	void drawBars(float tick)	{	mScene.getBarMgr().draw();	}
 	void drawAxis(float tick)	{	mScene.getAxisMgr().draw();	}
 	void drawText(float tick)
 	{
+		std::string str = "MoSync 3D Graph Library 0.7 Beta";
 		glm::vec4 rgba(1.0f,1.0f,1.0f,1.0f);
-		std::string str = "MoSync 3D Graph Library";
-		mRenderText.DrawText(str.c_str(),-(float)mGridX*0.5f,0.0f,(float)mGridZ*0.5f, rgba, mScene);
+		glm::vec3 pos = glm::vec3(-(float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
+		mRenderText.DrawText(str.c_str(), pos, rgba, mScene);
+		str = "Welcome to Wonderland";
+		pos.y += -2.0f;
+		rgba.r = 0.0f;
+		rgba.g = 0.0f;
+		mRenderText.DrawText(str.c_str(), pos, rgba, mScene);
 	}
 
 	void initShaderLines()		{	mScene.getAxisMgr().init();	}
 	void initShaderBars()		{	mScene.getBarMgr().init();	}
 	void initShaderText()		{}
 
+public:
+	Graph() : mFont(0), mWidth(1), mHeight(1), mGridX(1), mGridZ(1), mStartTime(0), mBKColor(0.0f,0.0f,0.0f,1.0f) {}
+	virtual ~Graph() {}
+
+	virtual void init(int x,int z, int gridLines, float step, bool bFitScreen, BMFont* font,int width,int height);
+
+/*	virtual void setValues(float *valuesArray,int sz) 			{ mScene.setValues(valuesArray,sz); }
+	virtual void setValues(std::vector<float> &valuesArray) 	{ mScene.setValues(&valuesArray[0],valuesArray.size()); }
+	virtual void setColors(int *colorArray,sz)					{ mScene.setColors(colorArray,sz);}
+	virtual void setColors(std::vector<int> &colorArray)		{ mScene.setColors(&colorArray[0],sz);}
+*/
+	virtual void setBKColor(glm::vec4 &color) { mBKColor = color;}
 	virtual int initGL();
 	virtual void draw();
 };
-
-/*
-class Layout
-{
-public:
-	Scene	mScene;
-	// add layout properties
-	int 	mGraphType;	// an enum table displaying what type of graph to use.
-};
-*/
 
 }
 #endif /* GRAPH_H_ */

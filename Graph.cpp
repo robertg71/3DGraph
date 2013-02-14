@@ -24,16 +24,16 @@ namespace MoGraph
 	 */
 	void BarMgr::create3D()
 	{
-		// Define quad vertices. origo Y = 0
-	 const float Vertices[] = {
-		    1.0f, 0.0f, 1.0f,
-		    1.0f, 1.0f, 1.0f,
-		    -1.0f, 1.0f, 1.0f,
-		    -1.0f, 0.0f, 1.0f,
-		    1.0f, 0.0f, -1.0f,
-		    1.0f, 1.0f, -1.0f,
-		    -1.0f, 1.0f, -1.0f,
-		    -1.0f, 0.0f, -1.0f,
+			// Define quad vertices. origo Y = 0
+		 const float Vertices[] = {
+				1.0f, 0.0f, 1.0f,
+				1.0f, 1.0f, 1.0f,
+				-1.0f, 1.0f, 1.0f,
+				-1.0f, 0.0f, 1.0f,
+				1.0f, 0.0f, -1.0f,
+				1.0f, 1.0f, -1.0f,
+				-1.0f, 1.0f, -1.0f,
+				-1.0f, 0.0f, -1.0f,
 		};
 
 		const unsigned short Indices[] = {
@@ -70,7 +70,7 @@ namespace MoGraph
 	}
 
 	// Create whole scene by using Axis,Bars,Text
-	void Scene::create(int gridX, int gridZ,bool bFitToScreen)
+	void Scene::create(int gridX, int gridZ, int lines, float step ,bool bFitToScreen)
 	{
 		mFitToScreen 		= bFitToScreen;
 		mGridX 				= gridX;
@@ -78,12 +78,13 @@ namespace MoGraph
 		int newSize 		= gridX*gridZ;
 
 		lprintfln("Scene::create: %i*%i=%i",mGridX,mGridZ,newSize);
-		mBarMgr.addBars(gridX*gridZ);
-		lprintfln("vector<Bar> bars, size() = %i == %i", mBarMgr.size(),gridX*gridZ);
+		mBarMgr.addBars(newSize);
+		lprintfln("vector<Bar> bars, size() = %i == %i", mBarMgr.size(),newSize);
 
 		int axis 			= ((gridX>1)&&(gridZ>1))?3:2;	// how many axis should be displayed 2 or 3 dependent on layout... 2d => 2 => 3d => 3
 		mAxisMgr.addAxis(axis);
-
+		mAxisMgr.setGridLines(lines);
+		mAxisMgr.setGridStep(step);
 		const float aspect 	= 3.0f/4.0f;
 		const float cx 		= getCx();
 		const float cz 		= getCz();
@@ -113,27 +114,29 @@ namespace MoGraph
 	// AxisMgr::create3D  creates default vertex buffer
 	void AxisMgr::create3D()
 	{
-		float v[] = { 	0.0f, 0.0f, 0.0f,
-						1.0f, 0.0f, 0.0f,
-						0.0f, 0.0f, 0.0f,
-						0.0f, 1.0f, 0.0f,
-						0.0f, 0.0f, 0.0f,
-						0.0f, 0.0f, 1.0f
+		float v[] =
+		{
+			0.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f
 		};
-
+		// set up 2D axis X and Y
 		mAxis[0].vertices().push_back(glm::vec3(v[0],v[1],v[2]));
 		mAxis[0].vertices().push_back(glm::vec3(v[3],v[4],v[5]));
 		mAxis[1].vertices().push_back(glm::vec3(v[6],v[7],v[8]));
 		mAxis[1].vertices().push_back(glm::vec3(v[9],v[10],v[11]));
 
-		if(mAxis.size()>2)
+		if(mAxis.size()>2)		// 3D Graph use a 3rd axis in Z.
 		{
 			mAxis[2].vertices().push_back(glm::vec3(v[12],v[13],v[14]));
 			mAxis[2].vertices().push_back(glm::vec3(v[15],v[16],v[17]));
 		}
 		else
 		{
-			// error not declared.
+			lprintfln("AxisMgr::create3d: ERROR Axis system got Graph bars can either be 2D or 3D hence 2 or 3 as input");   			// error not declared.
 		}
 	}
 
@@ -212,9 +215,10 @@ namespace MoGraph
 				glLineWidth(1);
 				glm::vec4 col(0.25f,0.25f,0.25f,1.0f);
 				glUniform4fv(shader.mColor,1, (float *)&col.x);
-				for (int l=0;l<5;l++)
+				for (int l=1;l<mGridLines;l++)
 				{
-					glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX,(float)l,-centerZ);	// does a mat mul
+					float gridY = static_cast<float>(l) * mGridStep;
+					glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX,gridY,-centerZ);	// does a mat mul
 					glUniformMatrix4fv(shader.mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
 					glDrawArrays(GL_LINES, 0, 2);
 				}
@@ -224,9 +228,10 @@ namespace MoGraph
 				glLineWidth(1);
 				glm::vec4 col(0.25f,0.25f,0.25f,1.0f);
 				glUniform4fv(shader.mColor,1, (float *)&col.x);
-				for (int l=0;l<5;l++)
+				for (int l=1;l<mGridLines;l++)
 				{
-					glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX,(float)l,-centerZ);	// does a mat mul
+					float gridY = static_cast<float>(l) * mGridStep;
+					glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX,gridY,-centerZ);	// does a mat mul
 					glUniformMatrix4fv(shader.mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
 					glDrawArrays(GL_LINES, 0, 2);
 				}
@@ -390,6 +395,19 @@ namespace MoGraph
 
 	}
 
+	void Graph::init(int x,int z, int gridLines, float step, bool bFitScreen, BMFont* font,int width,int height)
+	{
+		mWidth 	= width;
+		mHeight = height;
+		mGridX	= x;
+		mGridZ	= z;
+		mFont	= font;
+		mScene.create(x,z,gridLines,step,bFitScreen);
+		mScene.setWidth(width);
+		mScene.setHeight(height);
+	//	mScene.setFont(font);
+	}
+
 
 	int Graph::initGL()
 	{
@@ -408,7 +426,7 @@ namespace MoGraph
 		glEnable(GL_CULL_FACE);
 
 		// set up clear color
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// why alpha 2.0f ?
+		glClearColor(mBKColor.r,mBKColor.g,mBKColor.b, 1.0f);
 
 		mRenderText.Init(mWidth,mHeight,mFont);
 
@@ -420,7 +438,6 @@ namespace MoGraph
 		mStartTime = maGetMilliSecondCount();
 		return TRUE;
 	}
-
 
 }
 

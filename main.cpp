@@ -86,8 +86,11 @@ public:
 		mFont.Init(R_BOX_FNT, fontTexArray);
 		lprintfln("Init RenderText w=%d h=%d\n",mWidth,mHeight);
 
-		mGraph.init(grid,grid,true,&mFont,mWidth,mHeight);
-
+		float gridStepY = 0.5f;
+		int gridLines = 5;
+		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
+		mGraph.init(grid,grid,gridLines,gridStepY,true,&mFont,mWidth,mHeight);
+		mGraph.setBKColor(bkcolor);
 		if(!mGraph.initGL())
 			maPanic(1, "Failed to initialize!");
 

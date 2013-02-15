@@ -25,7 +25,7 @@ class Scene;
 		bool Init(float screenWidth, float screenHeight,BMFont *font=0);
 		void SetFont(BMFont *font);
 		float DrawText(const char*str,glm::vec3 &pos, glm::vec4 &rgba, Scene &scene);
-		float DrawText(const char*str,glm::vec3 &pos, glm::vec4 &rgba, float gridWitdth, float gridHeight, glm::mat4 &projectionMat, glm::mat4 &viewMat, glm::mat4 &worldMat, float tick = 0 );
+		float DrawText(const char*str,glm::vec3 &pos, glm::vec4 &rgba, float gridWitdth, float gridHeight, glm::mat4 &projectionViewWorldMat, float tick = 0 );
 
 		void Release();
 

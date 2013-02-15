@@ -355,6 +355,7 @@ namespace MoGraph
 	{
 		static int cnt = 0;
 		cnt++;
+
 		glViewport(0, 0, mWidth, mHeight);
 			checkGLError("glViewport");
 //		lprintfln("%d. draw()::glViewport w=%d h=%d\n",cnt,mWidth,mHeight);
@@ -363,6 +364,7 @@ namespace MoGraph
 		mScene.setTick(tick);
 
 		// Clear the color buffer
+		glClearColor(mBKColor.r,mBKColor.g,mBKColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		checkGLError("glClear");
 
@@ -393,7 +395,7 @@ namespace MoGraph
 
 	}
 
-	void Graph::init(int x,int z, int gridLines, float step, bool bFitScreen, BMFont* font,int width,int height)
+	int Graph::init(int x,int z, int gridLines, float step, bool bFitScreen, BMFont* font,int width,int height)
 	{
 		mWidth 	= width;
 		mHeight = height;
@@ -403,6 +405,7 @@ namespace MoGraph
 		mScene.create(x,z,gridLines,step,bFitScreen);
 		mScene.setWidth(width);
 		mScene.setHeight(height);
+		return initGL();
 	//	mScene.setFont(font);
 	}
 

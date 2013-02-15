@@ -87,13 +87,12 @@ public:
 		lprintfln("Init RenderText w=%d h=%d\n",mWidth,mHeight);
 
 		float gridStepY = 0.5f;
-		int gridLines = 5;
+		int gridLines 	= 5;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
-		mGraph.init(grid,grid,gridLines,gridStepY,true,&mFont,mWidth,mHeight);
-		mGraph.setBKColor(bkcolor);
-		if(!mGraph.initGL())
-			maPanic(1, "Failed to initialize!");
+		if (!mGraph.init(grid,grid,gridLines,gridStepY,true,&mFont,mWidth,mHeight))
+			maPanic(1,"Failed to initiate Graph");
 
+		mGraph.setBKColor(bkcolor);
 	}
 
 	void draw()

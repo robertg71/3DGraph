@@ -30,21 +30,22 @@
 	// BARS VERTEX SHADER
 	char vertexShaderBars[]=STRINGIFY(
 		attribute vec4 vPosition;
-		uniform mat4 Projection;
-		uniform mat4 View;
-		uniform mat4 World;
+		uniform mat4 ProjViewWorld;
+		uniform vec4 TPos;
 		uniform vec3 ScaleV;
 		uniform vec4 Color;
 		varying vec4 v_color;
 		void main( void )
 		{
-			mat4 sm = mat4(1.0);
-			sm[0][0] = ScaleV.x;
-			sm[1][1] = ScaleV.y;
-			sm[2][2] = ScaleV.z;
-
-			v_color = vec4(Color.x*vPosition.y, Color.y*vPosition.y, Color.z*vPosition.y, Color.w);
-			gl_Position = (Projection * View  * World * sm) * vPosition;
+			mat4 sm  	= mat4(1.0);
+			sm[3][0]	= TPos.x;
+			sm[3][1]	= TPos.y;
+			sm[3][2]	= TPos.z;
+			sm[0][0] 	= ScaleV.x;
+			sm[1][1] 	= ScaleV.y;
+			sm[2][2] 	= ScaleV.z;
+			v_color  	= vec4(Color.x*vPosition.y, Color.y*vPosition.y, Color.z*vPosition.y, Color.w);
+			gl_Position = (ProjViewWorld * sm) * vPosition;
 		}
 	);
 
@@ -66,22 +67,24 @@
 	// LINES VERTEX SHADER
 	char vertexShaderLines[]=STRINGIFY(
 		attribute vec4 vPosition;
-		uniform mat4 Projection;
-		uniform mat4 View;
-		uniform mat4 World;
-		uniform vec3 Length;
-		uniform vec4 Color;
+		uniform mat4 ProjViewWorld;
+		uniform vec4 TPos;
 		uniform vec3 ScaleV;
+		uniform vec4 Color;
+		uniform vec3 Length;
 		varying vec4 v_color;
 		void main( void )
 		{
-			mat4 sm = mat4(1.0);
-			sm[0][0] = ScaleV.x;
-			sm[1][1] = ScaleV.y;
-			sm[2][2] = ScaleV.z;
+			mat4 sm  	= mat4(1.0);
+			sm[3][0]	= TPos.x;
+			sm[3][1]	= TPos.y;
+			sm[3][2]	= TPos.z;
+			sm[0][0] 	= ScaleV.x;
+			sm[1][1] 	= ScaleV.y;
+			sm[2][2] 	= ScaleV.z;
 
 			v_color = Color;
-			gl_Position = (Projection * View * World * sm) * (vPosition * vec4(Length.xyz,1.0));
+			gl_Position = (ProjViewWorld * sm) * (vPosition * vec4(Length.xyz,1.0));
 		}
 	);
 
@@ -105,26 +108,29 @@
 			}
 		);
 
-		// BARS VERTEX SHADER
+		// TEXT VERTEX SHADER
 		char vertexShaderText[]=STRINGIFY(
-			attribute vec4 vPosition;
-			uniform mat4 Projection;
-			uniform mat4 View;
-			uniform mat4 World;
-			uniform vec3 ScaleV;
-			uniform vec4 Color;
-			varying highp vec2 v_tex;
-			varying vec4 v_color;
+			attribute vec4 	vPosition;
+			uniform mat4 	ProjViewWorld;
+			uniform vec4 	TPos;
+			uniform vec3 	ScaleV;
+			uniform vec4 	Color;
+			varying highp 	vec2 v_tex;
+			varying vec4 	v_color;
 			void main( void )
 			{
-				mat4 sm = mat4(1.0);
-				sm[0][0] = -ScaleV.x;
-				sm[1][1] = ScaleV.y;
-				sm[2][2] = ScaleV.z;
+				mat4 sm  	= mat4(1.0);
+				sm[3][0]	= TPos.x;
+				sm[3][1]	= TPos.y;
+				sm[3][2]	= TPos.z;
+				sm[0][0] 	= -ScaleV.x;
+				sm[1][1] 	= ScaleV.y;
+				sm[2][2] 	= ScaleV.z;
 
 				v_tex	 	= vPosition.zw;
 				v_color 	= Color;
-				gl_Position = (Projection * View * World * sm) * vec4(vPosition.xy, 0.0, 1.0);
+				gl_Position = (ProjViewWorld * sm) * vec4(vPosition.xy, 0.0, 1.0);
+
 			}
 		);
 
@@ -291,12 +297,11 @@ void LineShader::init()
 
 	mTimeLoc 		= glGetUniformLocation(mShader, "time");
 	mResolutionLoc 	= glGetUniformLocation(mShader, "resolution");
-	mMatrixP 		= glGetUniformLocation(mShader, "Projection");
-	mMatrixV 		= glGetUniformLocation(mShader, "View");
-	mMatrixM 		= glGetUniformLocation(mShader, "World");
-	mLength			= glGetUniformLocation(mShader, "Length");
+	mMatrixPVW 		= glGetUniformLocation(mShader, "ProjViewWorld");
+	mTPos			= glGetUniformLocation(mShader, "TPos");
 	mScaleV			= glGetUniformLocation(mShader, "ScaleV");
 	mColor			= glGetUniformLocation(mShader, "Color");			// Color of line (vertex shader)
+	mLength			= glGetUniformLocation(mShader, "Length");
 	mAttribVtxLoc	= glGetAttribLocation( mShader, "vPosition");
 	lprintfln("LineShader::init: initiate");
 }
@@ -316,9 +321,8 @@ void BarShader::init()
 	}
 	mTimeLoc 		= glGetUniformLocation(mShader, "time");			// time tick variable (fragment)
 	mResolutionLoc 	= glGetUniformLocation(mShader, "resolution");		// constant resolution of screen (fragment)
-	mMatrixP 		= glGetUniformLocation(mShader, "Projection");		// Projection Matrix
-	mMatrixV 		= glGetUniformLocation(mShader, "View");			// View Matrix
-	mMatrixM 		= glGetUniformLocation(mShader, "World");			// World Matrix
+	mMatrixPVW 		= glGetUniformLocation(mShader, "ProjViewWorld");	// Projection*View*World Matrix
+	mTPos			= glGetUniformLocation(mShader, "TPos");			// Translate vector postion
 	mScaleV			= glGetUniformLocation(mShader, "ScaleV");			// scale vector (height of bar)
 	mColor			= glGetUniformLocation(mShader, "Color");			// Color of one bar (vertex shader)
 	mAttribVtxLoc	= glGetAttribLocation( mShader, "vPosition");		// input vertex attrib
@@ -336,9 +340,8 @@ void TextShader::init()
 	}
 	mTimeLoc 		= glGetUniformLocation(mShader, "time");			// time tick variable (fragment)
 	mResolutionLoc 	= glGetUniformLocation(mShader, "resolution");		// constant resolution of screen (fragment)
-	mMatrixP 		= glGetUniformLocation(mShader, "Projection");		// Projection Matrix
-	mMatrixV 		= glGetUniformLocation(mShader, "View");			// View Matrix
-	mMatrixM 		= glGetUniformLocation(mShader, "World");			// World Matrix
+	mMatrixPVW 		= glGetUniformLocation(mShader, "ProjViewWorld");	// Projection Matrix
+	mTPos			= glGetUniformLocation(mShader, "TPos");			// Projection*View*World Matrix
 	mScaleV			= glGetUniformLocation(mShader, "ScaleV");			// scale vector (height of bar)
 	mColor			= glGetUniformLocation(mShader, "Color");			// Color of one bar (vertex shader)
 	mTexture		= glGetUniformLocation(mShader, "myTexture");

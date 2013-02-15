@@ -27,9 +27,8 @@ struct BarShader : public Shader
 	GLuint 	mAttribVtxLoc;		// Attribute to the vertex shader of vpos location
 	GLuint 	mTimeLoc;			// time tick variable for shaders (fragment)
 	GLuint 	mResolutionLoc;		// screen resulution
-	GLuint 	mMatrixP;			// Shader Perspective Projection
-	GLuint 	mMatrixV;			// Shader Camera View
-	GLuint 	mMatrixM;			// Shader World
+	GLuint 	mMatrixPVW;			// Shader Perspective Projection
+	GLuint	mTPos;				// Translate position
 	GLuint 	mScaleV;			// Scale vector of bars. its height...
 	GLuint	mColor;				// individual color of a bar.
 	GLuint 	mElementbuffer;		// Element buffer holding the index buffer for bars
@@ -48,12 +47,11 @@ struct LineShader : public Shader
 	GLuint 	mAttribVtxLoc;		// Attribute to the vertex shader of vpos location
 	GLuint 	mTimeLoc;			// time tick variable for shaders (fragment)
 	GLuint 	mResolutionLoc;		// screen resulution
-	GLuint 	mMatrixP;			// Shader Perspective Projection
-	GLuint 	mMatrixV;			// Shader Camera View
-	GLuint 	mMatrixM;			// Shader World
-	GLuint	mLength;			// Shader Line Length (line scales up 0..LineLength)
+	GLuint 	mMatrixPVW;			// Shader Perspective * View * World
+	GLuint  mTPos;				// Translation position
 	GLuint 	mScaleV;			// Scale vector of bars. its height...
 	GLuint	mColor;				// individual color of a bar.
+	GLuint	mLength;			// Shader Line Length (line scales up 0..LineLength)
 	GLuint 	mVertexbuffer[3];		// Vertex buffer for Axis aligned lines. (world)
 
 	virtual void init();
@@ -68,9 +66,8 @@ struct TextShader : public Shader
 	GLuint 	mAttribVtxLoc;		// Attribute to the vertex shader of vpos location
 	GLuint 	mTimeLoc;			// time tick variable for shaders (fragment)
 	GLuint 	mResolutionLoc;		// screen resulution
-	GLuint 	mMatrixP;			// Shader Perspective Projection
-	GLuint 	mMatrixV;			// Shader Camera View
-	GLuint 	mMatrixM;			// Shader World
+	GLuint 	mMatrixPVW;			// Shader Perspective Projection
+	GLuint  mTPos;				// Translation position
 	GLuint 	mScaleV;			// Scale vector of bars. its height...
 	GLuint	mColor;				// individual color of a Text.
 	GLuint	mTexture;			// Texture for the font

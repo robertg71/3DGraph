@@ -69,6 +69,10 @@ namespace MoGraph
 
 	}
 
+	void Scene::updateMatrix()
+	{
+		mPVW = mProjection * mView * mWorld;
+	}
 	// Create whole scene by using Axis,Bars,Text
 	void Scene::create(int gridX, int gridZ, int lines, float step ,bool bFitToScreen)
 	{
@@ -174,9 +178,7 @@ namespace MoGraph
 		checkGLError("glUniform1f");
 		glUniform2f(shader.mResolutionLoc, 1.0f/(float)mScene.getWidth(), 1.0f/(float)mScene.getHeight());
 		checkGLError("glUniform2f");
-		glUniformMatrix4fv(shader.mMatrixP, 1, GL_FALSE, &mScene.getProjectionMat()[0][0]);
-		checkGLError("glUniformMatrix4fv");
-		glUniformMatrix4fv(shader.mMatrixV, 1, GL_FALSE, &mScene.getViewMat()[0][0]);
+		glUniformMatrix4fv(shader.mMatrixPVW, 1, GL_FALSE, &mScene.getPVWMat()[0][0]);
 		checkGLError("glUniformMatrix4fv");
 		glUniform3fv(shader.mScaleV,1, (float *)&sv.x);				// mScale location => variable "ScaleV" in vertex shader
 		checkGLError("glUniform3fv");
@@ -202,11 +204,12 @@ namespace MoGraph
 
 			glm::vec4 col(0.5f,0.5f,0.5f,1.0f);
 			glm::vec3 llength(-centerX*2.0f,5.0f,centerZ*2.0f);
+			glm::vec4 tpos(centerX, 0.0f,-centerZ, 1.0f);
+			glUniform4fv(shader.mTPos,1, (float *)&tpos.x);
 			glUniform4fv(shader.mColor,1, (float *)&col.x);
 			glUniform3fv(shader.mLength,1, (float *)&llength.x);				// mScale location => variable "ScaleV" in vertex shader
 
-			glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX,0.0f,-centerZ);	// does a mat mul
-			glUniformMatrix4fv(shader.mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
+
 			glDrawArrays(GL_LINES, 0, 2);
 
 			// Set up grid lines on height for X-Axis
@@ -218,8 +221,8 @@ namespace MoGraph
 				for (int l=1;l<mGridLines;l++)
 				{
 					float gridY = static_cast<float>(l) * mGridStep;
-					glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX,gridY,-centerZ);	// does a mat mul
-					glUniformMatrix4fv(shader.mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
+					glm::vec4 tpos(centerX, gridY, -centerZ, 1.0f);
+					glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
 					glDrawArrays(GL_LINES, 0, 2);
 				}
 			}
@@ -231,19 +234,16 @@ namespace MoGraph
 				for (int l=1;l<mGridLines;l++)
 				{
 					float gridY = static_cast<float>(l) * mGridStep;
-					glm::mat4 m 	= glm::translate(mScene.getWorldMat(),centerX,gridY,-centerZ);	// does a mat mul
-					glUniformMatrix4fv(shader.mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
+					glm::vec4 tpos(centerX, gridY, -centerZ, 1.0f);
+					glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
 					glDrawArrays(GL_LINES, 0, 2);
 				}
 			}
-
 			glDisableVertexAttribArray(shader.mAttribVtxLoc);
 			glBindBuffer(GL_ARRAY_BUFFER,0);
 		}
-
 		// Clean-up
 		glUseProgram(0);
-
 	}
 
 	void BarMgr::init()
@@ -286,12 +286,12 @@ namespace MoGraph
 		glEnableVertexAttribArray(shader.mAttribVtxLoc);
 		glBindBuffer(GL_ARRAY_BUFFER, shader.mVertexbuffer);
 		glVertexAttribPointer(
-			shader.mAttribVtxLoc,      // attribute
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
+			shader.mAttribVtxLoc,     	// attribute
+			3,                  		// size
+			GL_FLOAT,           		// type
+			GL_FALSE,           		// normalized?
+			0,                  		// stride
+			(void*)0            		// array buffer offset
 		);
 
 		checkGLError("glEnableVertexAttribArray");
@@ -305,39 +305,35 @@ namespace MoGraph
 		checkGLError("glUniform1f");
 		glUniform2f(shader.mResolutionLoc, 1.0f/(float)mScene.getWidth(), 1.0f/(float)mScene.getHeight());
 		checkGLError("glUniform2f");
-		glUniformMatrix4fv(shader.mMatrixP, 1, GL_FALSE, &mScene.getProjectionMat()[0][0]);
-		checkGLError("glUniformMatrix4fv");
-		glUniformMatrix4fv(shader.mMatrixV, 1, GL_FALSE, &mScene.getViewMat()[0][0]);
-		checkGLError("glUniformMatrix4fv");
+		glUniformMatrix4fv(shader.mMatrixPVW, 1, GL_FALSE, &mScene.getPVWMat()[0][0]);
 
 		// setting up a 2D grid.  prepare const variable for a tight loop
 		const int iGridX	= mScene.getGridX();
 		const int iGridZ	= mScene.getGridZ();
 		const float centerX = mScene.getCx();
 		const float centerZ = mScene.getCz();
+		int k 				= 0;
+
 		glm::vec3 sv(0.5f,0.5f,0.5f);
-		int k = 0;
 		for(int j=0; j<iGridZ; j++)
 		{
 			// if grid is even then extra add would be required
 			k += 1-(iGridX&1);
 			for(int i=0; i<iGridX; i++)
 			{
-				Bar &bar = getBar(j*iGridX+i);
-//				bar.setValue(1.1f+1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
-				bar.setValue(1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick)));
-				glm::mat4 m 	= glm::translate(mScene.getWorldMat(),(centerX-i)-0.5f,0.0f,(-centerZ+j)+0.5f);	// does a mat mul
+				Bar &bar 		= getBar(j*iGridX+i);
+				bar.setValue(1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick)));				//				bar.setValue(1.1f+1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
+				glm::vec4 tpos	= glm::vec4((centerX-i)-0.5f,0.0f,(-centerZ+j)+0.5f,1.0f);
 				sv.y 			= bar.getValue();
+				float c 		= 0.5f+0.5f*(float)(k&1);
 
 				// set test colors for bars.. every second bar
-				float c = 0.5f+0.5f*(float)(k&1);
-				bar.setColor(1.0f-c,0.75f,c,1.0f);
-//				bar.setColor(i/30.0f,0.0f,j/30.0f,1.0f);
+				bar.setColor(1.0f-c,0.75f,c,1.0f);				//	bar.setColor(i/30.0f,0.0f,j/30.0f,1.0f);
 
 				// upload our obj matrix to the vertex shader.
-				glUniformMatrix4fv(shader.mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
-				glUniform3fv(shader.mScaleV,1, (float *)&sv.x);				// mScale location => variable "ScaleV" in vertex shader
-				glUniform4fv(shader.mColor,1, (float *)&bar.getColor().x);
+				glUniform4fv(shader.mTPos,		1, (float *)&tpos.x);
+				glUniform3fv(shader.mScaleV,	1, (float *)&sv.x);				// mScale location => variable "ScaleV" in vertex shader
+				glUniform4fv(shader.mColor,		1, (float *)&bar.getColor().x);
 				glDrawElements(
 					 GL_TRIANGLES,      	// mode
 					 indices.size(),    	// count
@@ -376,6 +372,7 @@ namespace MoGraph
 		glm::mat4 m = glm::rotate(20.0f*tick,axis);
 
 		mScene.setWorldMat( m );
+		mScene.updateMatrix();		// need to update the PVW Matrix, Projection * View * World.
 
 		drawBars(tick);
 		drawAxis(tick);
@@ -390,7 +387,8 @@ namespace MoGraph
 
 		lprintfln("HEJ! 6\n");
 */
-		mScene.setWorldMat( m );	// set up ordinary world matrix for the text.
+//		mScene.setWorldMat( m );	// set up ordinary world matrix for the text.
+//		mScene.updateMatrix();
 		drawText(tick);
 
 	}

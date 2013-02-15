@@ -275,6 +275,7 @@ protected:
 	glm::mat4 	mProjection;		// Projection Matrix
 	glm::mat4 	mView;				// View Matrix
 	glm::mat4 	mWorld;				// World Matrix
+	glm::mat4 	mPVW;				// Projection * View * World Matrix
 
 	AxisMgr 	mAxisMgr;			// Axis mangaer contains all Axis and Grid lineups dependent on graph type
 	BarMgr  	mBarMgr;			// Bar manager contains all bars and vertices common for them
@@ -295,6 +296,7 @@ public:
 	glm::mat4 & getProjectionMat() 	{return mProjection;}
 	glm::mat4 & getViewMat()		{return mView;}
 	glm::mat4 & getWorldMat()		{return mWorld;}
+	glm::mat4 & getPVWMat()			{return mPVW;}
 	void setWorldMat(glm::mat4 &m) 	{mWorld = m;}
 	std::vector<unsigned short> &getIndices() {return mIndices;}
 	void	setTick(float tick)		{mTick = tick;}
@@ -303,6 +305,7 @@ public:
 	int		getWidth()				{return mWidth;}
 	void	setHeight(int h)		{mHeight = h;}
 	int		getHeight()				{return mHeight;}
+	void updateMatrix();
 };
 
 /*

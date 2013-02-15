@@ -114,9 +114,10 @@ float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 	checkGLError("RenderText::DrawText   glUniform1f");
 	glUniform2f(shader.mResolutionLoc, 1.0f/(float)m_width, 1.0f/(float)m_height);
 	checkGLError("RenderText::DrawText   glUniform2f");
-	glUniformMatrix4fv(shader.mMatrixP, 1, GL_FALSE, &projectionMat[0][0]);
-	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
-	glUniformMatrix4fv(shader.mMatrixV, 1, GL_FALSE, &viewMat[0][0]);
+
+	glm::mat4 pvw = projectionMat * viewMat * worldMat;
+
+	glUniformMatrix4fv(shader.mMatrixPVW, 1, GL_FALSE, &pvw[0][0]);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
 
 	glm::vec3 sv(1.0f, 1.0f, 1.0f);
@@ -127,9 +128,8 @@ float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 	glUniform4fv(shader.mColor,1, (float *)&color.x);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
 
-	// Allways
-	glm::mat4 m 	= glm::translate(worldMat,0.0f,0.0f,-drawZ);	// does a mat mul
-	glUniformMatrix4fv(shader.mMatrixM, 1, GL_FALSE, &m[0][0]);	// to the mMatrix Location => variable "World" in vertex shader
+	glm::vec4 TPos(0.0f,0.0f,-drawZ, 1.0f);
+	glUniform4fv(shader.mTPos, 1, (float *)&TPos.x);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
 
 	glDrawArrays(GL_TRIANGLES, 0, 6*num);

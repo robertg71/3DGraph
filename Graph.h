@@ -7,6 +7,7 @@
 
 #ifndef GRAPH_H_
 #define GRAPH_H_
+#include "GraphApi.h"
 #include "GFont.h"
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
@@ -323,19 +324,6 @@ public:
 
 };
 
-
-class IGraph
-{
-public:
-	virtual ~IGraph()  {}
-	virtual int init(int x,int z, int gridLines, float step, bool bFitScreen, BMFont* font,int width,int height) = 0;
-	virtual void setBKColor(glm::vec4 &color) = 0;
-	virtual void setValues(float *values,int sz) = 0;
-	virtual void setColors(glm::vec4 *colors, int sz) = 0;
-	virtual void draw() = 0;
-	virtual Scene &getScene() = 0;
-};
-
 /*
  * Layout
  */
@@ -343,7 +331,7 @@ class Graph : public IGraph /* should include a interface here. */
 {
 protected:
 	Scene 	mScene;
-	BMFont *mFont;
+	IFont 	*mFont;
 	int 	mWidth;
 	int 	mHeight;
 	int		mGridX;
@@ -351,21 +339,21 @@ protected:
 	int 	mStartTime;
 	glm::vec4 mBKColor;
 
-	MoGraph::RenderText		mRenderText;
+	RenderText		mRenderText;
 	void drawBars(float tick)	{	mScene.getBarMgr().draw();	}
 	void drawAxis(float tick)	{	mScene.getAxisMgr().draw();	}
 	void drawText(float tick)
 	{
-		std::string str = "MoSync 3D Graph Library 0.7 Beta";
 		glm::vec4 rgba(1.0f,1.0f,1.0f,1.0f);
-		glm::vec3 pos = glm::vec3(-(float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
-		float px = mRenderText.DrawText(str.c_str(), pos, rgba, mScene,true);
-		str = "Welcome to Wonderland";
-		pos.y += -2.0f;
-		pos.x += px;
-		rgba.r = 0.0f;
-		rgba.g = 0.0f;
-		mRenderText.DrawText(str.c_str(), pos, rgba, mScene,true);
+		std::string str = "MoSync 3D Graph Library 0.7 Beta";
+		glm::vec3 pos 	= glm::vec3(-(float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
+		float px 		= mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
+		str 			= "Welcome to Wonderland";
+		pos.y 			+= -2.0f;
+		pos.x 			+= px;
+		rgba.r 			= 0.0f;
+		rgba.g 			= 0.0f;
+		mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
 	}
 
 	void initShaderLines()		{	mScene.getAxisMgr().init();	}
@@ -376,7 +364,7 @@ protected:
 public:
 	Graph() : mFont(0), mWidth(1), mHeight(1), mGridX(1), mGridZ(1), mStartTime(0), mBKColor(0.0f,0.0f,0.0f,1.0f) {}
 	virtual ~Graph() {}
-	virtual int init(int x,int z, int gridLines, float step, bool bFitScreen, BMFont* font,int width,int height);
+	virtual int init(int x,int z, int gridLines, float step, bool bFitScreen, IFont* font,int width,int height);
 	virtual void setValues(float *values,int sz) 			{ mScene.setValues(values,sz);}
 	virtual void setColors(glm::vec4 *colors, int sz) 		{mScene.setColors(colors,sz);}
 	virtual void setBKColor(glm::vec4 &color) 				{ mBKColor = color;}

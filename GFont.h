@@ -121,7 +121,18 @@ struct VertexType
     glm::vec2 texture;
 };
 
-class BMFont
+class IFont
+{
+public:
+	virtual ~IFont() {};
+
+	virtual bool Init(MAHandle fontResource, std::vector<MAHandle> &textureResources) = 0;
+	virtual void Clear() = 0;
+	virtual GLuint GetTexture(int i=0) = 0;
+	virtual float BuildVertexArray(glm::vec4 * vertexPtr, const char * str, float dX, float dY, float scaleX, float scaleY) = 0;
+};
+
+class BMFont : public IFont
 {
 private:
 
@@ -141,12 +152,12 @@ public:
 
 	BMFont();
 	BMFont(const BMFont&);
-	~BMFont();
+	virtual ~BMFont();
 
-	bool Init(MAHandle fontResource, std::vector<MAHandle> &textureResources);
-	void Clear();
-	GLuint GetTexture(int i=0);
-	float BuildVertexArray(glm::vec4 * vertexPtr, const char * str, float dX, float dY, float scaleX, float scaleY);
+	virtual bool Init(MAHandle fontResource, std::vector<MAHandle> &textureResources);
+	virtual void Clear();
+	virtual GLuint GetTexture(int i=0);
+	virtual float BuildVertexArray(glm::vec4 * vertexPtr, const char * str, float dX, float dY, float scaleX, float scaleY);
 
 private:
 	bool LoadFontData(MAHandle resource);

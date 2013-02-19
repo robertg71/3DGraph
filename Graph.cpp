@@ -397,7 +397,7 @@ namespace MoGraph
 
 	}
 
-	int Graph::init(int x,int z, int gridLines, float step, bool bFitScreen, BMFont* font,int width,int height)
+	int Graph::init(int x,int z, int gridLines, float step, bool bFitScreen, IFont* font,int width,int height)
 	{
 		mWidth 	= width;
 		mHeight = height;

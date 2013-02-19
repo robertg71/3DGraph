@@ -8,24 +8,19 @@
 #include <mavsprintf.h>
 #include "RenderText.h"
 #include "graph.h"
+#include "GFont.h"
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-
-namespace MoGraph
-{
 // A SIMPLYFIED TEXT RENDERING CLASS
 //-----------------------------------------------------
 
 RenderText::RenderText()
 :	m_font(0),
 	m_width(0),
-	m_height(0),
-	m_world(1),
-	m_view(1),
-	m_proj(1)
+	m_height(0)
 {
 }
 
@@ -45,7 +40,7 @@ void RenderText::Release()
 }
 
 // Suppose we could use text box support with the width / height
-bool RenderText::Init(float width, float height, BMFont *font)
+bool RenderText::Init(float width, float height, IFont *font)
 {
 	m_width		= width;
 	m_height	= height;
@@ -57,7 +52,7 @@ bool RenderText::Init(float width, float height, BMFont *font)
 	return true;
 }
 
-void RenderText::SetFont(BMFont *font)
+void RenderText::SetFont(IFont *font)
 {
 	m_font = font;
 }
@@ -102,13 +97,6 @@ void RenderText::releaseVertices(glm::vec4 *vertices, bool bUseCache)
 {
 	if (bUseCache == false)
 		delete [] vertices;
-}
-
-//TODO DISABLE SCENE DEPENDENCY HERE
-// should have a separate draw text a direct and a cashed.
-float RenderText::DrawText(const char*str,glm::vec3 &pos, glm::vec4 &rgba, Scene &scene, bool bUseCache)
-{
-	return DrawText(str, pos, rgba, (float)scene.getGridX(), (float)scene.getGridZ(), scene.getPVWMat(), scene.getTick(), bUseCache);
 }
 
 float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, float gridWidth, float gridHeight, glm::mat4 &pvw, float tick, bool bUseCache)
@@ -182,5 +170,4 @@ float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 }
 
 
-}
 

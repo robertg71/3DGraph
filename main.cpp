@@ -43,7 +43,7 @@ private:
 	// Bars location parameters
 	int 			mWidth;
 	int				mHeight;			// Screen resolution in ABS form e.g. 640,480
-	MoGraph::Graph	mGraph;
+	MoGraph::IGraph	*mGraph;
 	BMFont			mFont;
 
 public:
@@ -52,6 +52,10 @@ public:
 	{
 	}
 
+	~MyGLMoblet()
+	{
+		delete mGraph;
+	}
 	/**
 	 * This method is called when a key is pressed.
 	 */
@@ -75,6 +79,8 @@ public:
 
 	void init()
 	{
+		mGraph = new MoGraph::Graph();
+
 		lprintfln("init2");
 		mWidth 	= EXTENT_X(maGetScrSize());
 		mHeight = EXTENT_Y(maGetScrSize());
@@ -89,15 +95,15 @@ public:
 		float gridStepY = 0.5f;
 		int gridLines 	= 5;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
-		if (!mGraph.init(grid,grid,gridLines,gridStepY,true,&mFont,mWidth,mHeight))
+		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,&mFont,mWidth,mHeight))
 			maPanic(1,"Failed to initiate Graph");
 
-		mGraph.setBKColor(bkcolor);
+		mGraph->setBKColor(bkcolor);
 	}
 
 	void draw()
 	{
-		MoGraph::Scene &scene = mGraph.getScene();
+		MoGraph::Scene &scene = mGraph->getScene();
 		int iGridZ = scene.getGridZ();	// need to be able to read the grid size
 		int iGridX = scene.getGridX();
 		int k = 0;
@@ -113,16 +119,14 @@ public:
 			{
 				values[j*iGridX+i] = 1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick));
 				float c = 0.5f+0.5f*(float)(k&1);
-		//		c = /*c **/ ((rand()&255)/255.0f);
 				glm::vec4 col(1.0f-c,0.75f,c,1.0f);
-		//		glm::vec4 col(((rand()&255)/255.0f),((rand()&255)/255.0f),((rand()&255)/255.0f),1.0f);
 				colors[j*iGridX+i]	= col;
 				k++;
 			}
 		}
-		mGraph.setValues(values,iGridX*iGridZ);
-		mGraph.setColors(colors,iGridX*iGridZ);
-		mGraph.draw();
+		mGraph->setValues(values,iGridX*iGridZ);
+		mGraph->setColors(colors,iGridX*iGridZ);
+		mGraph->draw();
 		delete [] values;
 		delete [] colors;
 	}

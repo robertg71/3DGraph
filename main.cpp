@@ -78,7 +78,7 @@ public:
 		lprintfln("init2");
 		mWidth 	= EXTENT_X(maGetScrSize());
 		mHeight = EXTENT_Y(maGetScrSize());
-		int grid 	= 30;	// 70 ish as most.
+		int grid 	= 33;	// 70 ish as most.
 		lprintfln("mGrid: %i", grid);
 
 		std::vector<MAHandle> fontTexArray;
@@ -97,7 +97,34 @@ public:
 
 	void draw()
 	{
+		MoGraph::Scene &scene = mGraph.getScene();
+		int iGridZ = scene.getGridZ();	// need to be able to read the grid size
+		int iGridX = scene.getGridX();
+		int k = 0;
+
+		float tick = scene.getTick();
+		float *values = new float[iGridZ*iGridX];
+		glm::vec4 *colors = new glm::vec4[iGridZ*iGridX];
+		for(int j=0; j<iGridZ; j++)
+		{
+			// if grid is even then extra add would be required
+			k += 1-(iGridX&1);
+			for(int i=0; i<iGridX; i++)
+			{
+				values[j*iGridX+i] = 1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick));
+				float c = 0.5f+0.5f*(float)(k&1);
+		//		c = /*c **/ ((rand()&255)/255.0f);
+				glm::vec4 col(1.0f-c,0.75f,c,1.0f);
+		//		glm::vec4 col(((rand()&255)/255.0f),((rand()&255)/255.0f),((rand()&255)/255.0f),1.0f);
+				colors[j*iGridX+i]	= col;
+				k++;
+			}
+		}
+		mGraph.setValues(values,iGridX*iGridZ);
+		mGraph.setColors(colors,iGridX*iGridZ);
 		mGraph.draw();
+		delete [] values;
+		delete [] colors;
 	}
 };
 

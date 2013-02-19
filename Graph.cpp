@@ -94,7 +94,7 @@ namespace MoGraph
 		const float cz 		= getCz();
 		const float res 	= glm::sqrt(cx*cx+cz*cz);
 		mDistToCam 			= res;
-		mProjection 		= glm::perspective(45.0f, aspect, 0.1f, 100.0f); 		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+		mProjection 		= glm::perspective(45.0f, aspect, 0.1f, res*4.0f); 		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 		mWorld				= glm::mat4(1.0f);			// set up an identity matrix
 
 		if (bFitToScreen == true)
@@ -322,13 +322,15 @@ namespace MoGraph
 			for(int i=0; i<iGridX; i++)
 			{
 				Bar &bar 		= getBar(j*iGridX+i);
-				bar.setValue(1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick)));				//				bar.setValue(1.1f+1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
+				bar.setValue(mScene.getValue(j*iGridX+i));
+//				bar.setValue(1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick)));				//				bar.setValue(1.1f+1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
 				glm::vec4 tpos	= glm::vec4((centerX-i)-0.5f,0.0f,(-centerZ+j)+0.5f,1.0f);
 				sv.y 			= bar.getValue();
-				float c 		= 0.5f+0.5f*(float)(k&1);
+//				float c 		= 0.5f+0.5f*(float)(k&1);
 
 				// set test colors for bars.. every second bar
-				bar.setColor(1.0f-c,0.75f,c,1.0f);				//	bar.setColor(i/30.0f,0.0f,j/30.0f,1.0f);
+				bar.setColor(mScene.getColor(j*iGridX+i));				//	bar.setColor(i/30.0f,0.0f,j/30.0f,1.0f);
+//				bar.setColor(1.0f-c,0.75f,c,1.0f);				//	bar.setColor(i/30.0f,0.0f,j/30.0f,1.0f);
 
 				// upload our obj matrix to the vertex shader.
 				glUniform4fv(shader.mTPos,		1, (float *)&tpos.x);

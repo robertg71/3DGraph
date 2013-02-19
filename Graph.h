@@ -144,6 +144,7 @@ protected:
 public:
 	Bar() : mValue(1.0f), mColor(1.0f,1.0f,1.0f,1.0f)	{}
 	void setColor(float r,float g,float b, float a)		{ mColor.x = r; mColor.y = g; mColor.z = b; mColor.w = a; }
+	void setColor(glm::vec4 &col)						{ mColor = col;}
 	void setValue(float val) 							{mValue = val;}
 	float getValue() 									{return mValue;}
 	glm::vec4 & getColor() 								{return mColor;}
@@ -281,6 +282,14 @@ protected:
 	BarMgr  	mBarMgr;			// Bar manager contains all bars and vertices common for them
 	TextMgr 	mTextMgr;			// Text manager handles fonts for text printouts.
 
+
+	float	*mValues;
+	int		mValuesSz;
+
+	glm::vec4 *mColors;
+	int		mColorsSz;
+
+
 	std::vector<unsigned short> mIndices;	// Index list of faces
 
 public:
@@ -306,6 +315,12 @@ public:
 	void	setHeight(int h)		{mHeight = h;}
 	int		getHeight()				{return mHeight;}
 	void updateMatrix();
+
+	void setValues(float *values,int sz) { mValues = values; mValuesSz = sz;}
+	void setColors(glm::vec4 *colors, int sz) {mColors = colors; mColorsSz = sz;}
+	float getValue(int i) {return mValues[i];}
+	glm::vec4 & getColor(int i) {return mColors[i];}
+
 };
 
 
@@ -315,8 +330,12 @@ public:
 	virtual ~IGraph()  {}
 	virtual int init(int x,int z, int gridLines, float step, bool bFitScreen, BMFont* font,int width,int height) = 0;
 	virtual void setBKColor(glm::vec4 &color) = 0;
+	virtual void setValues(float *values,int sz) = 0;
+	virtual void setColors(glm::vec4 *colors, int sz) = 0;
 	virtual void draw() = 0;
+	virtual Scene &getScene() = 0;
 };
+
 /*
  * Layout
  */
@@ -340,13 +359,13 @@ protected:
 		std::string str = "MoSync 3D Graph Library 0.7 Beta";
 		glm::vec4 rgba(1.0f,1.0f,1.0f,1.0f);
 		glm::vec3 pos = glm::vec3(-(float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
-		float px = mRenderText.DrawText(str.c_str(), pos, rgba, mScene);
+		float px = mRenderText.DrawText(str.c_str(), pos, rgba, mScene,true);
 		str = "Welcome to Wonderland";
 		pos.y += -2.0f;
 		pos.x += px;
 		rgba.r = 0.0f;
 		rgba.g = 0.0f;
-		mRenderText.DrawText(str.c_str(), pos, rgba, mScene);
+		mRenderText.DrawText(str.c_str(), pos, rgba, mScene,true);
 	}
 
 	void initShaderLines()		{	mScene.getAxisMgr().init();	}
@@ -358,14 +377,11 @@ public:
 	Graph() : mFont(0), mWidth(1), mHeight(1), mGridX(1), mGridZ(1), mStartTime(0), mBKColor(0.0f,0.0f,0.0f,1.0f) {}
 	virtual ~Graph() {}
 	virtual int init(int x,int z, int gridLines, float step, bool bFitScreen, BMFont* font,int width,int height);
-
-/*	virtual void setValues(float *valuesArray,int sz) 			{ mScene.setValues(valuesArray,sz); }
-	virtual void setValues(std::vector<float> &valuesArray) 	{ mScene.setValues(&valuesArray[0],valuesArray.size()); }
-	virtual void setColors(int *colorArray,sz)					{ mScene.setColors(colorArray,sz);}
-	virtual void setColors(std::vector<int> &colorArray)		{ mScene.setColors(&colorArray[0],sz);}
-*/
-	virtual void setBKColor(glm::vec4 &color) { mBKColor = color;}
+	virtual void setValues(float *values,int sz) 			{ mScene.setValues(values,sz);}
+	virtual void setColors(glm::vec4 *colors, int sz) 		{mScene.setColors(colors,sz);}
+	virtual void setBKColor(glm::vec4 &color) 				{ mBKColor = color;}
 	virtual void draw();
+	virtual Scene &getScene() 								{return mScene;}
 };
 
 }

@@ -36,6 +36,12 @@ RenderText::~RenderText()
 
 void RenderText::Release()
 {
+	TextCacheTable::iterator it;
+	for(it=m_textCache.begin();it!=m_textCache.end();it++)
+	{
+		delete [] static_cast<glm::vec4 *>(it->second);
+		it->second = 0;
+	}
 }
 
 // Suppose we could use text box support with the width / height
@@ -56,29 +62,69 @@ void RenderText::SetFont(BMFont *font)
 	m_font = font;
 }
 
+glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache)
+{
+	glm::vec4 *vertices = 0;
+	int num = 0;
+	if (bUseCache)
+	{
+		std::string key = str;
+		num				= key.size();
+		TextCacheTable::iterator it = m_textCache.find(key);
+		if (it == m_textCache.end())
+		{										// doesn't exists in tabler, cache it.
+			vertices = new glm::vec4[6*num];  	// create vertex array
+			if(!vertices)						// check if memory alocation was ok
+				maPanic(1,"RenderText: Failed to allocate vertex buffer");
+
+			if ( (m_textCache.insert(TextCachePair(key,vertices))).second == false )
+			{
+				// warn in log double insertion failed to insert this one.
+				lprintfln("RenderText::TextCache insertion double entry detected of key=\"%s\"",key.c_str());
+			}
+		}
+		else	// exists re use vertex buffer from table
+		{
+			vertices = static_cast<glm::vec4 *>(it->second);
+		}
+	}
+	else	// Not using cache create one
+	{
+		num			= strlen(str);						// get number chars
+		vertices	= new glm::vec4[6*num];
+		if(!vertices)
+			maPanic(1,"RenderText: Failed to allocate vertex buffer");
+	}
+	return vertices;
+}
+
+void RenderText::releaseVertices(glm::vec4 *vertices, bool bUseCache)
+{
+	if (bUseCache == false)
+		delete [] vertices;
+}
 
 //TODO DISABLE SCENE DEPENDENCY HERE
 // should have a separate draw text a direct and a cashed.
-float RenderText::DrawText(const char*str,glm::vec3 &pos, glm::vec4 &rgba, Scene &scene)
+float RenderText::DrawText(const char*str,glm::vec3 &pos, glm::vec4 &rgba, Scene &scene, bool bUseCache)
 {
-	return DrawText(str, pos, rgba, (float)scene.getGridX(), (float)scene.getGridZ(), scene.getPVWMat(), scene.getTick());
+	return DrawText(str, pos, rgba, (float)scene.getGridX(), (float)scene.getGridZ(), scene.getPVWMat(), scene.getTick(), bUseCache);
 }
 
-float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, float gridWidth, float gridHeight, glm::mat4 &pvw, float tick)
+float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, float gridWidth, float gridHeight, glm::mat4 &pvw, float tick, bool bUseCache)
 {
-	checkGLError("RenderText::DrawText   Should be ok!");
+//	checkGLError("RenderText::DrawText   Should be ok!");
 
 	float width = 0;
 	float drawX = pos.x;
 	float drawY = pos.y;
 	float drawZ	= pos.z;
-
+	int num = strlen(str);
+	glm::vec4 *vertices = 0;
 	// Use the font class to build the vertex array from the sentence text and sentence draw location.
 	// Create the vertex array.
-	int num		= strlen(str);						// get number chars
-	glm::vec4 *vertices	= new glm::vec4[6*num];
-	if(!vertices)
-		return false;
+
+	vertices = getVertices(str, bUseCache);		// creates or retrieves existing vertex buffer from a cache table
 
 	width = m_font->BuildVertexArray(vertices, str, drawX, drawY, 2.0f/gridWidth, 2.0f/gridHeight);			// get vertex array from string,
 	TextShader &shader= m_textShader;
@@ -129,7 +175,9 @@ float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
 	checkGLError("RenderText::DrawText   glUseProgram(0)");
-	delete [] vertices;
+
+	releaseVertices(vertices, bUseCache);
+
 	return width;			// Generate a buffer for the vertices
 }
 

@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #include <maheap.h>
 #include <conprint.h>
 #include "graph.h"
+#include "GFont.h"
 #include "Shaders.h"
 #include "RenderText.h"
 #include "MAHeaders.h"
@@ -44,17 +45,18 @@ private:
 	int 			mWidth;
 	int				mHeight;			// Screen resolution in ABS form e.g. 640,480
 	MoGraph::IGraph	*mGraph;
-	BMFont			mFont;
+	IFont			*mFont;
 
 public:
 	MyGLMoblet() :
-		GLMoblet(GLMoblet::GL2)
+		GLMoblet(GLMoblet::GL2) , mGraph(0), mFont(0)
 	{
 	}
 
 	~MyGLMoblet()
 	{
 		delete mGraph;
+		delete mFont;
 	}
 	/**
 	 * This method is called when a key is pressed.
@@ -79,7 +81,8 @@ public:
 
 	void init()
 	{
-		mGraph = new MoGraph::Graph();
+		mGraph 	= new MoGraph::Graph();
+		mFont 	= new BMFont();
 
 		lprintfln("init2");
 		mWidth 	= EXTENT_X(maGetScrSize());
@@ -89,13 +92,13 @@ public:
 
 		std::vector<MAHandle> fontTexArray;
 		fontTexArray.push_back(R_BOX_TEXTURE);
-		mFont.Init(R_BOX_FNT, fontTexArray);
+		mFont->Init(R_BOX_FNT, fontTexArray);
 		lprintfln("Init RenderText w=%d h=%d\n",mWidth,mHeight);
 
 		float gridStepY = 0.5f;
 		int gridLines 	= 5;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
-		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,&mFont,mWidth,mHeight))
+		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,mFont,mWidth,mHeight))
 			maPanic(1,"Failed to initiate Graph");
 
 		mGraph->setBKColor(bkcolor);
@@ -124,9 +127,11 @@ public:
 				k++;
 			}
 		}
+
 		mGraph->setValues(values,iGridX*iGridZ);
 		mGraph->setColors(colors,iGridX*iGridZ);
 		mGraph->draw();
+
 		delete [] values;
 		delete [] colors;
 	}

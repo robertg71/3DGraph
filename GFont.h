@@ -17,6 +17,7 @@
 #include <vector>
 #include <hash_map>
 #include <GLES2/gl2.h>
+#include "IFont.h"
 
 
 class ParseBMFont;
@@ -119,17 +120,6 @@ struct VertexType
 {
 	glm::vec2 position;
     glm::vec2 texture;
-};
-
-class IFont
-{
-public:
-	virtual ~IFont() {};
-
-	virtual bool Init(MAHandle fontResource, std::vector<MAHandle> &textureResources) = 0;
-	virtual void Clear() = 0;
-	virtual GLuint GetTexture(int i=0) = 0;
-	virtual float BuildVertexArray(glm::vec4 * vertexPtr, const char * str, float dX, float dY, float scaleX, float scaleY) = 0;
 };
 
 class BMFont : public IFont

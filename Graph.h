@@ -7,7 +7,7 @@
 
 #ifndef GRAPH_H_
 #define GRAPH_H_
-#include "GraphApi.h"
+#include "IGraph.h"
 #include "GFont.h"
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>

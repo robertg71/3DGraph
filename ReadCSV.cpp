@@ -50,7 +50,6 @@ bool ReadCSV::load( MAHandle resource, char delim, bool trim)
 			m_db.push_back(lineData);
 		else
 		    lprintfln("WARNING ReadCSV::load missing lineData from line %i => %s\n",i,line.c_str());
-
 	}
 
 	delete [] data;						// need to free temp buffer.

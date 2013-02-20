@@ -31,7 +31,8 @@ public:
 	virtual bool Init(float screenWidth, float screenHeight,IFont *font=0);
 	virtual void SetFont(IFont *font);
 	virtual float DrawText(const char*str,glm::vec3 &pos, glm::vec4 &rgba, float gridWitdth, float gridHeight, glm::mat4 &projectionViewWorldMat, float tick = 0, bool bUseCache = false );
-
+	virtual float GetTextWidth(const char *str);
+	virtual void SetScale(float x,float z) {m_scaleX = x; m_scaleZ = z;}
 protected:
 	void Release();
 
@@ -41,6 +42,8 @@ protected:
 	IFont			*m_font;		// current pointer for the font to use
 	float			m_width;		// screen width
 	float			m_height;		// screen height
+	float 			m_scaleX;
+	float			m_scaleZ;
 	TextShader		m_textShader;	// Text shader to be used for the rendering
 	TextCacheTable	m_textCache;	// using text cache re using vertex buffers for specific text.
 };

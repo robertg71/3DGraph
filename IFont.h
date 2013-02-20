@@ -15,7 +15,6 @@ class IFont
 {
 public:
 	virtual ~IFont() {};
-
 	virtual bool Init(MAHandle fontResource, std::vector<MAHandle> &textureResources) = 0;
 	virtual void Clear() = 0;
 	virtual GLuint GetTexture(int i=0) = 0;

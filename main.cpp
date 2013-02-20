@@ -44,8 +44,8 @@ private:
 	// Bars location parameters
 	int 			mWidth;
 	int				mHeight;			// Screen resolution in ABS form e.g. 640,480
-	MoGraph::IGraph	*mGraph;
-	IFont			*mFont;
+	MoGraph::IGraph	*mGraph;			// interface/Base class to MoGraph
+	IFont			*mFont;				// interface/Base class to Font
 
 public:
 	MyGLMoblet() :
@@ -53,11 +53,12 @@ public:
 	{
 	}
 
-	~MyGLMoblet()
+	virtual ~MyGLMoblet()
 	{
-		delete mGraph;
-		delete mFont;
+		delete mGraph;					// Delete Graph
+		delete mFont;					// Deleta Font
 	}
+
 	/**
 	 * This method is called when a key is pressed.
 	 */
@@ -81,40 +82,41 @@ public:
 
 	void init()
 	{
-		mGraph 	= new MoGraph::Graph();
-		mFont 	= new BMFont();
+		lprintfln("Init APP");
 
-		lprintfln("init2");
-		mWidth 	= EXTENT_X(maGetScrSize());
-		mHeight = EXTENT_Y(maGetScrSize());
-		int grid 	= 33;	// 70 ish as most.
+		mGraph 		= new MoGraph::Graph();			// Create MoGraph::Graph class
+		mFont 		= new BMFont();					// Create Font class
+		mWidth 		= EXTENT_X(maGetScrSize());
+		mHeight 	= EXTENT_Y(maGetScrSize());
+		int grid 	= 33;							// set up a desired grid for the graph in X & Z.
 		lprintfln("mGrid: %i", grid);
 
 		std::vector<MAHandle> fontTexArray;
 		fontTexArray.push_back(R_BOX_TEXTURE);
-		mFont->Init(R_BOX_FNT, fontTexArray);
+		mFont->Init(R_BOX_FNT, fontTexArray);		// Initiate font where to get its resources (.fnt) file generated from BMFont and the bitmap texture that contains the aphabet
 		lprintfln("Init RenderText w=%d h=%d\n",mWidth,mHeight);
 
 		float gridStepY = 0.5f;
 		int gridLines 	= 5;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
-		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,mFont,mWidth,mHeight))
+		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,mFont,mWidth,mHeight))	// initiate Graph with parameters as GridX, GridY, amount of gridLines in Y, stepping for each grid line in Y, fit to screen, Font class, screen width and screen height
 			maPanic(1,"Failed to initiate Graph");
 
-		mGraph->setBKColor(bkcolor);
+		mGraph->setBKColor(bkcolor);				// additional set background color
 	}
 
+	// Draw callback function
 	void draw()
 	{
-		MoGraph::Scene &scene = mGraph->getScene();
-		int iGridZ = scene.getGridZ();	// need to be able to read the grid size
+		MoGraph::Scene &scene = mGraph->getScene();		// get scene information
+		int iGridZ = scene.getGridZ();					// need to be able to read the grid size
 		int iGridX = scene.getGridX();
 		int k = 0;
 
-		float tick = scene.getTick();
-		float *values = new float[iGridZ*iGridX];
-		glm::vec4 *colors = new glm::vec4[iGridZ*iGridX];
-		for(int j=0; j<iGridZ; j++)
+		float tick = scene.getTick();					// Get tick time
+		float *values = new float[iGridZ*iGridX];		// allocate an array for set data to the Bars.
+		glm::vec4 *colors = new glm::vec4[iGridZ*iGridX];	// allocate an array for the colors for the bar. in not provided just use null and default will be used
+		for(int j=0; j<iGridZ; j++)						// Build the data
 		{
 			// if grid is even then extra add would be required
 			k += 1-(iGridX&1);
@@ -128,9 +130,10 @@ public:
 			}
 		}
 
-		mGraph->setValues(values,iGridX*iGridZ);
-		mGraph->setColors(colors,iGridX*iGridZ);
-		mGraph->draw();
+		// Update data to graph
+		mGraph->setValues(values,iGridX*iGridZ);	// set the value array to the Graph to read from
+		mGraph->setColors(colors,iGridX*iGridZ);	// set the color array to the Graph to read from
+		mGraph->draw();								// Draw the whole graph system
 
 		delete [] values;
 		delete [] colors;

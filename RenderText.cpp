@@ -20,7 +20,9 @@
 RenderText::RenderText()
 :	m_font(0),
 	m_width(0),
-	m_height(0)
+	m_height(0),
+	m_scaleX(0),
+	m_scaleZ(0)
 {
 }
 
@@ -114,7 +116,7 @@ float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 
 	vertices = getVertices(str, bUseCache);		// creates or retrieves existing vertex buffer from a cache table
 
-	width = m_font->BuildVertexArray(vertices, str, drawX, drawY, 2.0f/gridWidth, 2.0f/gridHeight);			// get vertex array from string,
+	width = m_font->BuildVertexArray(vertices, str, drawX, drawY, m_scaleX, m_scaleZ);			// get vertex array from string,
 	TextShader &shader= m_textShader;
 
 	// Use the program object
@@ -168,6 +170,19 @@ float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 
 	return width;			// Generate a buffer for the vertices
 }
+
+float RenderText::GetTextWidth(const char *str)
+{
+	int num			= strlen(str);						// get number chars
+	glm::vec4 *vertices	= new glm::vec4[6*num];
+	if(!vertices)
+		maPanic(1,"RenderText: Failed to allocate temporary vertex buffer");
+
+	float width = m_font->BuildVertexArray(vertices, str, 0.0f, 0.0f, m_scaleX, m_scaleZ);			// get vertex array from string,
+	delete [] vertices;
+	return width;
+}
+
 
 
 

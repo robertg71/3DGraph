@@ -135,7 +135,6 @@ void BMFont::Clear()
 	return;
 }
 
-// todo initiate by building a hashtable of the keys.
 BMFont::ParseBMFont BMFont::getBMType(std::string &header)
 {
 	std::hash_map<std::string, ParseBMFont>::iterator it = m_string2enum.find(header);
@@ -145,7 +144,6 @@ BMFont::ParseBMFont BMFont::getBMType(std::string &header)
 int GetValue(std::string &keyValue)
 {
 	std::vector<std::string> key_value = Utils::split(keyValue,'=',true);
-//	key		= key_value[0];
 	return atoi((key_value[1]).c_str());
 }
 
@@ -244,7 +242,6 @@ void BMPage::parse(std::vector<std::string> &line)
 		else if (key == "file")
 			m_file = Utils::unQuote(value);
 		else
-//			debugOut << "BMPage::parse => Unknown type:" << key.c_str() << std::endl;
 			lprintfln("BMPage::parse at line %d => Unknown type:%s/n",(int)i,key.c_str());
 	}
 }
@@ -277,7 +274,6 @@ void BMChar::parse(std::vector<std::string> &line)
 		else if (key == "chnl")
 			m_chnl = atoi(value.c_str());
 		else
-//			debugOut << "BMChar::parse => Unknown type:" << key.c_str() << std::endl;
 			lprintfln("BMChar::parse at line %d => Unknown type:%s/n",(int)i,key.c_str());
 	}
 }
@@ -295,7 +291,6 @@ void BMKerning::parse(std::vector<std::string> &line)
 		else if (key == "amount")
 			m_amount = atoi(value.c_str());
 		else 
-//			debugOut << "BMKerning::parse => Unknown type:" << key.c_str() << std::endl;
 			lprintfln("BMKerning::parse at line %d => Unknown type:%s/n",(int)i,key.c_str());
 	}
 }
@@ -306,11 +301,8 @@ bool BMFont::LoadFontData(MAHandle resource)
 	bool trim = true;
 	ReadCSV csv;
 
-
 	csv.load(resource,delim,trim);
 	lprintfln("Info: BMFont::LoadFontData => loaded db size=%i/n",(int)csv.getDB().size());
-
-
 
 	std::vector<std::vector<std::string> >& lineData = csv.getDB();
 	std::string key,value;
@@ -421,7 +413,7 @@ bool BMFont::LoadFontData(MAHandle resource)
 				break;
 			}
 			default: // Note check last empty line what happens there?
-			{	//debugOut << "BMFont::LoadFontData => Unknown type:" << line[0].c_str() << std::endl;
+			{
 				lprintfln("BMFont::LoadFontData => Unknown type:%s\n",line[0].c_str());
 				return false;
 			}

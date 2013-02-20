@@ -10,6 +10,17 @@
 
 
 // Filename: BMFont.h
+//
+// Handles font format from the tool BMFont (windows)
+//
+// BMFont Class contain all info necessary for a Font.
+// Where as each letters offset position texture coordinates spacing (kerning) etc towards other characters
+// Input : Parses the .fnt (textfile) containing with and height of each letter and its kerning towards other characters etc.
+// Input : Texture that contains the alphabet setup N
+// Font can generate vertex data with texture coordinate.
+// NOTE this class is independent from the Graph system and can be use generically.
+// THIS CLASS DOESN'T RENDER THE TEXT, IT CONTAINS INFORMATION ABOUT THE FONT
+// SEE RenderText class for the text rendering part, that uses BMFont as input.
 //---------------------------------------------------------------------------------
 
 #include <glm/glm.hpp>
@@ -18,7 +29,6 @@
 #include <hash_map>
 #include <GLES2/gl2.h>
 #include "IFont.h"
-
 
 class ParseBMFont;
 struct BMChar;
@@ -33,7 +43,8 @@ struct TextureStore
 {
 	GLuint m_texture;
 };
-// Class name: BMFont
+
+// Struct name: BMFont
 //---------------------------------------------------------------------------------
 struct BMInfo
 {
@@ -54,6 +65,8 @@ struct BMInfo
 
 };
 
+// Struct name: BMCommon
+//---------------------------------------------------------------------------------
 struct BMCommon
 {
 
@@ -71,6 +84,8 @@ struct BMCommon
 	void parse(std::vector<std::string> &line);
 };
 
+// Struct name: BMChar
+//---------------------------------------------------------------------------------
 struct BMChar
 {
 	int m_id;
@@ -87,6 +102,8 @@ struct BMChar
 	void parse(std::vector<std::string> &line);
 };
 
+// Struct name: BMKerning
+//---------------------------------------------------------------------------------
 struct BMKerning
 {
 	int m_first;
@@ -96,14 +113,10 @@ struct BMKerning
 	void parse(std::vector<std::string> &line);
 };
 
+// Struct name: BMPage
+//---------------------------------------------------------------------------------
 struct BMPage
 {
-/*	BMPage(const BMPage &p)
-	{
-		m_id 	= p.m_id;
-		m_file 	= p.m_file;
-	}
-*/
 	int			m_id;
 	std::string m_file;
 
@@ -122,6 +135,8 @@ struct VertexType
     glm::vec2 texture;
 };
 
+// Class name: BMFont (main class)
+//---------------------------------------------------------------------------------
 class BMFont : public IFont
 {
 private:
@@ -150,6 +165,7 @@ public:
 	virtual float BuildVertexArray(glm::vec4 * vertexPtr, const char * str, float dX, float dY, float scaleX, float scaleY);
 
 private:
+	// Helper functions (internal use)
 	bool LoadFontData(MAHandle resource);
 	void ReleaseFontData();
 	void ReleaseTexture();
@@ -157,19 +173,15 @@ private:
 
 private:
 
-	std::hash_map<std::string, ParseBMFont> 	m_string2enum;	// parsing setup should be static! or singleton
-	BMInfo										m_info;
-	BMCommon									m_common;
-	std::hash_map<int,BMChar>					m_chars;
-	std::hash_map<int, std::vector<BMKerning> >	m_kernings;	// there might be need to have an inverted lookup table from second to first.
-	std::vector<TextureStore>					m_texStores;
-	std::vector<BMPage>							m_pages;
-	int 										m_nchars;
-	int											m_nkernings;
+	std::hash_map<std::string, ParseBMFont> 	m_string2enum;	// Parsing setup should be static! or singleton
+	BMInfo										m_info;			// Header info of current Font
+	BMCommon									m_common;		// Common data for current Font
+	std::hash_map<int,BMChar>					m_chars;		// Contains table for each letter info texture coord width height offset position etc.
+	std::hash_map<int, std::vector<BMKerning> >	m_kernings;		// Contains table of letters kerning toward other letters (spacing)
+	std::vector<TextureStore>					m_texStores;	// Contains all textures that this alphabet has (but renderer uses only one)
+	std::vector<BMPage>							m_pages;		// Page info, not in use! parses data for future ref.
+	int 										m_nchars;		// amount of characters in font
+	int											m_nkernings;	// amount of kerning information in font
 };
-
-
-
-
 
 #endif /* GFONT_H_ */

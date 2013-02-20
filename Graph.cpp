@@ -26,14 +26,14 @@ namespace MoGraph
 	{
 			// Define quad vertices. origo Y = 0
 		 const float Vertices[] = {
-				1.0f, 0.0f, 1.0f,
-				1.0f, 1.0f, 1.0f,
-				-1.0f, 1.0f, 1.0f,
-				-1.0f, 0.0f, 1.0f,
-				1.0f, 0.0f, -1.0f,
-				1.0f, 1.0f, -1.0f,
-				-1.0f, 1.0f, -1.0f,
-				-1.0f, 0.0f, -1.0f,
+				1.0f, 	0.0f, 	1.0f,
+				1.0f, 	1.0f, 	1.0f,
+				-1.0f, 	1.0f, 	1.0f,
+				-1.0f, 	0.0f, 	1.0f,
+				1.0f, 	0.0f, 	-1.0f,
+				1.0f, 	1.0f, 	-1.0f,
+				-1.0f, 	1.0f, 	-1.0f,
+				-1.0f, 	0.0f, 	-1.0f,
 		};
 
 		const unsigned short Indices[] = {
@@ -353,6 +353,25 @@ namespace MoGraph
 		glUseProgram(0);
 	}
 
+	TextMgr::TextMgr(Scene &scene) : Render(scene)
+	{
+		Text t;
+		t.mColor 	= glm::vec4(1.0f,1.0f,1.0f,1.0f);
+		t.mText		= "MoSync 3D Graph Library 0.7 Beta";		// Subtitle
+		mText.push_back(t);
+
+		t.mText		= "X-Axis";		// Subtitle
+		mText.push_back(t);
+
+		t.mText		= "Y-Axis";		// Subtitle
+		mText.push_back(t);
+
+		t.mText		= "Z-Axis";		// Subtitle
+		mText.push_back(t);
+
+	}
+
+
 	void Graph::draw()
 	{
 		static int cnt = 0;
@@ -408,7 +427,6 @@ namespace MoGraph
 		mScene.setWidth(width);
 		mScene.setHeight(height);
 		return initGL();
-	//	mScene.setFont(font);
 	}
 
 
@@ -440,6 +458,39 @@ namespace MoGraph
 
 		mStartTime = maGetMilliSecondCount();
 		return TRUE;
+	}
+
+
+	// TODO a system to set up text in the graph, it might need Z sorting etc.
+	void Graph::drawText(float tick)
+	{
+		glm::vec4 rgba(1.0f,1.0f,1.0f,1.0f);
+		float scale 	= mGridX/500.0f;
+		std::string str = "MoSync 3D Graph Library 0.7 Beta";
+		glm::vec3 pos 	= glm::vec3(-(float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
+		mRenderText.SetScale(scale, scale);
+		mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
+
+		str 			= "Y-axis";
+		pos.y			+= 5.5f;
+		mRenderText.SetScale(scale*0.8f, scale*0.8f);
+		mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
+
+		str 			= "X-axis";
+		pos 			= glm::vec3((float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
+		float w 		= mRenderText.GetTextWidth(str.c_str());
+		pos.x 			-= w;
+		mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
+
+		if (mGridZ > 1)		// Check if there is a z-Axis at all
+		{
+			// set up text for Z-Axis
+			glm::vec3 axis(0.0f,1.0f,0.0f);
+			str 		= "Z-axis";
+			pos 		= glm::vec3(-(float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
+			glm::mat4 m = mScene.getPVWMat() * glm::rotate(-90.0f,axis);
+			mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), m, mScene.getTick(), true);
+		}
 	}
 
 }

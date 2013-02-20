@@ -235,7 +235,9 @@ class Text
 public:
 	std::string 	mText;
 	glm::vec3 		mPos;
-	glm::vec3 		mColor;
+	glm::mat4		mMatrix;
+	glm::vec4 		mColor;
+	glm::vec2		mScale;
 	int 			mFontType;		// reference for the font to use
 	// need to add text data to render here.
 };
@@ -250,7 +252,7 @@ protected:
 	// add some common properties
 	// Text Shader using point sprites ?
 public:
-	TextMgr(Scene &scene) : Render(scene) 	{}
+	TextMgr(Scene &scene);
 	Text &getText(int i) 					{return mText[i];}
 	int size() 								{return mText.size();}
 
@@ -287,14 +289,15 @@ protected:
 	float	*mValues;
 	int		mValuesSz;
 
-	glm::vec4 *mColors;
+	glm::vec4 *mColors;				// Optional
 	int		mColorsSz;
 
+	glm::vec4 mDefaultBarColor;		// default green color
 
 	std::vector<unsigned short> mIndices;	// Index list of faces
 
 public:
-	Scene() : mFitToScreen(true), mGridX(1), mGridZ(1), mWidth(1), mHeight(1), mTick(0.0f), mDistToCam(1.0f), mAxisMgr(*this),mBarMgr(*this),mTextMgr(*this){}
+	Scene() : mFitToScreen(true), mGridX(1), mGridZ(1), mWidth(1), mHeight(1), mTick(0.0f), mDistToCam(1.0f), mAxisMgr(*this),mBarMgr(*this),mTextMgr(*this),mDefaultBarColor(0.25f,1.0f,0.25f,1.0f){}
 	void 	create(int gridX,int gridZ, int lines = 5, float stepY = 1.0f, bool bFitToScreen = true);
 	BarMgr 	&getBarMgr() 			{return mBarMgr;}
 	AxisMgr &getAxisMgr()			{return mAxisMgr;}
@@ -315,12 +318,13 @@ public:
 	int		getWidth()				{return mWidth;}
 	void	setHeight(int h)		{mHeight = h;}
 	int		getHeight()				{return mHeight;}
+	void 	setDefaultBarColor(glm::vec4 color) {mDefaultBarColor = color;}
 	void updateMatrix();
 
 	void setValues(float *values,int sz) { mValues = values; mValuesSz = sz;}
 	void setColors(glm::vec4 *colors, int sz) {mColors = colors; mColorsSz = sz;}
-	float getValue(int i) {return mValues[i];}
-	glm::vec4 & getColor(int i) {return mColors[i];}
+	float getValue(int i) {return (mValues)? mValues[i]: 1.0f;}
+	glm::vec4 & getColor(int i) {return (mColors)? mColors[i]: mDefaultBarColor;}
 
 };
 
@@ -342,19 +346,7 @@ protected:
 	RenderText		mRenderText;
 	void drawBars(float tick)	{	mScene.getBarMgr().draw();	}
 	void drawAxis(float tick)	{	mScene.getAxisMgr().draw();	}
-	void drawText(float tick)
-	{
-		glm::vec4 rgba(1.0f,1.0f,1.0f,1.0f);
-		std::string str = "MoSync 3D Graph Library 0.7 Beta";
-		glm::vec3 pos 	= glm::vec3(-(float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
-		float px 		= mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
-		str 			= "Welcome to Wonderland";
-		pos.y 			+= -2.0f;
-		pos.x 			+= px;
-		rgba.r 			= 0.0f;
-		rgba.g 			= 0.0f;
-		mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
-	}
+	void drawText(float tick);
 
 	void initShaderLines()		{	mScene.getAxisMgr().init();	}
 	void initShaderBars()		{	mScene.getBarMgr().init();	}

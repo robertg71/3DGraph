@@ -93,12 +93,18 @@ public:
 
 		std::vector<MAHandle> fontTexArray;
 		fontTexArray.push_back(R_BOX_TEXTURE);
+
 		mFont->Init(R_BOX_FNT, fontTexArray);		// Initiate font where to get its resources (.fnt) file generated from BMFont and the bitmap texture that contains the aphabet
 		lprintfln("Init RenderText w=%d h=%d\n",mWidth,mHeight);
 
 		float gridStepY = 0.5f;
 		int gridLines 	= 5;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
+
+		// Prepare for text
+
+
+
 		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,mFont,mWidth,mHeight))	// initiate Graph with parameters as GridX, GridY, amount of gridLines in Y, stepping for each grid line in Y, fit to screen, Font class, screen width and screen height
 			maPanic(1,"Failed to initiate Graph");
 
@@ -108,22 +114,21 @@ public:
 	// Draw callback function
 	void draw()
 	{
-		MoGraph::Scene &scene = mGraph->getScene();		// get scene information
-		int iGridZ = scene.getGridZ();					// need to be able to read the grid size
-		int iGridX = scene.getGridX();
-		int k = 0;
-
-		float tick = scene.getTick();					// Get tick time
-		float *values = new float[iGridZ*iGridX];		// allocate an array for set data to the Bars.
-		glm::vec4 *colors = new glm::vec4[iGridZ*iGridX];	// allocate an array for the colors for the bar. in not provided just use null and default will be used
+		MoGraph::Scene &scene 	= mGraph->getScene();		// get scene information
+		int iGridZ 				= scene.getGridZ();					// need to be able to read the grid size
+		int iGridX 				= scene.getGridX();
+		int k 					= 0;
+		float tick 				= scene.getTick();					// Get tick time
+		float *values 			= new float[iGridZ*iGridX];		// allocate an array for set data to the Bars.
+		glm::vec4 *colors 		= new glm::vec4[iGridZ*iGridX];	// allocate an array for the colors for the bar. in not provided just use null and default will be used
 		for(int j=0; j<iGridZ; j++)						// Build the data
 		{
 			// if grid is even then extra add would be required
 			k += 1-(iGridX&1);
 			for(int i=0; i<iGridX; i++)
 			{
-				values[j*iGridX+i] = 1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick));
-				float c = 0.5f+0.5f*(float)(k&1);
+				values[j*iGridX+i] 	= 1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick));
+				float c 			= 0.5f+0.5f*(float)(k&1);
 				glm::vec4 col(1.0f-c,0.75f,c,1.0f);
 				colors[j*iGridX+i]	= col;
 				k++;

@@ -353,22 +353,57 @@ namespace MoGraph
 		glUseProgram(0);
 	}
 
-	TextMgr::TextMgr(Scene &scene) : Render(scene)
+	void TextMgr::draw()
+	{
+
+	}
+
+	void TextMgr::init()
 	{
 		Text t;
-		t.mColor 	= glm::vec4(1.0f,1.0f,1.0f,1.0f);
+		t.mRotate 			= glm::vec3(0.0f,0.0f,0.0f);
+		t.mTextFlag			= Text::NO_ACTION;
+
+		float gridX 		= mScene.getGridX();
+		float gridZ 		= mScene.getGridZ();
+		float scale 		= mScene.getGridX()/500.0f;
+
+		glm::vec2 scaleXZ(scale,scale);
+		glm::vec3 pos(-(float)gridX*0.5f, 0.0f,(float)gridZ*0.5f);
+		glm::vec4 color(1.0f,1.0f,1.0f,1.0f);
+
+		t.mColor 	= color;
 		t.mText		= "MoSync 3D Graph Library 0.7 Beta";		// Subtitle
+		t.mScale	= scaleXZ;
+		t.mPos		= pos;
+		mText.push_back(t);
+
+		scaleXZ.x 	*= 0.8f;
+		scaleXZ.y   *= 0.8f;
+
+		t.mPos.y	+= 5.5f;
+		t.mText		= "Y-Axis";		// Subtitle
+		t.mScale	= scaleXZ;
 		mText.push_back(t);
 
 		t.mText		= "X-Axis";		// Subtitle
+		t.mPos 		= glm::vec3((float)gridX*0.5f, 0.0f,(float)gridZ*0.5f);
+		t.mTextFlag = Text::CENTER_RIGHT;
 		mText.push_back(t);
 
-		t.mText		= "Y-Axis";		// Subtitle
-		mText.push_back(t);
+		if (gridZ > 1)		// Check if there is a z-Axis at all
+		{
+			// set up text for Z-Axis
+			t.mTextFlag = Text::NO_ACTION;
+			t.mText 	= "Z-axis";
+			t.mPos 		= glm::vec3(-(float)gridX*0.5f, 0.0f,(float)gridZ*0.5f);
+			t.mRotate	= glm::vec3(0.0f,-90.0f,0.0f);
+			mText.push_back(t);
+		}
+	}
 
-		t.mText		= "Z-Axis";		// Subtitle
-		mText.push_back(t);
-
+	TextMgr::TextMgr(Scene &scene) : Render(scene)
+	{
 	}
 
 
@@ -399,19 +434,20 @@ namespace MoGraph
 
 		drawBars(tick);
 		drawAxis(tick);
-
 /*
+		// TODO if user wants full grid
 		glm::mat4 m2 = glm::rotate(180.0f+20.0f*tick,axis);	// make an other rot matrix rotated 180 deg. for Axis needs to be drawn twice.. if all items should be clamped by a grid
 		mScene.setWorldMat( m2 );
+		mScene.updateMatrix();		// need to update the PVW Matrix, Projection * View * World.
 
-		lprintfln("HEJ! 5\n");
+//		lprintfln("HEJ! 5\n");
 
 		drawAxis(tick);
 
-		lprintfln("HEJ! 6\n");
+//		lprintfln("HEJ! 6\n");
 */
-//		mScene.setWorldMat( m );	// set up ordinary world matrix for the text.
-//		mScene.updateMatrix();
+		mScene.setWorldMat( m );	// set up ordinary world matrix for the text.
+		mScene.updateMatrix();
 		drawText(tick);
 
 	}
@@ -448,15 +484,14 @@ namespace MoGraph
 
 		// set up clear color
 		glClearColor(mBKColor.r,mBKColor.g,mBKColor.b, 1.0f);
-
 		mRenderText.Init(mWidth,mHeight,mFont);
+		mStartTime = maGetMilliSecondCount();
 
 		// create a braph with grid times grid
 		initShaderBars();
 		initShaderLines();
 		initShaderText();
 
-		mStartTime = maGetMilliSecondCount();
 		return TRUE;
 	}
 
@@ -464,35 +499,38 @@ namespace MoGraph
 	// TODO a system to set up text in the graph, it might need Z sorting etc.
 	void Graph::drawText(float tick)
 	{
-		glm::vec4 rgba(1.0f,1.0f,1.0f,1.0f);
-		float scale 	= mGridX/500.0f;
-		std::string str = "MoSync 3D Graph Library 0.7 Beta";
-		glm::vec3 pos 	= glm::vec3(-(float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
-		mRenderText.SetScale(scale, scale);
-		mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
+		TextMgr &textMgr = mScene.getTextMgr();
 
-		str 			= "Y-axis";
-		pos.y			+= 5.5f;
-		mRenderText.SetScale(scale*0.8f, scale*0.8f);
-		mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
-
-		str 			= "X-axis";
-		pos 			= glm::vec3((float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
-		float w 		= mRenderText.GetTextWidth(str.c_str());
-		pos.x 			-= w;
-		mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
-
-		if (mGridZ > 1)		// Check if there is a z-Axis at all
+		for (int i=0; i<textMgr.size(); i++)
 		{
-			// set up text for Z-Axis
-			glm::vec3 axis(0.0f,1.0f,0.0f);
-			str 		= "Z-axis";
-			pos 		= glm::vec3(-(float)mGridX*0.5f, 0.0f,(float)mGridZ*0.5f);
-			glm::mat4 m = mScene.getPVWMat() * glm::rotate(-90.0f,axis);
-			mRenderText.DrawText(str.c_str(), pos, rgba, mScene.getGridX(), mScene.getGridZ(), m, mScene.getTick(), true);
+			Text &text = textMgr.getText(i);
+			mRenderText.SetScale(text.mScale.x,text.mScale.y);
+			glm::vec3 pos = text.mPos;
+			switch (text.mTextFlag)
+			{
+				case Text::CENTER:
+					pos.x -= 0.5f * mRenderText.GetTextWidth(text.mText.c_str());
+					break;
+				case Text::CENTER_RIGHT:
+					pos.x -= mRenderText.GetTextWidth(text.mText.c_str());
+					break;
+				case Text::CENTER_LEFT:		// obsolete because it is by default
+					break;
+				default:
+					break;
+			}
+			if (text.mRotate.x == 0.0f && text.mRotate.y == 0.0f && text.mRotate.z == 0.0f)
+			{
+				mRenderText.DrawText(text.mText.c_str(), pos, text.mColor, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
+			}
+			else
+			{
+				glm::vec3 axis(text.mRotate.x?1.0f:0.0f, text.mRotate.y?1.0f:0.0f, text.mRotate.z?1.0f:0.0f);
+				glm::mat4 m = mScene.getPVWMat() * glm::rotate(text.mRotate.y,axis);
+				mRenderText.DrawText(text.mText.c_str(), pos, text.mColor, mScene.getGridX(), mScene.getGridZ(), m, mScene.getTick(), true);
+			}
 		}
 	}
-
 }
 
 

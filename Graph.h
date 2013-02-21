@@ -230,14 +230,16 @@ public:
 /*
  * Text class text display in graph
  */
-class Text
+struct Text
 {
-public:
+	enum TextEnum{ NO_ACTION, CENTER_LEFT, CENTER, CENTER_RIGHT };
+
 	std::string 	mText;
+	TextEnum		mTextFlag;
 	glm::vec3 		mPos;
-	glm::mat4		mMatrix;
 	glm::vec4 		mColor;
 	glm::vec2		mScale;
+	glm::vec3		mRotate;
 	int 			mFontType;		// reference for the font to use
 	// need to add text data to render here.
 };
@@ -257,8 +259,8 @@ public:
 	int size() 								{return mText.size();}
 
 	virtual ~TextMgr()						{}
-	virtual void init()						{}
-	virtual void draw()						{}
+	virtual void init();
+	virtual void draw();
 
 };
 
@@ -350,7 +352,7 @@ protected:
 
 	void initShaderLines()		{	mScene.getAxisMgr().init();	}
 	void initShaderBars()		{	mScene.getBarMgr().init();	}
-	void initShaderText()		{}
+	void initShaderText()		{	mScene.getTextMgr().init(); }
 	int  initGL();
 
 public:

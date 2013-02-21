@@ -36,8 +36,9 @@ void RenderText::Release()
 	TextCacheTable::iterator it;
 	for(it=m_textCache.begin();it!=m_textCache.end();it++)
 	{
-		delete [] static_cast<glm::vec4 *>(it->second);
-		it->second = 0;
+		VertStore &vstore = it->second;
+		delete [] static_cast<glm::vec4 *>(vstore.mVertices);
+		vstore.mVertices = 0;
 	}
 }
 
@@ -59,7 +60,7 @@ void RenderText::SetFont(IFont *font)
 	m_font = font;
 }
 
-glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache)
+glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache, float *width)
 {
 	glm::vec4 *vertices = 0;
 	int num = 0;
@@ -74,7 +75,12 @@ glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache)
 			if(!vertices)						// check if memory alocation was ok
 				maPanic(1,"RenderText: Failed to allocate vertex buffer");
 
-			if ( (m_textCache.insert(TextCachePair(key,vertices))).second == false )
+			*width = m_font->BuildVertexArray(vertices, key.c_str(), m_pos.x, m_pos.y, m_scaleX, m_scaleZ);			// get vertex array from string,
+
+			glm::vec2 scaleXZ(m_scaleX,m_scaleZ);
+			VertStore vstore(vertices,*width,scaleXZ);
+
+			if ( (m_textCache.insert(TextCachePair(key,vstore))).second == false )
 			{
 				// warn in log double insertion failed to insert this one.
 				lprintfln("RenderText::TextCache insertion double entry detected of key=\"%s\"",key.c_str());
@@ -82,7 +88,13 @@ glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache)
 		}
 		else	// exists re use vertex buffer from table
 		{
-			vertices = static_cast<glm::vec4 *>(it->second);
+			VertStore &vstore = it->second;
+			vertices = static_cast<glm::vec4 *>(vstore.mVertices);
+			*width	 = vstore.mWidth;
+
+			// may need to check current scale state or restore system with it.
+			m_scaleX = vstore.mScaleXZ.x;
+			m_scaleZ = vstore.mScaleXZ.y;
 		}
 	}
 	else	// Not using cache create one
@@ -91,6 +103,8 @@ glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache)
 		vertices	= new glm::vec4[6*num];
 		if(!vertices)
 			maPanic(1,"RenderText: Failed to allocate vertex buffer");
+
+		*width = m_font->BuildVertexArray(vertices, str, m_pos.x, m_pos.z, m_scaleX, m_scaleZ);			// get vertex array from string,
 	}
 	return vertices;
 }
@@ -106,17 +120,14 @@ float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 //	checkGLError("RenderText::DrawText   Should be ok!");
 
 	float width = 0;
-	float drawX = pos.x;
-	float drawY = pos.y;
-	float drawZ	= pos.z;
+	m_pos = pos;
 	int num = strlen(str);
 	glm::vec4 *vertices = 0;
 	// Use the font class to build the vertex array from the sentence text and sentence draw location.
 	// Create the vertex array.
 
-	vertices = getVertices(str, bUseCache);		// creates or retrieves existing vertex buffer from a cache table
+	vertices = getVertices(str, bUseCache, &width);		// note uses m_pos creates or retrieves existing vertex buffer from a cache table
 
-	width = m_font->BuildVertexArray(vertices, str, drawX, drawY, m_scaleX, m_scaleZ);			// get vertex array from string,
 	TextShader &shader= m_textShader;
 
 	// Use the program object
@@ -153,7 +164,7 @@ float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 	glm::vec4 color = rgba;
 	glUniform4fv(shader.mColor,1, (float *)&color.x);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
-	glm::vec4 TPos(0.0f,0.0f,-drawZ, 1.0f);
+	glm::vec4 TPos(0.0f,0.0f,-m_pos.z, 1.0f);
 	glUniform4fv(shader.mTPos, 1, (float *)&TPos.x);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
 	glDrawArrays(GL_TRIANGLES, 0, 6*num);

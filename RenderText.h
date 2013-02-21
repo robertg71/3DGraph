@@ -14,8 +14,17 @@
 #include <hash_map>
 #include "Shaders.h"
 
-typedef std::pair<std::string, void * > 	TextCachePair;
-typedef std::hash_map<std::string,void * > 	TextCacheTable;
+struct VertStore
+{
+	VertStore(void *vertices, float width, glm::vec2 &scaleXZ) : mVertices(vertices), mWidth(width), mScaleXZ(scaleXZ) {};
+
+	void 		*mVertices;
+	float		mWidth;
+	glm::vec2 	mScaleXZ;
+};
+
+typedef std::pair<std::string, VertStore > 	TextCachePair;
+typedef std::hash_map<std::string,VertStore > 	TextCacheTable;
 
 /*
  * RenderText class generic text rendering class based on the output
@@ -36,7 +45,7 @@ public:
 protected:
 	void Release();
 
-	glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache);	// helper function to create or retrieved cached buffer
+	glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache, float *width);	// helper function to create or retrieved cached buffer
 	void releaseVertices(glm::vec4 *vertices, bool bUseCache);
 
 	IFont			*m_font;		// current pointer for the font to use
@@ -44,6 +53,7 @@ protected:
 	float			m_height;		// screen height
 	float 			m_scaleX;
 	float			m_scaleZ;
+	glm::vec3		m_pos;
 	TextShader		m_textShader;	// Text shader to be used for the rendering
 	TextCacheTable	m_textCache;	// using text cache re using vertex buffers for specific text.
 };

@@ -31,6 +31,7 @@ typedef std::hash_map<std::string,VertStore > 	TextCacheTable;
  * NOTE RenderText Class can handle one Texture for the whole font.
  * This is due to speedup of the rendering system to avoid texture changes and multiple texture switching within one string.
  */
+enum BlendType{ BL_ADDITIVE, BL_TRANSLUCENT, BL_SUBTRACTIVE, BL_TRANSPARENT};
 
 class RenderText
 {
@@ -56,6 +57,7 @@ protected:
 	glm::vec3		m_pos;
 	TextShader		m_textShader;	// Text shader to be used for the rendering
 	TextCacheTable	m_textCache;	// using text cache re using vertex buffers for specific text.
+	BlendType		m_blendType;
 };
 
 #endif /* TEXT_H_ */

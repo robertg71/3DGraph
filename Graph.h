@@ -287,14 +287,13 @@ protected:
 	BarMgr  	mBarMgr;			// Bar manager contains all bars and vertices common for them
 	TextMgr 	mTextMgr;			// Text manager handles fonts for text printouts.
 
+	float		*mValues;			// Bar values
+	int			mValuesSz;
 
-	float	*mValues;
-	int		mValuesSz;
+	glm::vec4 	*mColors;			// Color values
+	int			mColorsSz;
 
-	glm::vec4 *mColors;				// Optional
-	int		mColorsSz;
-
-	glm::vec4 mDefaultBarColor;		// default green color
+	glm::vec4 	mDefaultBarColor;		// default green color
 
 	std::vector<unsigned short> mIndices;	// Index list of faces
 

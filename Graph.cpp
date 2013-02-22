@@ -209,7 +209,6 @@ namespace MoGraph
 			glUniform4fv(shader.mColor,1, (float *)&col.x);
 			glUniform3fv(shader.mLength,1, (float *)&llength.x);				// mScale location => variable "ScaleV" in vertex shader
 
-
 			glDrawArrays(GL_LINES, 0, 2);
 
 			// Set up grid lines on height for X-Axis

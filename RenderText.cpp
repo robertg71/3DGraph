@@ -22,7 +22,8 @@ RenderText::RenderText()
 	m_width(0),
 	m_height(0),
 	m_scaleX(0),
-	m_scaleZ(0)
+	m_scaleZ(0),
+	m_blendType(BL_ADDITIVE)
 {
 }
 
@@ -130,6 +131,29 @@ float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 
 	TextShader &shader= m_textShader;
 
+	glEnable (GL_BLEND);
+	m_blendType = BL_ADDITIVE;
+	switch (m_blendType)
+	{
+	case BL_ADDITIVE:					// Additive
+		glBlendFunc(GL_ONE, GL_ONE);
+//		glBlendFunc( GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR );	// very good additive
+		break;
+	case BL_TRANSLUCENT:				// Requires alpha
+		glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// Texture uses alpha
+		break;
+	case BL_SUBTRACTIVE:
+		//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+		glBlendFunc( GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA ); //subtractive black => max
+//		glBlendFunc(GL_ZERO, GL_SRC_ALPHA);		// needs alpha
+//		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+		break;
+	case BL_TRANSPARENT:
+		glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+		break;
+	}
+
 	// Use the program object
 	glUseProgram(shader.mShader);
 	checkGLError("RenderText::DrawText   glUseProgram (Text)");
@@ -178,6 +202,8 @@ float RenderText::DrawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 	checkGLError("RenderText::DrawText   glUseProgram(0)");
 
 	releaseVertices(vertices, bUseCache);
+
+	glDisable(GL_BLEND);
 
 	return width;			// Generate a buffer for the vertices
 }

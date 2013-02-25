@@ -38,6 +38,23 @@ MA 02110-1301, USA.
 
 using namespace MAUtil;
 
+enum TouchState{ Idle, Pressed, Moving, Released };
+
+struct Touch
+{
+	Touch() : mPos(glm::vec2(0.0f,0.0f)),mOldPos(glm::vec2(0.0f,0.0f)), mId(0), mState(Idle) {}
+	Touch(MAPoint2d &p, int id, TouchState state) : mPos(glm::vec2((float)p.x,(float)p.y)),mOldPos(glm::vec2((float)p.x,(float)p.y)), mId(id), mState(state) {}
+
+
+	glm::vec2 	mPos;
+	glm::vec2	mOldPos;
+	int			mId;
+	TouchState 	mState;
+};
+
+typedef std::pair<int, Touch> TouchPair;
+
+
 class MyGLMoblet: public GLMoblet
 {
 private:
@@ -46,11 +63,19 @@ private:
 	int				mHeight;			// Screen resolution in ABS form e.g. 640,480
 	MoGraph::IGraph	*mGraph;			// interface/Base class to MoGraph
 	IFont			*mFont;				// interface/Base class to Font
+	std::hash_map<int, Touch> mTouch;	// table of touch
+	int				mTouchActive;
+	glm::vec2 mRotSpeed;
+	glm::vec2 mRotPos;
+	glm::vec2 mScaleSpeed[2];
+	glm::mat4 mScaleMatrix;
 
 public:
 	MyGLMoblet() :
-		GLMoblet(GLMoblet::GL2) , mGraph(0), mFont(0)
+		GLMoblet(GLMoblet::GL2) , mGraph(0), mFont(0), mTouchActive(0), mScaleMatrix(1.0f)
 	{
+		mScaleSpeed[0] = glm::vec2(0.0f,0.0f);
+		mScaleSpeed[1] = glm::vec2(0.0f,0.0f);
 	}
 
 	virtual ~MyGLMoblet()
@@ -79,6 +104,46 @@ public:
 				break;
 		}
 	}
+
+	/**
+	*  This function is called with a coordinate when a pointer is pressed.
+	*/
+	void multitouchPressEvent(MAPoint2d p, int touchId)
+	{
+//		lprintfln("multitouchPressEvent=(%d,%d) id=%d",p.x,p.y,touchId);
+		Touch t(p,touchId,Pressed);
+		mTouch[touchId] = t;		// creates or overwrites.
+		mTouchActive++;
+	}
+
+	/**
+	*  This function is called with a coordinate when a pointer is moved.
+	*/
+	void multitouchMoveEvent(MAPoint2d p, int touchId)
+	{
+//		lprintfln("multitouchMoveEvent=(%d,%d) id=%d",p.x,p.y,touchId);
+		Touch &t = mTouch[touchId];
+		t.mOldPos = t.mPos;
+		t.mPos = glm::vec2(p.x,p.y);
+		t.mId = touchId;
+		t.mState = Moving;
+	}
+
+	/**
+	*  This function is called with a coordinate when a pointer is released.
+	*/
+	void multitouchReleaseEvent(MAPoint2d p, int touchId)
+	{
+//		lprintfln("multitouchReleaseEvent=(%d,%d) id=%d",p.x,p.y,touchId);
+//		mTouch.erase(touchId);							// could keep the info. with a different state.
+		Touch &t = mTouch[touchId];
+		t.mOldPos = t.mPos;
+		t.mPos = glm::vec2(p.x,p.y);
+		t.mId = touchId;
+		t.mState = Released;
+		mTouchActive--;
+	}
+
 
 	void init()
 	{
@@ -111,9 +176,91 @@ public:
 		mGraph->setBKColor(bkcolor);				// additional set background color
 	}
 
+
+	glm::vec2 getSpeed(Touch &t, glm::vec2 &speed)
+	{
+
+		glm::vec2 p,op;
+		// Single touch.
+		if (mTouchActive == 0)
+		{
+			p.x = 0.0f;
+			p.y = 0.0f;
+			speed *= 0.98f;
+		}
+		else if (mTouchActive == 1)
+		{
+			glm::vec2 scale((float)mWidth,(float)mHeight);
+
+			p 	= mTouch[0].mPos/scale;
+			op 	= mTouch[0].mOldPos/scale;
+			speed = p - op;
+		}
+
+		if (speed.x > 1.0f)
+			speed.x = 1.0f;
+
+		if (speed.x < -1.0f)
+			speed.x = -1.0f;
+
+		if (speed.y > 1.0f)
+			speed.y = 1.0f;
+
+		if (speed.y < -1.0f)
+			speed.y = -1.0f;
+
+		return speed;
+	}
+
 	// Draw callback function
+	void updateMatrices()
+	{
+		MoGraph::Scene &scene = mGraph->getScene();
+
+		if (mTouchActive>1)
+		{
+			if (mTouchActive > 2)
+			{
+				lprintfln("Multi x>2 touch not supported yet! = %d",mTouchActive);
+				return;
+			}
+			// double touch scale
+			glm::vec2 scale((float)mWidth,(float)mHeight);
+			mScaleSpeed[0] = mTouch[0].mPos/scale;//getSpeed(mTouch[0],mScaleSpeed[0]);
+			mScaleSpeed[1] = mTouch[1].mPos/scale;//getSpeed(mTouch[1],mScaleSpeed[1]);
+			glm::vec2 diff = mScaleSpeed[0] - mScaleSpeed[1];
+			float delta = glm::length(diff);//diff.length();
+			delta = (delta < 0.0f)? -delta: delta;
+			delta = (delta < 0.1f)? 0.1f: delta;
+			delta = (delta > 2.0f)? 2.0f: delta;
+			lprintfln("Scale = %f,%f = %f,%f - %f,%f delta=%f", diff.x,diff.y,mScaleSpeed[0].x,mScaleSpeed[0].y,mScaleSpeed[1].x,mScaleSpeed[1].y,delta);
+
+			mScaleMatrix[0][0] = delta;
+			mScaleMatrix[1][1] = delta;
+			mScaleMatrix[2][2] = delta;
+			mScaleMatrix[3][3] = delta;
+		}
+		else
+		{
+			mRotSpeed = getSpeed(mTouch[0],mRotSpeed);
+
+			mRotPos += mRotSpeed;
+			// Create a rotation matrix.
+		}
+		glm::vec3 axisY(0.0,1.0f,0.0f);
+		glm::mat4 mY = glm::rotate(mRotPos.x*30.0f,axisY);
+		glm::vec3 axisX(1.0,0.0f,0.0f);
+		glm::mat4 mX = glm::rotate(mRotPos.y*30.0f,axisX);
+
+		glm::mat4 m = mScaleMatrix*mY*mX;
+		scene.setWorldMat( m );
+		scene.updateMatrix();		// need to update the PVW Matrix, Projection * View * World.
+
+	}
+
 	void draw()
 	{
+		updateMatrices();
 		MoGraph::Scene &scene 	= mGraph->getScene();		// get scene information
 		int iGridZ 				= scene.getGridZ();					// need to be able to read the grid size
 		int iGridX 				= scene.getGridX();

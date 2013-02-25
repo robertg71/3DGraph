@@ -423,30 +423,8 @@ namespace MoGraph
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		checkGLError("glClear");
 
-		glm::vec3 axis(0.0f,0.5f,0.0f);
-
-		// Create a rotation matrix.
-		glm::mat4 m = glm::rotate(20.0f*tick,axis);
-
-		mScene.setWorldMat( m );
-		mScene.updateMatrix();		// need to update the PVW Matrix, Projection * View * World.
-
 		drawBars(tick);
 		drawAxis(tick);
-/*
-		// TODO if user wants full grid
-		glm::mat4 m2 = glm::rotate(180.0f+20.0f*tick,axis);	// make an other rot matrix rotated 180 deg. for Axis needs to be drawn twice.. if all items should be clamped by a grid
-		mScene.setWorldMat( m2 );
-		mScene.updateMatrix();		// need to update the PVW Matrix, Projection * View * World.
-
-//		lprintfln("HEJ! 5\n");
-
-		drawAxis(tick);
-
-//		lprintfln("HEJ! 6\n");
-*/
-		mScene.setWorldMat( m );	// set up ordinary world matrix for the text.
-		mScene.updateMatrix();
 		drawText(tick);
 
 	}

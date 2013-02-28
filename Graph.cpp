@@ -71,7 +71,7 @@ namespace MoGraph
 
 	void Scene::updateMatrix()
 	{
-		mPVW = mProjection * mView * mWorld;
+		mPVW =  mProjection * mView * mWorld;
 	}
 	// Create whole scene by using Axis,Bars,Text
 	void Scene::create(int gridX, int gridZ, int lines, float step ,bool bFitToScreen)
@@ -89,15 +89,20 @@ namespace MoGraph
 		mAxisMgr.addAxis(axis);
 		mAxisMgr.setGridLines(lines);
 		mAxisMgr.setGridStep(step);
-		const float aspect 	= 3.0f/4.0f;
+		mWorld = glm::mat4(1.0f);				// set up an identity matrix
+		updateCamera(1.0f);
+	}
+
+	void Scene::updateCamera(float scale)
+	{
+		const float aspect 	= 3.0f/4.0f;		// Net to calculate this this is HardCoded.
 		const float cx 		= getCx();
 		const float cz 		= getCz();
-		const float res 	= glm::sqrt(cx*cx+cz*cz);
+		const float res 	= 1.0f/scale * glm::sqrt(cx*cx+cz*cz);
 		mDistToCam 			= res;
 		mProjection 		= glm::perspective(45.0f, aspect, 0.1f, res*4.0f); 		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-		mWorld				= glm::mat4(1.0f);			// set up an identity matrix
 
-		if (bFitToScreen == true)
+		if (mFitToScreen == true)
 		{												// Camera matrix
 			mView       = glm::lookAt(
 			glm::vec3(0.0f,res*0.5f,res*2.0f/aspect), 	// Camera is at (0,x/2,x*(1/aspec)), in World Space
@@ -113,6 +118,7 @@ namespace MoGraph
 			glm::vec3(0,1,0)  							// Head is up (set to 0,-1,0 to look upside-down)
 			);
 		}
+
 	}
 
 	// AxisMgr::create3D  creates default vertex buffer

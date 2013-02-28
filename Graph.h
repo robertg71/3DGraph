@@ -281,6 +281,7 @@ protected:
 	glm::mat4 	mProjection;		// Projection Matrix
 	glm::mat4 	mView;				// View Matrix
 	glm::mat4 	mWorld;				// World Matrix
+	glm::mat4	mScale;				// Scale Matrix
 	glm::mat4 	mPVW;				// Projection * View * World Matrix
 
 	AxisMgr 	mAxisMgr;			// Axis mangaer contains all Axis and Grid lineups dependent on graph type
@@ -310,8 +311,10 @@ public:
 	glm::mat4 & getProjectionMat() 	{return mProjection;}
 	glm::mat4 & getViewMat()		{return mView;}
 	glm::mat4 & getWorldMat()		{return mWorld;}
+	glm::mat4 & getScaleMat()		{return mScale;}
 	glm::mat4 & getPVWMat()			{return mPVW;}
 	void setWorldMat(glm::mat4 &m) 	{mWorld = m;}
+	void setScaleMat(glm::mat4 &m)	{mScale = m;}
 	std::vector<unsigned short> &getIndices() {return mIndices;}
 	void	setTick(float tick)		{mTick = tick;}
 	float	getTick()				{return mTick;}
@@ -321,11 +324,11 @@ public:
 	int		getHeight()				{return mHeight;}
 	void 	setDefaultBarColor(glm::vec4 color) {mDefaultBarColor = color;}
 	void updateMatrix();
-
-	void setValues(float *values,int sz) { mValues = values; mValuesSz = sz;}
-	void setColors(glm::vec4 *colors, int sz) {mColors = colors; mColorsSz = sz;}
-	float getValue(int i) {return (mValues)? mValues[i]: 1.0f;}
-	glm::vec4 & getColor(int i) {return (mColors)? mColors[i]: mDefaultBarColor;}
+	void updateCamera(float scale);
+	void setValues(float *values,int sz) 		{ mValues = values; mValuesSz = sz;}
+	void setColors(glm::vec4 *colors, int sz) 	{mColors = colors; mColorsSz = sz;}
+	float getValue(int i) 						{return (mValues)? mValues[i]: 1.0f;}
+	glm::vec4 & getColor(int i) 				{return (mColors)? mColors[i]: mDefaultBarColor;}
 
 };
 

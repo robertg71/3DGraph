@@ -68,18 +68,27 @@ private:
 	glm::vec2 mRotSpeed;
 	glm::vec2 mRotPos;
 	glm::vec2 mScaleSpeed[2];
+	glm::vec4 *mColors;
+	float *mTables;
+	float mScalePos;
+	float mScaleOldPos;
+	float mDelta;
 	glm::mat4 mScaleMatrix;
 
 public:
 	MyGLMoblet() :
-		GLMoblet(GLMoblet::GL2) , mGraph(0), mFont(0), mTouchActive(0), mScaleMatrix(1.0f)
+		GLMoblet(GLMoblet::GL2) , mGraph(0), mFont(0), mTouchActive(0), mColors(0), mTables(0), mScaleMatrix(1.0f)
 	{
 		mScaleSpeed[0] = glm::vec2(0.0f,0.0f);
 		mScaleSpeed[1] = glm::vec2(0.0f,0.0f);
+		mScaleOldPos = 1.0f;
+		mScalePos = 1.0f;
 	}
 
 	virtual ~MyGLMoblet()
 	{
+		delete [] mTables;
+		delete [] mColors;
 		delete mGraph;					// Delete Graph
 		delete mFont;					// Deleta Font
 	}
@@ -212,9 +221,12 @@ public:
 		return speed;
 	}
 
+	/// TODO need time delta handling here.
+
 	// Draw callback function
 	void updateMatrices()
 	{
+		int cnt=0;
 		MoGraph::Scene &scene = mGraph->getScene();
 
 		if (mTouchActive>1)
@@ -224,26 +236,43 @@ public:
 				lprintfln("Multi x>2 touch not supported yet! = %d",mTouchActive);
 				return;
 			}
+
+
 			// double touch scale
 			glm::vec2 scale((float)mWidth,(float)mHeight);
 			mScaleSpeed[0] = mTouch[0].mPos/scale;//getSpeed(mTouch[0],mScaleSpeed[0]);
 			mScaleSpeed[1] = mTouch[1].mPos/scale;//getSpeed(mTouch[1],mScaleSpeed[1]);
 			glm::vec2 diff = mScaleSpeed[0] - mScaleSpeed[1];
+
 			float delta = glm::length(diff);//diff.length();
+
 			delta = (delta < 0.0f)? -delta: delta;
 			delta = (delta < 0.1f)? 0.1f: delta;
 			delta = (delta > 2.0f)? 2.0f: delta;
-			lprintfln("Scale = %f,%f = %f,%f - %f,%f delta=%f", diff.x,diff.y,mScaleSpeed[0].x,mScaleSpeed[0].y,mScaleSpeed[1].x,mScaleSpeed[1].y,delta);
 
-			mScaleMatrix[0][0] = delta;
-			mScaleMatrix[1][1] = delta;
-			mScaleMatrix[2][2] = delta;
-			mScaleMatrix[3][3] = delta;
+			if (mTouch[0].mState == Moving && mTouch[1].mState == Moving)
+			{
+//				mScaleOldPos 	= mScalePos;
+				mScalePos 		= delta;
+			}
+			else
+			{
+				mScalePos = mScaleOldPos = delta;
+				cnt = 1;
+			}
+			mDelta -= mScaleOldPos - mScalePos;
+			if (mDelta > 2.0f)
+				mDelta = 2.0f;
+			else if (mDelta < 0.1f)
+				mDelta = 0.1f;
+
+	//		lprintfln("%d. Delta = %f = %f - %f",cnt, mDelta,mScaleOldPos,mScalePos);
+
+			scene.updateCamera( mDelta );
 		}
 		else
 		{
 			mRotSpeed = getSpeed(mTouch[0],mRotSpeed);
-
 			mRotPos += mRotSpeed;
 			// Create a rotation matrix.
 		}
@@ -252,9 +281,11 @@ public:
 		glm::vec3 axisX(1.0,0.0f,0.0f);
 		glm::mat4 mX = glm::rotate(mRotPos.y*30.0f,axisX);
 
-		glm::mat4 m = mScaleMatrix*mY*mX;
+		glm::mat4 m = mY*mX;
 		scene.setWorldMat( m );
+		scene.setScaleMat( mScaleMatrix );
 		scene.updateMatrix();		// need to update the PVW Matrix, Projection * View * World.
+		mScaleOldPos = mScalePos;
 
 	}
 
@@ -266,29 +297,30 @@ public:
 		int iGridX 				= scene.getGridX();
 		int k 					= 0;
 		float tick 				= scene.getTick();					// Get tick time
-		float *values 			= new float[iGridZ*iGridX];		// allocate an array for set data to the Bars.
-		glm::vec4 *colors 		= new glm::vec4[iGridZ*iGridX];	// allocate an array for the colors for the bar. in not provided just use null and default will be used
+
+		if (mTables == 0)
+			mTables = new float[iGridZ*iGridX];		// allocate an array for set data to the Bars.
+		if (mColors == 0)
+			mColors = new glm::vec4[iGridZ*iGridX];
+
 		for(int j=0; j<iGridZ; j++)						// Build the data
 		{
 			// if grid is even then extra add would be required
 			k += 1-(iGridX&1);
 			for(int i=0; i<iGridX; i++)
 			{
-				values[j*iGridX+i] 	= 1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick));
+				mTables[j*iGridX+i] 	= 1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick));
 				float c 			= 0.5f+0.5f*(float)(k&1);
 				glm::vec4 col(1.0f-c,0.75f,c,1.0f);
-				colors[j*iGridX+i]	= col;
+				mColors[j*iGridX+i]	= col;
 				k++;
 			}
 		}
 
 		// Update data to graph
-		mGraph->setValues(values,iGridX*iGridZ);	// set the value array to the Graph to read from
-		mGraph->setColors(colors,iGridX*iGridZ);	// set the color array to the Graph to read from
+		mGraph->setValues(mTables,iGridX*iGridZ);	// set the value array to the Graph to read from
+		mGraph->setColors(mColors,iGridX*iGridZ);	// set the color array to the Graph to read from
 		mGraph->draw();								// Draw the whole graph system
-
-		delete [] values;
-		delete [] colors;
 	}
 };
 

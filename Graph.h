@@ -22,6 +22,7 @@
 /*
  * Helper class that split a string and parse its values to an array of floats.
  */
+/*
 class ParseInput
 {
 public:
@@ -71,7 +72,7 @@ protected:
 	char *m_data;		// input data stream or static.
 	int  m_len;
 };
-
+*/
 
 
 
@@ -88,6 +89,7 @@ class Scene;
 /*
  * Input class for Graphs handling Static or Dynamic or Stream of data.
  */
+/*
 class Input
 {
 public:
@@ -98,10 +100,11 @@ public:
 	// dynamic
 protected:
 };
-
+*/
 /*
  * Screen class manageing widget size in absolute resolutions, info
  */
+/*
 class Screen
 {
 public:
@@ -117,7 +120,7 @@ public:
 protected:
 
 };
-
+*/
 class Render
 {
 public:
@@ -145,8 +148,8 @@ protected:
 
 public:
 	Bar() : mValue(1.0f), mColor(1.0f,1.0f,1.0f,1.0f)	{}
-	void setColor(float r,float g,float b, float a)		{ mColor.x = r; mColor.y = g; mColor.z = b; mColor.w = a; }
-	void setColor(glm::vec4 &col)						{ mColor = col;}
+	void setColor(float r,float g,float b, float a)		{mColor.x = r; mColor.y = g; mColor.z = b; mColor.w = a;}
+	void setColor(glm::vec4 &col)						{mColor = col;}
 	void setValue(float val) 							{mValue = val;}
 	float getValue() 									{return mValue;}
 	glm::vec4 & getColor() 								{return mColor;}
@@ -241,7 +244,7 @@ struct Text
 	glm::vec4 		mColor;
 	glm::vec2		mScale;
 	glm::vec3		mRotate;
-	int 			mFontType;		// reference for the font to use
+//	int 			mFontType;		// Optional not implemented reference for the font to use
 	// need to add text data to render here.
 };
 
@@ -256,6 +259,7 @@ protected:
 	// Text Shader using point sprites ?
 public:
 	TextMgr(Scene &scene);
+	std::vector<Text>	&getTextArray()		{return mText;}
 	Text &getText(int i) 					{return mText[i];}
 	int size() 								{return mText.size();}
 
@@ -350,22 +354,22 @@ protected:
 	glm::vec4 mBKColor;
 
 	RenderText		mRenderText;
-	void drawBars(float tick)	{	mScene.getBarMgr().draw();	}
-	void drawAxis(float tick)	{	mScene.getAxisMgr().draw();	}
+	void drawBars(float tick)	{mScene.getBarMgr().draw();}
+	void drawAxis(float tick)	{mScene.getAxisMgr().draw();}
 	void drawText(float tick);
 
-	void initShaderLines()		{	mScene.getAxisMgr().init();	}
-	void initShaderBars()		{	mScene.getBarMgr().init();	}
-	void initShaderText()		{	mScene.getTextMgr().init(); }
+	void initShaderLines()		{mScene.getAxisMgr().init();}
+	void initShaderBars()		{mScene.getBarMgr().init();}
+	void initShaderText()		{mScene.getTextMgr().init();}
 	int  initGL();
 
 public:
 	Graph() : mFont(0), mWidth(1), mHeight(1), mGridX(1), mGridZ(1), mBKColor(0.0f,0.0f,0.0f,1.0f) {}
 	virtual ~Graph() {}
 	virtual int init(int x,int z, int gridLines, float step, bool bFitScreen, IFont* font,int width,int height);
-	virtual void setValues(float *values,int sz) 			{ mScene.setValues(values,sz);}
+	virtual void setValues(float *values,int sz) 			{mScene.setValues(values,sz);}
 	virtual void setColors(glm::vec4 *colors, int sz) 		{mScene.setColors(colors,sz);}
-	virtual void setBKColor(glm::vec4 &color) 				{ mBKColor = color;}
+	virtual void setBKColor(glm::vec4 &color) 				{mBKColor = color;}
 	virtual void draw();
 	virtual Scene &getScene() 								{return mScene;}
 };

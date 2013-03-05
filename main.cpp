@@ -195,6 +195,35 @@ public:
 			maPanic(1,"Failed to initiate Graph");
 
 		mGraph->setBKColor(bkcolor);				// additional set background color
+
+		// Text strings in the graph has a default setup. everything is built upon the Text structs that are pushed to an std::vector<Text>   Text array
+		// We can change the existing setup by changeing the strings...
+		std::vector<MoGraph::Text> &textArray = mGraph->getScene().getTextMgr().getTextArray();
+
+		std::vector<std::string> strArray;
+
+		strArray.push_back("Sinus table ala Carte");
+		strArray.push_back("Y-Axel");
+		strArray.push_back("X-Axel");
+		strArray.push_back("Z-Axel");
+		for (size_t i = 0; i<textArray.size(); i++)
+		{
+			textArray[i].mText = strArray[i];
+		}
+
+		// and we can also push new ones to the table for more text in the graph... you can add as many as you please... fps issue in the end.
+		float scale = mGraph->getScene().getGridX()/500.0f;
+		// create additional example text
+		MoGraph::Text text;
+		text.mColor = glm::vec4(1.0f,0.0f,0.0f,1.0f);
+		text.mPos = glm::vec3(0.0f,5.0f,0.0f);
+		text.mRotate = glm::vec3(0.0f,0.0f,0.0f);
+		text.mScale = glm::vec2(scale,scale);
+		text.mTextFlag = MoGraph::Text::CENTER;
+		text.mText = "MoGraph DEMO Beta";
+		textArray.push_back(text);
+
+		// just add more. here
 	}
 
 

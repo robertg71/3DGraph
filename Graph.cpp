@@ -120,12 +120,12 @@ namespace MoGraph
 		const float cz 		= getCz();
 		const float res 	= 1.0f/scale * glm::sqrt(cx*cx+cz*cz);
 		mDistToCam 			= res;
-		mProjection 		= glm::perspective(45.0f, aspect, 0.1f, res*4.0f); 		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+		mProjection 		= glm::perspective(45.0f, aspect, 0.1f, res*5.0f); 		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 
 		if (mFitToScreen == true)
 		{												// Camera matrix
 			mView       = glm::lookAt(
-			glm::vec3(0.0f,res*0.5f,res*2.0f/aspect), 	// Camera is at (0,x/2,x*(1/aspec)), in World Space
+			glm::vec3(0.0f,res*0.5f,res*2.0f*(1.0f/aspect)), 	// Camera is at (0,x/2,x*(1/aspec)), in World Space
 			glm::vec3(0,0,0), 							// and looks at the origin
 			glm::vec3(0,1,0)  							// Head is up (set to 0,-1,0 to look upside-down)
 			);

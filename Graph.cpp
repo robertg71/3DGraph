@@ -69,23 +69,41 @@ namespace MoGraph
 
 	}
 
+	Scene::Scene() :
+			mFitToScreen(true),
+			mGridX(1),
+			mGridZ(1),
+			mWidth(1),
+			mHeight(1),
+			mDistToCam(1.0f),
+			mAxisMgr(*this),
+			mBarMgr(*this),
+			mTextMgr(*this),
+			mDefaultBarColor(0.25f,1.0f,0.25f,1.0f)
+	{
+	}
+
 	void Scene::updateMatrix()
 	{
 		mPVW =  mProjection * mView * mWorld;
 	}
+
 	// Create whole scene by using Axis,Bars,Text
 	void Scene::create(int gridX, int gridZ, int lines, float step ,bool bFitToScreen)
 	{
 		mFitToScreen 		= bFitToScreen;
 		mGridX 				= gridX;
 		mGridZ 				= gridZ;
+		mGrid.x				= gridX;
+		mGrid.y				= 1.0f;
+		mGrid.z				= gridZ;
 		int newSize 		= gridX*gridZ;
 
 		lprintfln("Scene::create: %i*%i=%i",mGridX,mGridZ,newSize);
 		mBarMgr.addBars(newSize);
 		lprintfln("vector<Bar> bars, size() = %i == %i", mBarMgr.size(),newSize);
 
-		int axis 			= ((gridX>1)&&(gridZ>1))?3:2;	// how many axis should be displayed 2 or 3 dependent on layout... 2d => 2 => 3d => 3
+		int axis = ((gridX>1)&&(gridZ>1))?3:2;	// how many axis should be displayed 2 or 3 dependent on layout... 2d => 2 => 3d => 3
 		mAxisMgr.addAxis(axis);
 		mAxisMgr.setGridLines(lines);
 		mAxisMgr.setGridStep(step);
@@ -95,7 +113,9 @@ namespace MoGraph
 
 	void Scene::updateCamera(float scale)
 	{
-		const float aspect 	= 3.0f/4.0f;		// Net to calculate this this is HardCoded.
+		const float width 		= EXTENT_X(maGetScrSize());
+		const float height 		= EXTENT_Y(maGetScrSize());
+		const float aspect 	= width/height;		// Net to calculate this this is HardCoded. 2.0f/3.0f;//1.0f/
 		const float cx 		= getCx();
 		const float cz 		= getCz();
 		const float res 	= 1.0f/scale * glm::sqrt(cx*cx+cz*cz);
@@ -118,13 +138,12 @@ namespace MoGraph
 			glm::vec3(0,1,0)  							// Head is up (set to 0,-1,0 to look upside-down)
 			);
 		}
-
 	}
 
 	// AxisMgr::create3D  creates default vertex buffer
 	void AxisMgr::create3D()
 	{
-		float v[] =
+		const float v[] =
 		{
 			0.0f, 0.0f, 0.0f,
 			1.0f, 0.0f, 0.0f,
@@ -170,7 +189,7 @@ namespace MoGraph
 
 	void AxisMgr::draw()
 	{
-		float tick 			= mScene.getTick();
+		const float tick 			= mScene.getElapsedTime();
 		LineShader &shader 	= getShader();
 		glDisable(GL_CULL_FACE);
 		glUseProgram(shader.mShader);
@@ -209,8 +228,8 @@ namespace MoGraph
 			glLineWidth(2);
 
 			glm::vec4 col(0.5f,0.5f,0.5f,1.0f);
-			glm::vec3 llength(-centerX*2.0f,5.0f,centerZ*2.0f);
-			glm::vec4 tpos(centerX, 0.0f,-centerZ, 1.0f);
+			glm::vec3 llength(-centerX*2.0f,5.0f,-centerZ*2.0f);	// length is always abs
+			glm::vec4 tpos(centerX, 0.0f,centerZ, 1.0f);
 			glUniform4fv(shader.mTPos,1, (float *)&tpos.x);
 			glUniform4fv(shader.mColor,1, (float *)&col.x);
 			glUniform3fv(shader.mLength,1, (float *)&llength.x);				// mScale location => variable "ScaleV" in vertex shader
@@ -226,7 +245,7 @@ namespace MoGraph
 				for (int l=1;l<mGridLines;l++)
 				{
 					float gridY = static_cast<float>(l) * mGridStep;
-					glm::vec4 tpos(centerX, gridY, -centerZ, 1.0f);
+					glm::vec4 tpos(centerX, gridY, centerZ, 1.0f);
 					glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
 					glDrawArrays(GL_LINES, 0, 2);
 				}
@@ -239,7 +258,7 @@ namespace MoGraph
 				for (int l=1;l<mGridLines;l++)
 				{
 					float gridY = static_cast<float>(l) * mGridStep;
-					glm::vec4 tpos(centerX, gridY, -centerZ, 1.0f);
+					glm::vec4 tpos(centerX, gridY, centerZ, 1.0f);
 					glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
 					glDrawArrays(GL_LINES, 0, 2);
 				}
@@ -277,7 +296,7 @@ namespace MoGraph
 
 	void BarMgr::draw()
 	{
-		float tick = mScene.getTick();
+		float tick = mScene.getElapsedTime();
 
 		glEnable(GL_CULL_FACE);
 		BarShader &shader = getShader();
@@ -317,25 +336,19 @@ namespace MoGraph
 		const int iGridZ	= mScene.getGridZ();
 		const float centerX = mScene.getCx();
 		const float centerZ = mScene.getCz();
-		int k 				= 0;
-
 		glm::vec3 sv(0.5f,0.5f,0.5f);
+		glm::vec4 tpos(0.0f,0.0f,0.0f,1.0f);
 		for(int j=0; j<iGridZ; j++)
 		{
-			// if grid is even then extra add would be required
-			k += 1-(iGridX&1);
 			for(int i=0; i<iGridX; i++)
 			{
-				Bar &bar 		= getBar(j*iGridX+i);
-				bar.setValue(mScene.getValue(j*iGridX+i));
-//				bar.setValue(1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick)));				//				bar.setValue(1.1f+1.0f*sin(j*0.3f+i*0.3f+1.3f*tick));
-				glm::vec4 tpos	= glm::vec4((centerX-i)-0.5f,0.0f,(-centerZ+j)+0.5f,1.0f);
-				sv.y 			= bar.getValue();
-//				float c 		= 0.5f+0.5f*(float)(k&1);
-
-				// set test colors for bars.. every second bar
-				bar.setColor(mScene.getColor(j*iGridX+i));				//	bar.setColor(i/30.0f,0.0f,j/30.0f,1.0f);
-//				bar.setColor(1.0f-c,0.75f,c,1.0f);				//	bar.setColor(i/30.0f,0.0f,j/30.0f,1.0f);
+				const int id = j*iGridX+i;
+				Bar &bar = getBar(id);
+				tpos.x 	= (centerX+i)+0.5f;
+				tpos.z 	= (centerZ-j)-0.5f;
+				sv.y 	= bar.getValue();
+				bar.setColor(mScene.getColor(id));				//	bar.setColor(i/30.0f,0.0f,j/30.0f,1.0f);
+				bar.setValue(mScene.getValue(id));
 
 				// upload our obj matrix to the vertex shader.
 				glUniform4fv(shader.mTPos,		1, (float *)&tpos.x);
@@ -347,7 +360,6 @@ namespace MoGraph
 					 GL_UNSIGNED_SHORT,   	// type
 					 (void*)0           	// element array buffer offset
 				 );
-				k++;
 			}
 		}
 
@@ -369,12 +381,14 @@ namespace MoGraph
 		t.mRotate 			= glm::vec3(0.0f,0.0f,0.0f);
 		t.mTextFlag			= Text::NO_ACTION;
 
-		float gridX 		= mScene.getGridX();
+//		float gridX 		= mScene.getGridX();
 		float gridZ 		= mScene.getGridZ();
+		float centerX		= mScene.getCx();
+		float centerZ		= mScene.getCz();
 		float scale 		= mScene.getGridX()/500.0f;
 
 		glm::vec2 scaleXZ(scale,scale);
-		glm::vec3 pos(-(float)gridX*0.5f, 0.0f,(float)gridZ*0.5f);
+		glm::vec3 pos(centerX, 0.0f,centerZ);
 		glm::vec4 color(1.0f,1.0f,1.0f,1.0f);
 
 		t.mColor 	= color;
@@ -392,7 +406,7 @@ namespace MoGraph
 		mText.push_back(t);
 
 		t.mText		= "X-Axis";		// Subtitle
-		t.mPos 		= glm::vec3((float)gridX*0.5f, 0.0f,(float)gridZ*0.5f);
+		t.mPos 		= glm::vec3(-centerX, 0.0f,centerZ);
 		t.mTextFlag = Text::CENTER_RIGHT;
 		mText.push_back(t);
 
@@ -401,7 +415,7 @@ namespace MoGraph
 			// set up text for Z-Axis
 			t.mTextFlag = Text::NO_ACTION;
 			t.mText 	= "Z-axis";
-			t.mPos 		= glm::vec3(-(float)gridX*0.5f, 0.0f,(float)gridZ*0.5f);
+			t.mPos 		= glm::vec3(centerX, 0.0f,centerZ);
 			t.mRotate	= glm::vec3(0.0f,-90.0f,0.0f);
 			mText.push_back(t);
 		}
@@ -411,7 +425,6 @@ namespace MoGraph
 	{
 	}
 
-
 	void Graph::draw()
 	{
 		static int cnt = 0;
@@ -420,9 +433,9 @@ namespace MoGraph
 		glViewport(0, 0, mWidth, mHeight);
 			checkGLError("glViewport");
 //		lprintfln("%d. draw()::glViewport w=%d h=%d\n",cnt,mWidth,mHeight);
-
-		float tick = (maGetMilliSecondCount() - mStartTime) * 0.001f;
-		mScene.setTick(tick);
+		mDeltaTime.tick();
+		float tick = static_cast<float>(mTime.update()) * 0.001f;
+		mScene.setElapsedTime(tick);
 
 		// Clear the color buffer
 		glClearColor(mBKColor.r,mBKColor.g,mBKColor.b, 1.0f);
@@ -448,7 +461,6 @@ namespace MoGraph
 		return initGL();
 	}
 
-
 	int Graph::initGL()
 	{
 		// Set up common gl options
@@ -467,8 +479,7 @@ namespace MoGraph
 
 		// set up clear color
 		glClearColor(mBKColor.r,mBKColor.g,mBKColor.b, 1.0f);
-		mRenderText.Init(mWidth,mHeight,mFont);
-		mStartTime = maGetMilliSecondCount();
+		mRenderText.init(mWidth,mHeight,mFont);
 
 		// create a braph with grid times grid
 		initShaderBars();
@@ -487,15 +498,15 @@ namespace MoGraph
 		for (int i=0; i<textMgr.size(); i++)
 		{
 			Text &text = textMgr.getText(i);
-			mRenderText.SetScale(text.mScale.x,text.mScale.y);
+			mRenderText.setScale(text.mScale.x,text.mScale.y);
 			glm::vec3 pos = text.mPos;
 			switch (text.mTextFlag)
 			{
 				case Text::CENTER:
-					pos.x -= 0.5f * mRenderText.GetTextWidth(text.mText.c_str());
+					pos.x -= 0.5f * mRenderText.getTextWidth(text.mText.c_str());
 					break;
 				case Text::CENTER_RIGHT:
-					pos.x -= mRenderText.GetTextWidth(text.mText.c_str());
+					pos.x -= mRenderText.getTextWidth(text.mText.c_str());
 					break;
 				case Text::CENTER_LEFT:		// obsolete because it is by default
 					break;
@@ -504,13 +515,13 @@ namespace MoGraph
 			}
 			if (text.mRotate.x == 0.0f && text.mRotate.y == 0.0f && text.mRotate.z == 0.0f)
 			{
-				mRenderText.DrawText(text.mText.c_str(), pos, text.mColor, mScene.getGridX(), mScene.getGridZ(), mScene.getPVWMat(), mScene.getTick(), true);
+				mRenderText.drawText3D(text.mText.c_str(), pos, text.mColor, mScene.getPVWMat(), mScene.getElapsedTime(), true);
 			}
 			else
 			{
 				glm::vec3 axis(text.mRotate.x?1.0f:0.0f, text.mRotate.y?1.0f:0.0f, text.mRotate.z?1.0f:0.0f);
 				glm::mat4 m = mScene.getPVWMat() * glm::rotate(text.mRotate.y,axis);
-				mRenderText.DrawText(text.mText.c_str(), pos, text.mColor, mScene.getGridX(), mScene.getGridZ(), m, mScene.getTick(), true);
+				mRenderText.drawText3D(text.mText.c_str(), pos, text.mColor, m, mScene.getElapsedTime(), true);
 			}
 		}
 	}

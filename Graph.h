@@ -15,6 +15,7 @@
 #include <string>
 #include "Shaders.h"
 #include "RenderText.h"
+#include "DTime.h"
 // during development I lake to keep all data public. cleanup will be done later.
 
 
@@ -273,15 +274,15 @@ protected:
 	bool 		mFitToScreen;		// fit to screen or use a std fixed view matrix.
 	int 		mGridX;				// Bar grid X
 	int 		mGridZ;				// Bar grid Z note mGridX*mGridZ = total amount of bars being used.
+	glm::vec3	mGrid;				// floating point version of the Grid
 	int			mWidth;
 	int			mHeight;
-	float 		mTick;
+	float 		mElapsedTime;		// Elapsed time in ms
 	float 		mDistToCam;			// internally calculated for fit to screen.
 
 	glm::mat4 	mProjection;		// Projection Matrix
 	glm::mat4 	mView;				// View Matrix
 	glm::mat4 	mWorld;				// World Matrix
-	glm::mat4	mScale;				// Scale Matrix
 	glm::mat4 	mPVW;				// Projection * View * World Matrix
 
 	AxisMgr 	mAxisMgr;			// Axis mangaer contains all Axis and Grid lineups dependent on graph type
@@ -299,25 +300,24 @@ protected:
 	std::vector<unsigned short> mIndices;	// Index list of faces
 
 public:
-	Scene() : mFitToScreen(true), mGridX(1), mGridZ(1), mWidth(1), mHeight(1), mTick(0.0f), mDistToCam(1.0f), mAxisMgr(*this),mBarMgr(*this),mTextMgr(*this),mDefaultBarColor(0.25f,1.0f,0.25f,1.0f){}
+	Scene(); // : mFitToScreen(true), mGridX(1), mGridZ(1), mWidth(1), mHeight(1), mDistToCam(1.0f), mAxisMgr(*this), mBarMgr(*this), mTextMgr(*this), mDefaultBarColor(0.25f,1.0f,0.25f,1.0f){}
 	void 	create(int gridX,int gridZ, int lines = 5, float stepY = 1.0f, bool bFitToScreen = true);
 	BarMgr 	&getBarMgr() 			{return mBarMgr;}
 	AxisMgr &getAxisMgr()			{return mAxisMgr;}
 	TextMgr &getTextMgr()			{return mTextMgr;}
 	int 	getGridX()				{return mGridX;}
 	int		getGridZ() 				{return mGridZ;}
-	float	getCx()					{return mGridX*0.5f;}
-	float	getCz()					{return mGridZ*0.5f;}
+	glm::vec3 &getGrid()			{return mGrid;}
+	float	getCx()					{return -mGrid.x*0.5f;}	// GridX & GridZ needs a float type due to its conversion
+	float	getCz()					{return mGrid.z*0.5f;}
 	glm::mat4 & getProjectionMat() 	{return mProjection;}
 	glm::mat4 & getViewMat()		{return mView;}
 	glm::mat4 & getWorldMat()		{return mWorld;}
-	glm::mat4 & getScaleMat()		{return mScale;}
 	glm::mat4 & getPVWMat()			{return mPVW;}
 	void setWorldMat(glm::mat4 &m) 	{mWorld = m;}
-	void setScaleMat(glm::mat4 &m)	{mScale = m;}
 	std::vector<unsigned short> &getIndices() {return mIndices;}
-	void	setTick(float tick)		{mTick = tick;}
-	float	getTick()				{return mTick;}
+	void	setElapsedTime(float time)		{mElapsedTime = time;}
+	float	getElapsedTime()		{return mElapsedTime;}
 	void	setWidth(int w)			{mWidth = w;}
 	int		getWidth()				{return mWidth;}
 	void	setHeight(int h)		{mHeight = h;}
@@ -344,7 +344,9 @@ protected:
 	int 	mHeight;
 	int		mGridX;
 	int 	mGridZ;
-	int 	mStartTime;
+	// todo move them outside Graph..
+	DTime	mDeltaTime;		// Delta time class (handles time in between ticks)
+	Time	mTime;			// Elapsed time class (accumulated time since constr)
 	glm::vec4 mBKColor;
 
 	RenderText		mRenderText;
@@ -358,7 +360,7 @@ protected:
 	int  initGL();
 
 public:
-	Graph() : mFont(0), mWidth(1), mHeight(1), mGridX(1), mGridZ(1), mStartTime(0), mBKColor(0.0f,0.0f,0.0f,1.0f) {}
+	Graph() : mFont(0), mWidth(1), mHeight(1), mGridX(1), mGridZ(1), mBKColor(0.0f,0.0f,0.0f,1.0f) {}
 	virtual ~Graph() {}
 	virtual int init(int x,int z, int gridLines, float step, bool bFitScreen, IFont* font,int width,int height);
 	virtual void setValues(float *values,int sz) 			{ mScene.setValues(values,sz);}

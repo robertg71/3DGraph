@@ -38,15 +38,16 @@ class RenderText
 public:
 	RenderText();
 	virtual ~RenderText();
-	virtual bool Init(float screenWidth, float screenHeight,IFont *font=0);
-	virtual void SetFont(IFont *font);
-	virtual float DrawText(const char*str,glm::vec3 &pos, glm::vec4 &rgba, float gridWitdth, float gridHeight, glm::mat4 &projectionViewWorldMat, float tick = 0, bool bUseCache = false );
-	virtual float GetTextWidth(const char *str);
-	virtual void SetScale(float x,float z) {m_scaleX = x; m_scaleZ = z;}
+	virtual bool init(float screenWidth, float screenHeight,IFont *font=0);
+	virtual void setFont(IFont *font);
+	virtual float drawText3D(const char*str,glm::vec3 &pos, glm::vec4 &rgba, glm::mat4 &projectionViewWorldMat, float tick = 0, bool bUseCache = false );
+	virtual float drawText(const char *str,glm::vec3 &pos, glm::vec4 &rgba, float tick = 0.0f);
+	virtual float getTextWidth(const char *str);
+	virtual void setScale(float x,float z) {m_scaleX = x; m_scaleZ = z;}
 protected:
-	void Release();
+	void release();
 
-	glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache, float *width);	// helper function to create or retrieved cached buffer
+	glm::vec4 *getVertices(const char *str, bool bUseCache, float *width);	// helper function to create or retrieved cached buffer
 	void releaseVertices(glm::vec4 *vertices, bool bUseCache);
 
 	IFont			*m_font;		// current pointer for the font to use
@@ -56,6 +57,7 @@ protected:
 	float			m_scaleZ;
 	glm::vec3		m_pos;
 	TextShader		m_textShader;	// Text shader to be used for the rendering
+
 	TextCacheTable	m_textCache;	// using text cache re using vertex buffers for specific text.
 	BlendType		m_blendType;
 };

@@ -123,7 +123,7 @@
 				sm[3][0]	= TPos.x;
 				sm[3][1]	= TPos.y;
 				sm[3][2]	= TPos.z;
-				sm[0][0] 	= -ScaleV.x;
+				sm[0][0] 	= ScaleV.x;
 				sm[1][1] 	= ScaleV.y;
 				sm[2][2] 	= ScaleV.z;
 

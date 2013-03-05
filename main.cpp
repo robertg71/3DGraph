@@ -34,6 +34,8 @@ MA 02110-1301, USA.
 #include "Shaders.h"
 #include "RenderText.h"
 #include "MAHeaders.h"
+#include "DTime.h"
+#include <stdlib.h>
 
 
 using namespace MAUtil;
@@ -54,35 +56,42 @@ struct Touch
 
 typedef std::pair<int, Touch> TouchPair;
 
-
+// TODO MOVE UI INSIDE MOGRAPH CLASSES.
 class MyGLMoblet: public GLMoblet
 {
 private:
 	// Bars location parameters
 	int 			mWidth;
 	int				mHeight;			// Screen resolution in ABS form e.g. 640,480
+	int				mTouchActive;
 	MoGraph::IGraph	*mGraph;			// interface/Base class to MoGraph
 	IFont			*mFont;				// interface/Base class to Font
 	std::hash_map<int, Touch> mTouch;	// table of touch
-	int				mTouchActive;
-	glm::vec2 mRotSpeed;
-	glm::vec2 mRotPos;
-	glm::vec2 mScaleSpeed[2];
-	glm::vec4 *mColors;
-	float *mTables;
-	float mScalePos;
-	float mScaleOldPos;
-	float mDelta;
-	glm::mat4 mScaleMatrix;
+	glm::vec2 		mRotSpeed;			// calculated rotation speed
+	glm::vec2 		mRotPos;			// calculated rotation position
+	glm::vec2 		mScaleSpeed[2];		// Swipe scale (req two touches)
+	glm::vec4 		*mColors;			// array pointing towards a color table
+	float 			*mTables;			// array pointing towards a float table
+	float 			mScalePos;			// current position of scale
+	float 			mScaleOldPos;		// previous frame position of scale
+	float 			mDelta;				// temp diff value for ui swipe
+	DTime 			mDTime;				// delta time between each tick! (update)
+	Time  			mTime;				// elapsed time since creation of this class,
+	RenderText 		mText;
+
 
 public:
 	MyGLMoblet() :
-		GLMoblet(GLMoblet::GL2) , mGraph(0), mFont(0), mTouchActive(0), mColors(0), mTables(0), mScaleMatrix(1.0f)
+		GLMoblet(GLMoblet::GL2) , mTouchActive(0), mGraph(0), mFont(0), mColors(0), mTables(0)
 	{
-		mScaleSpeed[0] = glm::vec2(0.0f,0.0f);
-		mScaleSpeed[1] = glm::vec2(0.0f,0.0f);
+		glm::vec2 clr(0.0f,0.0f);
+		mScaleSpeed[0] = clr;
+		mScaleSpeed[1] = clr;
 		mScaleOldPos = 1.0f;
 		mScalePos = 1.0f;
+		mRotPos = clr;
+		mRotSpeed = clr;
+		mDelta = 1.0f;	// must have the same size as the initial set up. 1.0f.
 	}
 
 	virtual ~MyGLMoblet()
@@ -157,7 +166,6 @@ public:
 	void init()
 	{
 		lprintfln("Init APP");
-
 		mGraph 		= new MoGraph::Graph();			// Create MoGraph::Graph class
 		mFont 		= new BMFont();					// Create Font class
 		mWidth 		= EXTENT_X(maGetScrSize());
@@ -171,11 +179,15 @@ public:
 		mFont->Init(R_BOX_FNT, fontTexArray);		// Initiate font where to get its resources (.fnt) file generated from BMFont and the bitmap texture that contains the aphabet
 		lprintfln("Init RenderText w=%d h=%d\n",mWidth,mHeight);
 
+		mText.init(mWidth,mHeight,mFont);
+
 		float gridStepY = 0.5f;
 		int gridLines 	= 5;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
 
-		// Prepare for text
+
+		mDTime.setDesiredFps(50.0f);
+		setPreferredFramesPerSecond(50);
 
 
 
@@ -226,7 +238,7 @@ public:
 	// Draw callback function
 	void updateMatrices()
 	{
-		int cnt=0;
+//		int cnt=0;
 		MoGraph::Scene &scene = mGraph->getScene();
 
 		if (mTouchActive>1)
@@ -236,7 +248,6 @@ public:
 				lprintfln("Multi x>2 touch not supported yet! = %d",mTouchActive);
 				return;
 			}
-
 
 			// double touch scale
 			glm::vec2 scale((float)mWidth,(float)mHeight);
@@ -252,13 +263,11 @@ public:
 
 			if (mTouch[0].mState == Moving && mTouch[1].mState == Moving)
 			{
-//				mScaleOldPos 	= mScalePos;
 				mScalePos 		= delta;
 			}
 			else
 			{
 				mScalePos = mScaleOldPos = delta;
-				cnt = 1;
 			}
 			mDelta -= mScaleOldPos - mScalePos;
 			if (mDelta > 2.0f)
@@ -272,6 +281,8 @@ public:
 		}
 		else
 		{
+			mScalePos = mScaleOldPos = 1.0f;
+
 			mRotSpeed = getSpeed(mTouch[0],mRotSpeed);
 			mRotPos += mRotSpeed;
 			// Create a rotation matrix.
@@ -283,7 +294,6 @@ public:
 
 		glm::mat4 m = mY*mX;
 		scene.setWorldMat( m );
-		scene.setScaleMat( mScaleMatrix );
 		scene.updateMatrix();		// need to update the PVW Matrix, Projection * View * World.
 		mScaleOldPos = mScalePos;
 
@@ -291,36 +301,77 @@ public:
 
 	void draw()
 	{
+		mDTime.tick();
 		updateMatrices();
-		MoGraph::Scene &scene 	= mGraph->getScene();		// get scene information
-		int iGridZ 				= scene.getGridZ();					// need to be able to read the grid size
-		int iGridX 				= scene.getGridX();
+		MoGraph::Scene &scene 	= mGraph->getScene();	// get scene information
+		const int iGridZ 		= scene.getGridZ();		// need to be able to read the grid size
+		const int iGridX 		= scene.getGridX();
+		const int sz			= iGridX * iGridZ;
+		const float tick 		= static_cast<float>(mTime.update())*0.001f;
 		int k 					= 0;
-		float tick 				= scene.getTick();					// Get tick time
 
-		if (mTables == 0)
-			mTables = new float[iGridZ*iGridX];		// allocate an array for set data to the Bars.
-		if (mColors == 0)
-			mColors = new glm::vec4[iGridZ*iGridX];
+		if (mTables == 0)								// check if array already is allocated
+			mTables = new float[sz];			// allocate an array for set data to the Bars.
+		if (mColors == 0)								// check if array already is allocated
+			mColors = new glm::vec4[sz];		// allocate an array for color table
 
 		for(int j=0; j<iGridZ; j++)						// Build the data
 		{
-			// if grid is even then extra add would be required
-			k += 1-(iGridX&1);
+			k += 1-(iGridX&1);	// if grid is even then extra add would be required
 			for(int i=0; i<iGridX; i++)
 			{
-				mTables[j*iGridX+i] 	= 1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick));
-				float c 			= 0.5f+0.5f*(float)(k&1);
-				glm::vec4 col(1.0f-c,0.75f,c,1.0f);
-				mColors[j*iGridX+i]	= col;
+				const int id = j*iGridX+i;
+				mTables[id] 	= 1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick));
+		//		float c 			= 0.5f+0.5f*(float)(k&1);
+		//		glm::vec4 col(1.0f-c,0.75f,c,1.0f);
+				glm::vec4 col(1.0f/iGridX*i,0.0f,1.0f/iGridZ*j,1.0f);
+				mColors[id]	= col;
 				k++;
 			}
 		}
 
+		glEnable(GL_DEPTH_TEST);
+
 		// Update data to graph
-		mGraph->setValues(mTables,iGridX*iGridZ);	// set the value array to the Graph to read from
-		mGraph->setColors(mColors,iGridX*iGridZ);	// set the color array to the Graph to read from
+		mGraph->setValues(mTables,sz);	// set the value array to the Graph to read from
+		mGraph->setColors(mColors,sz);	// set the color array to the Graph to read from
 		mGraph->draw();								// Draw the whole graph system
+
+	//	glm::mat4 projection 		= glm::perspective(45.0f, static_cast<float>(mHeight/mWidth), 0.001f, 1.0f); 		// Projection matrix : 45¡ Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+
+		glm::vec3 pos(100.0f,100.0f,100.0f);
+		glm::vec4 col(1.0f,1.0f,1.0f,1.0f);
+//		mText.setScale(1.0f/mWidth,1.0f/mHeight);
+		mText.setScale(1.0f,1.0f);
+
+		mText.drawText("Testing 123!",pos,col);
+
+		pos.x = 0.0f;
+		pos.y = 0.0f;
+		pos.z = 10.0f;
+
+		for(int i=0; i<10; i+=1)
+		{
+
+			const float scale = 0.6f;
+			const float sy = scale*(1.0f+0.5f*sin(tick+(i*0.03f)));
+	//		float sx = scale*(1.0f+0.5f*cos(tick+(i*0.03f)));
+			mText.setScale(sy,sy);		// note text needs to be written up side down due to orthogonal  matrix 0,0 upper corner.. 640,480 lower right corner.
+			pos.x = static_cast<float>(50.0f+50.0f*sy);
+			pos.y = static_cast<float>(i*20*sy);
+//			pos.z = static_cast<float>(i*20*scale);
+
+			char buf[64];
+			sprintf ( buf, "%d FPS=%.2f ms=%d",i,mDTime.currentFps(),mDTime.getElapsed());
+			mText.drawText(buf,pos,col);
+
+			// it could be good to have both function paint the text in the same way!
+//			glm::mat4 m = glm::ortho(0.0f,static_cast<float>(mWidth),static_cast<float>(mHeight), 0.0f, -200.0f, 1000.0f );
+//			m = mGraph->getScene().getPVWMat() * m;
+//			mText.drawText3D(buf,pos,col,/*mGraph->getScene().getPVWMat()*/m);
+		}
+
+
 	}
 };
 

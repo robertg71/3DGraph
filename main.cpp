@@ -15,6 +15,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 */
+
 #include <mavsprintf.h>
 
 #include <MAUtil/GLMoblet.h>
@@ -137,6 +138,7 @@ public:
 	/**
 	*  This function is called with a coordinate when a pointer is moved.
 	*/
+
 	void multitouchMoveEvent(MAPoint2d p, int touchId)
 	{
 //		lprintfln("multitouchMoveEvent=(%d,%d) id=%d",p.x,p.y,touchId);
@@ -150,6 +152,7 @@ public:
 	/**
 	*  This function is called with a coordinate when a pointer is released.
 	*/
+
 	void multitouchReleaseEvent(MAPoint2d p, int touchId)
 	{
 //		lprintfln("multitouchReleaseEvent=(%d,%d) id=%d",p.x,p.y,touchId);
@@ -162,6 +165,9 @@ public:
 		mTouchActive--;
 	}
 
+	/**
+	 * init call backed from GLMoblet
+	 */
 
 	void init()
 	{
@@ -328,6 +334,9 @@ public:
 
 	}
 
+	/**
+	 *  \brief Draw, callebacked from the GLMoblet.
+	 */
 	void draw()
 	{
 		mDTime.tick();

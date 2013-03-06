@@ -1,9 +1,20 @@
 /*
- * Text.h
- *
- *  Created on: Jan 31, 2013
- *      Author: CodeArt
- */
+Copyright (C) 2011 MoSync AB
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License,
+version 2, as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+*/
 
 #ifndef TEXT_H_
 #define TEXT_H_
@@ -26,12 +37,13 @@ struct VertStore
 typedef std::pair<std::string, VertStore > 	TextCachePair;
 typedef std::hash_map<std::string,VertStore > 	TextCacheTable;
 
-/*
- * RenderText class generic text rendering class based on the output
- * NOTE RenderText Class can handle one Texture for the whole font.
+enum BlendType{ BL_ADDITIVE, BL_TRANSLUCENT, BL_SUBTRACTIVE, BL_TRANSPARENT};
+
+/**
+ * \brief RenderText class generic text rendering class based on the output
+ * \note RenderText Class can handle one Texture for the whole font.
  * This is due to speedup of the rendering system to avoid texture changes and multiple texture switching within one string.
  */
-enum BlendType{ BL_ADDITIVE, BL_TRANSLUCENT, BL_SUBTRACTIVE, BL_TRANSPARENT};
 
 class RenderText
 {

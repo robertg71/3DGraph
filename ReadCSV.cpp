@@ -1,15 +1,31 @@
 /*
- * ReadCSV.cpp
- *
- *  Created on: Jan 29, 2013
- *      Author: CodeArt
- */
+Copyright (C) 2011 MoSync AB
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License,
+version 2, as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+*/
 
 
 #include "ReadCSV.h"
 #include "Utils.h"
 #include <mavsprintf.h>
 
+/**
+ * \brief GetString,	read whole textfile resource in to a string buffer
+ * @param resource,		to a text file.
+ * @return	char *,		return the text buffer
+ */
 char* GetString(MAHandle resource)
 {
     // Get the length of the string data.
@@ -29,6 +45,16 @@ char* GetString(MAHandle resource)
     return buffer;
 }
 
+/**
+ * \brief ReadCSV::load,
+ * loading a CSV = Comma (Delimited) Separated Valued text file from a resource,
+ * and store all data into a double array[][]
+ *
+ * @param resource,		resource is pointing to a csv file
+ * @param delim,		use delimiter for separation
+ * @param trim,			trim string remove spaces.
+ * @return bool true/false, true = success, false = failure
+ */
 bool ReadCSV::load( MAHandle resource, char delim, bool trim)
 {
 	char *data = GetString(resource);	// will allocate buffer
@@ -56,6 +82,16 @@ bool ReadCSV::load( MAHandle resource, char delim, bool trim)
 	return true;
 }
 
+/**
+ * \brief ReadCSV_hash::load,
+ * loading a CSV = Comma (Delimited) Separated Valued text file from a resource,
+ * and store all data into a hash table containing array of strings ["string is key"][]
+ *
+ * @param resource,		resource is pointing to a csv file
+ * @param delim,		use delimiter for separation
+ * @param trim,			trim string remove spaces.
+ * @return bool true/false, true = success, false = failure
+ */
 bool ReadCSV_hash::load(MAHandle resource, char delim, bool trim)
 {
 	ReadCSV::load(resource,delim,trim);

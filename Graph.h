@@ -1,9 +1,20 @@
 /*
- * Graph.h
- *
- *  Created on: Jan 10, 2013
- *      Author: CodeArt
- */
+ * Copyright (C) 2013 MoSync AB
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License, version 2, as published by
+the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; see the file COPYING.  If not, write to the Free
+Software Foundation, 59 Temple Place - Suite 330, Boston, MA
+02111-1307, USA.
+*/
 
 #ifndef GRAPH_H_
 #define GRAPH_H_
@@ -16,7 +27,7 @@
 #include "Shaders.h"
 #include "RenderText.h"
 #include "DTime.h"
-// during development I lake to keep all data public. cleanup will be done later.
+// during development I like to keep all data public. cleanup will be done later.
 
 
 /*
@@ -76,9 +87,11 @@ protected:
 
 
 
-/*
- * Graph namespace , that contains all graph and input of data classes into the same namespace..
+/**
+ * \brief MoGraph namespace
+ * contains all graph and input of data classes into the same namespace..
  */
+
 namespace MoGraph
 {
 
@@ -121,6 +134,15 @@ protected:
 
 };
 */
+
+
+/**
+ * 	\brief Render
+ *  Base class used for all render objects like Bars, Text, Lines
+ *	contains a reference to the scene,
+ *	the scene objects has all relevant information about the scene
+ */
+
 class Render
 {
 public:
@@ -135,11 +157,10 @@ protected:
 };
 
 
-/*
- * Bar class handles one single bar for rendering
+/**
+ * \brief Bar class handles one single bar used by BarMgr for rendering
  */
 
-// TODO split up obje part for object handling.
 class Bar
 {
 protected:
@@ -155,10 +176,12 @@ public:
 	glm::vec4 & getColor() 								{return mColor;}
 };
 
-/*
- * BarMgr handles all the bars that are being displayed
- *
+
+/**
+ * \brief BarMgr handles all the bars that are being displayed
+ *	using Render base class for the render calls init() & draw()
  */
+
 class BarMgr : public Render
 {
 protected:
@@ -188,9 +211,12 @@ public:
 	virtual void draw();
 };
 
-/*
- * Handles the AXIS lines includeing grid marks to show the steps for a value.
+
+/**
+ * \brief Handles the AXIS lines includeing grid marks to show the steps for a value.
+ *
  */
+
 class Axis
 {
 protected:
@@ -201,9 +227,11 @@ public:
 	int size() 							{return mVertices.size();}
 };
 
-/*
- * AxisMgr class handles several Axis lines for the graph display
+
+/**
+ * \brief AxisMgr class handles several Axis lines for the graph display
  */
+
 class AxisMgr : public Render
 {
 protected:
@@ -231,9 +259,11 @@ public:
 	virtual void draw();
 };
 
-/*
- * Text class text display in graph
+
+/**
+ * \brief Text class text display in graph
  */
+
 struct Text
 {
 	enum TextEnum{ NO_ACTION, CENTER_LEFT, CENTER, CENTER_RIGHT };
@@ -248,9 +278,11 @@ struct Text
 	// need to add text data to render here.
 };
 
-/*
- * TextMgr class handle all texts that is needed for the graphs.
+
+/**
+ * \bief TextMgr class handle all texts that is needed for the graphs.
  */
+
 class TextMgr : public Render
 {
 protected:
@@ -266,12 +298,13 @@ public:
 	virtual ~TextMgr()						{}
 	virtual void init();
 	virtual void draw();
-
 };
 
-/*
- * Scene handling all object in scene.
+
+/**
+ * \brief Scene handling all object in scene.
  */
+
 class Scene
 {
 protected:
@@ -336,9 +369,12 @@ public:
 
 };
 
-/*
- * Layout
+
+/**
+ * \brief Graph
+ * This is the main interfaced class for the Graph lib.
  */
+
 class Graph : public IGraph /* should include a interface here. */
 {
 protected:

@@ -1,9 +1,21 @@
 /*
- * Graph.cpp
- *
- *  Created on: Jan 14, 2013
- *      Author: CodeArt
- */
+Copyright (C) 2011 MoSync AB
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License,
+version 2, as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+*/
+
 #include <mavsprintf.h>
 #include "graph.h"
 #include "GFont.h"
@@ -18,9 +30,10 @@
 // Name space Graph
 namespace MoGraph
 {
-	/*
-	 * helper function to set the vertex array index array
-	 * Creates default vertex buffer
+	/**
+	 * \brief create3D
+	 * helper function to set the vertex array & index array
+	 * Creates default vertex buffer & index buffer
 	 */
 	void BarMgr::create3D()
 	{
@@ -69,6 +82,9 @@ namespace MoGraph
 
 	}
 
+	/**
+	 * \brief Scene, Construction
+	 */
 	Scene::Scene() :
 			mFitToScreen(true),
 			mGridX(1),
@@ -83,12 +99,22 @@ namespace MoGraph
 	{
 	}
 
+	/**
+	 * \brief updateMatrix, prepares a Perspective View World = PVW matrix used for the vertex shader.
+	 */
 	void Scene::updateMatrix()
 	{
 		mPVW =  mProjection * mView * mWorld;
 	}
 
-	// Create whole scene by using Axis,Bars,Text
+	/**
+	 * \brief create, whole scene by using Axis,Bars,Text
+	 * @param gridX	,create amount of bars in X
+	 * @param gridZ	,create amount of bars in Y
+	 * @param lines	,amount lines in Y used for grid.
+	 * @param step	,grid steps in Y
+	 * @param bFitToScreen	,fit to screen flag, whole bars.
+	 */
 	void Scene::create(int gridX, int gridZ, int lines, float step ,bool bFitToScreen)
 	{
 		mFitToScreen 		= bFitToScreen;
@@ -111,10 +137,15 @@ namespace MoGraph
 		updateCamera(1.0f);
 	}
 
+	/**
+	 * \brief updateCamera , update the ViewMatrix and PerspectiveProjection
+	 * with new values like distance to the Camera
+	 * @param scale
+	 */
 	void Scene::updateCamera(float scale)
 	{
-		const float width 		= EXTENT_X(maGetScrSize());
-		const float height 		= EXTENT_Y(maGetScrSize());
+		const float width 	= EXTENT_X(maGetScrSize());
+		const float height 	= EXTENT_Y(maGetScrSize());
 		const float aspect 	= width/height;		// Net to calculate this this is HardCoded. 2.0f/3.0f;//1.0f/
 		const float cx 		= getCx();
 		const float cz 		= getCz();
@@ -140,7 +171,9 @@ namespace MoGraph
 		}
 	}
 
-	// AxisMgr::create3D  creates default vertex buffer
+	/**
+	 * \brief AxisMgr::create3D  creates default vertex buffer
+	 */
 	void AxisMgr::create3D()
 	{
 		const float v[] =
@@ -169,12 +202,20 @@ namespace MoGraph
 		}
 	}
 
+	/**
+	 * \brief AxisMgr::addAxis
+	 * @param int n, 	add new axis 1,2,3 dimensions. x,y,z
+	 */
 	void AxisMgr::addAxis(int n)
 	{
 		mAxis.resize(n);
 		create3D();
 	}
 
+	/**
+	 * \brief AxisMgr::init
+	 * initiates buffers for openGL for all Axis
+	 */
 	void AxisMgr::init()
 	{
 		mShader.init();
@@ -187,9 +228,12 @@ namespace MoGraph
 		}
 	}
 
+	/**
+	 * \brief AxisMgr::draw,	render axis Axis lines,
+	 */
 	void AxisMgr::draw()
 	{
-		const float tick 			= mScene.getElapsedTime();
+		const float tick = mScene.getElapsedTime();
 		LineShader &shader 	= getShader();
 		glDisable(GL_CULL_FACE);
 		glUseProgram(shader.mShader);
@@ -270,6 +314,9 @@ namespace MoGraph
 		glUseProgram(0);
 	}
 
+	/**
+	 * \brief BarMgr::init	prepare vertex buffers for openGL ES 2.0
+	 */
 	void BarMgr::init()
 	{
 		std::vector<unsigned short> & indices = getScene().getIndices();	// Index list of faces
@@ -294,6 +341,9 @@ namespace MoGraph
 
 	}
 
+	/**
+	 * \brief BarMgr::draw,		render all bars for this frame
+	 */
 	void BarMgr::draw()
 	{
 		float tick = mScene.getElapsedTime();
@@ -370,11 +420,21 @@ namespace MoGraph
 		glUseProgram(0);
 	}
 
+	/**
+	 * \brief TextMgr::draw() OBSOLETE.. TODO REMOVE
+	 */
 	void TextMgr::draw()
 	{
 
 	}
 
+	/**
+	 * \brief TextMgr::init,	initiate all text in 3D graph
+	 * \note there is defaulted text array of 3 items
+	 * description of "X-Axis" "Y-AXIS" ("Y-AXIS" optional)
+	 * if needed more text just push_back new text entries for mText
+	 * and fill out the struct as desired
+	 */
 	void TextMgr::init()
 	{
 		Text t;
@@ -421,10 +481,17 @@ namespace MoGraph
 		}
 	}
 
+	/**
+	 * TextMgr Constructor
+	 * @param scene adding the scene class for back ref this obj.
+	 */
 	TextMgr::TextMgr(Scene &scene) : Render(scene)
 	{
 	}
 
+	/**
+	 * Graph::draw,	render whole scene.
+	 */
 	void Graph::draw()
 	{
 		static int cnt = 0;
@@ -448,6 +515,18 @@ namespace MoGraph
 
 	}
 
+	/**
+	 * \brief Graph::init initiate the whole graph system
+	 * @param x				, grid in X
+	 * @param z				, grid in Z
+	 * @param gridLines		, amount of Grids in Y
+	 * @param step			, step between Y grids
+	 * @param bFitScreen	, flag to fit screen or not
+	 * @param font			, font to use for rendering text in Graph
+	 * @param width			, width of screen
+	 * @param height		, height of screen
+	 * @return int if successfull or not.
+	 */
 	int Graph::init(int x,int z, int gridLines, float step, bool bFitScreen, IFont* font,int width,int height)
 	{
 		mWidth 	= width;
@@ -461,6 +540,10 @@ namespace MoGraph
 		return initGL();
 	}
 
+	/**
+	 * Graph::initGL,	initiates rendering system for the graph
+	 * @return TRUE, TODO fix error check
+	 */
 	int Graph::initGL()
 	{
 		// Set up common gl options
@@ -489,8 +572,11 @@ namespace MoGraph
 		return TRUE;
 	}
 
-
-	// TODO a system to set up text in the graph, it might need Z sorting etc.
+/**
+ * \brief Graph::drawText,	Text rendering for the Graph using TextMgr
+ * @param tick, 	elapsed time since start in ms
+ * TODO a system to set up text in the graph, it might need Z sorting etc.
+ */
 	void Graph::drawText(float tick)
 	{
 		TextMgr &textMgr = mScene.getTextMgr();

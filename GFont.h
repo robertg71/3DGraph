@@ -1,9 +1,20 @@
 /*
- * GFont.h
- *
- *  Created on: Jan 29, 2013
- *      Author: CodeArt
- */
+Copyright (C) 2011 MoSync AB
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License,
+version 2, as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+*/
 
 #ifndef GFONT_H_
 #define GFONT_H_
@@ -35,17 +46,27 @@ struct BMChar;
 struct BMKerning;
 struct VertexType;
 
+/**
+ * \brief helper typedef using pairs for hash_map<>
+ */
 typedef std::pair <std::string, ParseBMFont> String_ParseBMFont_Pair;
 typedef std::pair <int,BMChar> Int_BMChar_Pair;
 typedef std::pair <int, std::vector<BMKerning> > Int_Vector_BMKerning_Pair;
 
+/**
+ * \brief TextureStore
+ * stores texture index for the shader to use.
+ * TODO add more texture info in here in the future.
+ */
 struct TextureStore
 {
 	GLuint m_texture;
 };
 
-// Struct name: BMFont
-//---------------------------------------------------------------------------------
+/**
+* \brief Struct name: BMFont
+*  used for parsing BMInfo (header part of .fnt file)
+*/
 struct BMInfo
 {
 	std::string m_face;
@@ -65,8 +86,11 @@ struct BMInfo
 
 };
 
-// Struct name: BMCommon
-//---------------------------------------------------------------------------------
+/**
+* \brief Struct name: BMCommon
+*	used for parsing BMCommon information from .fnt file
+*	contains information that is common for this font
+*/
 struct BMCommon
 {
 
@@ -84,8 +108,12 @@ struct BMCommon
 	void parse(std::vector<std::string> &line);
 };
 
-// Struct name: BMChar
-//---------------------------------------------------------------------------------
+/**
+* Struct name: BMChar
+* used for parsing the BMChar entry from .fnt file
+* contains information for one character.
+*/
+
 struct BMChar
 {
 	int m_id;
@@ -102,8 +130,12 @@ struct BMChar
 	void parse(std::vector<std::string> &line);
 };
 
-// Struct name: BMKerning
-//---------------------------------------------------------------------------------
+/**
+* \brief Struct name: BMKerning
+* used for parsing the BMKerning entry from .fnt file
+* contains kerning information, spacing between one character to another character.
+*/
+
 struct BMKerning
 {
 	int m_first;
@@ -113,8 +145,12 @@ struct BMKerning
 	void parse(std::vector<std::string> &line);
 };
 
-// Struct name: BMPage
-//---------------------------------------------------------------------------------
+/**
+* \brief Struct name: BMPage
+* used for parsing the BMPage entry from .fnt file
+* contains texture index to be used, one font could contain several texture
+*/
+
 struct BMPage
 {
 	int			m_id;
@@ -123,11 +159,20 @@ struct BMPage
 	void parse(std::vector<std::string> &line);
 };
 
+/**
+ * \brief FontType
+ */
+
 struct FontType
 {
 	float left, right;
 	int size;
 };
+
+/**
+ * \brief VertexType
+ * contains vertex info, position and texture coordinate
+ */
 
 struct VertexType
 {
@@ -135,12 +180,18 @@ struct VertexType
     glm::vec2 texture;
 };
 
-// Class name: BMFont (main class)
-//---------------------------------------------------------------------------------
+/**
+* \brief Class name: BMFont (main class)
+*  main Font class that holds all information about the specific font.
+*  Texture and each character info.
+*  also provides with building a vertex table
+*/
+
 class BMFont : public IFont
 {
 private:
 
+	// ParseBMFont enumeration for each different element .fnt file contains.
 	enum ParseBMFont
 	{
 		PBM_IDLE = 0,
@@ -170,8 +221,6 @@ private:
 	void ReleaseFontData();
 	void ReleaseTexture();
 	ParseBMFont getBMType(std::string &header);
-
-private:
 
 	std::hash_map<std::string, ParseBMFont> 	m_string2enum;	// Parsing setup should be static! or singleton
 	BMInfo										m_info;			// Header info of current Font

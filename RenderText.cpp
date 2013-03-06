@@ -1,9 +1,20 @@
 /*
- * Text.cpp
- *
- *  Created on: Jan 31, 2013
- *      Author: CodeArt
- */
+Copyright (C) 2011 MoSync AB
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License,
+version 2, as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+*/
 
 #include <mavsprintf.h>
 #include "RenderText.h"
@@ -17,6 +28,9 @@
 // A SIMPLYFIED TEXT RENDERING CLASS
 //-----------------------------------------------------
 
+/**
+ * \brief RenderText,	Constructor
+ */
 RenderText::RenderText()
 :	m_font(0),
 	m_width(0),
@@ -27,11 +41,17 @@ RenderText::RenderText()
 {
 }
 
+/**
+ * \brief RenderText,	Destructor
+ */
 RenderText::~RenderText()
 {
 	release();
 }
 
+/**
+ * \brief release, 	remove text vertex buffer cache if existing
+ */
 void RenderText::release()
 {
 	TextCacheTable::iterator it;
@@ -43,7 +63,15 @@ void RenderText::release()
 	}
 }
 
-// Suppose we could use text box support with the width / height
+/**
+ * \brief init,	initiate the text shader and parameters
+ * TODO Suppose we could use text box support with the width / height
+ * @param width,	input screen width
+ * @param height,	input screen height
+ * @param font,		input useing font
+ * @return bool true/false,	true=success false=failed (not it use) TODO fix error handling properly
+ */
+
 bool RenderText::init(float width, float height, IFont *font)
 {
 	m_width		= width;
@@ -56,11 +84,25 @@ bool RenderText::init(float width, float height, IFont *font)
 	return true;
 }
 
+/**
+ * \brief setFont,	set the desired for to be used for RenderText class
+ * @param font
+ */
 void RenderText::setFont(IFont *font)
 {
 	m_font = font;
 }
 
+/**
+ * \brief getVertices,	get vertices for desired string,
+ * this could either be created or reusing cached vertices
+ * depends in the input parameters given
+ * \note use releaseVertices when done
+ * @param str,			string that we want to get or create vertex buffer from
+ * @param bUseCache,	flag use cached vertexbuffer true=yes (reuse), false=no(recreate a new vertex buffer)
+ * @param width,		output result width of the whole string in vertex buffer.
+ * @return glm::vert4*  returns vertex buffer
+ */
 glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache, float *width)
 {
 	glm::vec4 *vertices = 0;
@@ -110,12 +152,27 @@ glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache, float *width
 	return vertices;
 }
 
+/**
+ * \brief releaseVertices, use this function when vertexbuffer was retreived from getVertices
+ * @param vertices,		vertex buffer to release
+ * @param bUseCache,	if useing cache, true=useing cache (do nothing), false=no cache(delete vertex buffer)
+ */
 void RenderText::releaseVertices(glm::vec4 *vertices, bool bUseCache)
 {
 	if (bUseCache == false)
 		delete [] vertices;
 }
 
+/**
+ * \brief drawText3D,	render text in 3D space
+ * @param str,			string to render
+ * @param pos,			3D positions
+ * @param rgba,			text color
+ * @param pvw,			Perspective projection*View*World Matrix
+ * @param tick			elapsed time
+ * @param bUseCache		is useing cache for vertex buffer true/false
+ * @return float width of the text
+ */
 float RenderText::drawText3D(const char*str, glm::vec3 &pos, glm::vec4 &rgba, glm::mat4 &pvw, float tick, bool bUseCache)
 {
 //	checkGLError("RenderText::DrawText   Should be ok!");
@@ -209,6 +266,14 @@ float RenderText::drawText3D(const char*str, glm::vec3 &pos, glm::vec4 &rgba, gl
 	return width;			// Generate a buffer for the vertices
 }
 
+/**
+ * \brief drawText,		render 2D text on the screen (Orthogonal Projection)
+ * @param str,			text string.
+ * @param pos,			2D position on screen, TODO support Z as priority for future reference, but for now not used
+ * @param rgba,			text color
+ * @param tick			time elapsed
+ * @return float width 	of text string.
+ */
 float RenderText::drawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, float tick)
 {
 //	checkGLError("RenderText::DrawText   Should be ok!");
@@ -304,9 +369,17 @@ float RenderText::drawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 	return width;			// Generate a buffer for the vertices
 }
 
+/**
+ * \brief getTextWidth, get a text width from string
+ * \note recreates a temporary vertex buffer due to the scaling factors could be different.
+ * expensive function
+ *
+ * @param str,	input string
+ * @return float width,	text width
+ */
 float RenderText::getTextWidth(const char *str)
 {
-	int num			= strlen(str);						// get number chars
+	int num	= strlen(str);						// get number chars
 	glm::vec4 *vertices	= new glm::vec4[6*num];
 	if(!vertices)
 		maPanic(1,"RenderText: Failed to allocate temporary vertex buffer");

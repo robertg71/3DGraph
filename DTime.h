@@ -1,18 +1,31 @@
 /*
- * DTime.h
- *
- *  Created on: Feb 28, 2013
- *      Author: CodeArt
- */
+Copyright (C) 2011 MoSync AB
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License,
+version 2, as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+*/
 
 #ifndef DTIME_H_
 #define DTIME_H_
 
 #include <maapi.h>
 
-/*
- * Time class, generic class that handles time from x and measuring elapsed time generic usage.
+/**
+ * \brief Time class,
+ * generic class that handles time from x and measuring elapsed time generic usage.
  */
+
 class Time
 {
 	unsigned int mStart;
@@ -27,9 +40,11 @@ public:
 	unsigned int getStart() {return mStart;}
 };
 
-/*
- *	Delta time class more specific usage for fps time elapsed time since last frame.
+/**
+ *	\brief Delta time class
+ *	for more specific usage of fps time elapsed time since last frame.
  */
+
 class DTime : public Time
 {
 public:
@@ -45,7 +60,7 @@ public:
 protected:
 	float	mDesiredFps;	// Desired fps
 	float	mFps;			// Current fps.
-	float	mDeltaMs;			// Float delta time in ms elapsed since last frame
+	float	mDeltaMs;		// Float delta time in ms elapsed since last frame
 	float	mDelta;			// delta in frames
 
 };

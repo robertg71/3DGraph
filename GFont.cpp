@@ -1,9 +1,20 @@
 /*
- * GFont.cpp
- *
- *  Created on: Jan 29, 2013
- *      Author: CodeArt
- */
+Copyright (C) 2011 MoSync AB
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License,
+version 2, as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+*/
 
 
 //------------------------------------------------------------------------------------------
@@ -22,9 +33,12 @@
 #include <mavsprintf.h>
 #include "Shaders.h"
 
-//
-// Create the texture used for rendering.
-//----------------------------------------
+/**
+* \brief Create the texture used for rendering.
+* @param MAHandle resource
+* @return index of shader element
+*/
+
 GLuint CreateTexture(MAHandle resource)
 {
 	GLuint textureHandle;
@@ -58,6 +72,10 @@ GLuint CreateTexture(MAHandle resource)
 	return textureHandle;
 }
 
+/**
+ * \brief BMFont
+ * Constructor
+ */
 
 BMFont::BMFont()
 {
@@ -70,6 +88,11 @@ BMFont::BMFont()
 	m_string2enum["kerning"]	= PBM_KERNING;
 	m_string2enum["idle"]		= PBM_IDLE;
 }
+
+/**
+ * \brief BMFont Copy constructor
+ * @param other  referenced element of a BMFont
+ */
 
 BMFont::BMFont(const BMFont& other) :
 	m_chars(other.m_chars), 
@@ -84,9 +107,21 @@ BMFont::BMFont(const BMFont& other) :
 	m_common	= other.m_common;
 }
 
+/**
+ *	\brief ~BMFont
+ *	Destructor
+ */
+
 BMFont::~BMFont()
 {
 }
+
+/**
+ * \brief Init(), initiates from resource data .fnt file and texture.
+ * @param fontResource, resource of a .fnt contains textual information about this font.
+ * @param textureResources, array of resource of one or multiple font textures that represents a Font.
+ * @return bool true/false true = success, false = failed.
+ */
 
 bool BMFont::Init(MAHandle fontResource, std::vector<MAHandle> &textureResources)
 {
@@ -128,6 +163,11 @@ bool BMFont::Init(MAHandle fontResource, std::vector<MAHandle> &textureResources
 	return true;
 }
 
+/**
+ * \brief Clear
+ * Release Texture and Font DB creation
+ */
+
 void BMFont::Clear()
 {
 	ReleaseTexture();
@@ -135,18 +175,36 @@ void BMFont::Clear()
 	return;
 }
 
+/**
+ * \brief getBMType
+ * @param header lookup enum from string hence the name
+ * @return ParseBMFont enum
+ */
+
 BMFont::ParseBMFont BMFont::getBMType(std::string &header)
 {
 	std::hash_map<std::string, ParseBMFont>::iterator it = m_string2enum.find(header);
 	return (it!=m_string2enum.end())? it->second: PBM_IDLE;
 }
 
+/**
+ * \brief GetValue gets a value from a string e.g. "label = 10" => value is int 10
+ * @param keyValue e.g. "label = 10"
+ * @return returns the value part of = XX e.g. int 10
+ */
 int GetValue(std::string &keyValue)
 {
 	std::vector<std::string> key_value = Utils::split(keyValue,'=',true);
 	return atoi((key_value[1]).c_str());
 }
 
+/**
+ * \brief GetKeyValueFrom gets both Key and Value from a string
+ * e.g. "label = 10" => key=label value=10
+ * @param keyValue input string e.g. "label = 10"
+ * @param key output e.g. key = "label"
+ * @param value output e.g. value = 10
+ */
 void GetKeyValueFrom(std::string &keyValue,std::string &key, std::string &value)
 {
 	std::vector<std::string> key_value = Utils::split(keyValue,'=',true);
@@ -154,6 +212,11 @@ void GetKeyValueFrom(std::string &keyValue,std::string &key, std::string &value)
 	value	= key_value[1];
 }
 
+/**
+ * \brief BMInfo::parse function
+ * @param line, contains string contains whole line of text from .fnt file
+ * chopped up in string array from the space delimited data.
+ */
 void BMInfo::parse(std::vector<std::string> &line)
 {
 	std::string key,value;
@@ -199,6 +262,12 @@ void BMInfo::parse(std::vector<std::string> &line)
 	}
 }
 
+/**
+ * \brief BMCommon::parse function
+ * @param line, contains string contains whole line of text from .fnt file
+ * chopped up in string array from the space delimited data.
+ */
+
 void BMCommon::parse(std::vector<std::string> &line)
 {
 	std::string key,value;
@@ -231,6 +300,12 @@ void BMCommon::parse(std::vector<std::string> &line)
 	}
 }
 
+/**
+ * \brief BMPage::parse function
+ * @param line, contains string contains whole line of text from .fnt file
+ * chopped up in string array from the space delimited data.
+ */
+
 void BMPage::parse(std::vector<std::string> &line)
 {
 	std::string key,value;
@@ -245,6 +320,12 @@ void BMPage::parse(std::vector<std::string> &line)
 			lprintfln("BMPage::parse at line %d => Unknown type:%s/n",(int)i,key.c_str());
 	}
 }
+
+/**
+ * \brief BMChar::parse function
+ * @param line, contains string contains whole line of text from .fnt file
+ * chopped up in string array from the space delimited data.
+ */
 
 void BMChar::parse(std::vector<std::string> &line)
 {
@@ -278,6 +359,11 @@ void BMChar::parse(std::vector<std::string> &line)
 	}
 }
 
+/**
+ * \brief BMKerning::parse function
+ * @param line, contains string contains whole line of text from .fnt file
+ * chopped up in string array from the space delimited data.
+ */
 void BMKerning::parse(std::vector<std::string> &line)
 {
 	std::string key,value;
@@ -295,6 +381,11 @@ void BMKerning::parse(std::vector<std::string> &line)
 	}
 }
 
+/**
+ * \brief LoadFontData.. load a .fnt file and parse
+ * @param resource of an .fnt file
+ * @return bool true/false, true = success, false = failed
+ */
 bool BMFont::LoadFontData(MAHandle resource)
 {
 	char delim = ' ';
@@ -424,18 +515,29 @@ bool BMFont::LoadFontData(MAHandle resource)
 	return true;
 }
 
+/**
+ * \brief ReleaseFontData... OBSOLETE!! TODO REMOVE
+ */
 void BMFont::ReleaseFontData()
 {
 	// Release the font data array.
 	return;
 }
 
+/**
+ * \brief ReleaseTexture... OBSOLETE!! TODO REMOVE
+ */
 void BMFont::ReleaseTexture()
 {
 	// Release the texture object.
 	return;
 }
 
+/**
+ * \brief GetTexture get texture after its index from array
+ * @param i, index in array to lookup the texture
+ * @return GLuint shader index.
+ */
 GLuint BMFont::GetTexture(int i)
 {
 	if (m_texStores.size() > 0)
@@ -446,6 +548,17 @@ GLuint BMFont::GetTexture(int i)
 		return 0;
 	}
 }
+
+/**
+ * \brief BuildVertexArray buids the vertex array from any given string containing this BMFont.
+ * @param vertexPtr vertex, pointer where the user provides to be filled, user also needs to have sufficient allocated space for this
+ * @param sentence char* string, to build a vertex table from
+ * @param drawX, position in X
+ * @param drawY, position in Y
+ * @param scaleX, scale in X
+ * @param scaleY, scale in Y
+ * @return string width
+ */
 
 float BMFont::BuildVertexArray(glm::vec4 * vertexPtr, const char* sentence, float drawX, float drawY, float scaleX, float scaleY)
 {

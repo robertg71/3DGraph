@@ -144,8 +144,8 @@ namespace MoGraph
 	 */
 	void Scene::updateCamera(float scale)
 	{
-		const float width 	= EXTENT_X(maGetScrSize());
-		const float height 	= EXTENT_Y(maGetScrSize());
+		const float width 	= (float)mWidth;	//EXTENT_X(maGetScrSize());
+		const float height 	= (float)mHeight;	//EXTENT_Y(maGetScrSize());
 		const float aspect 	= width/height;		// Net to calculate this this is HardCoded. 2.0f/3.0f;//1.0f/
 		const float cx 		= getCx();
 		const float cz 		= getCz();
@@ -497,7 +497,7 @@ namespace MoGraph
 		static int cnt = 0;
 		cnt++;
 
-		glViewport(0, 0, mWidth, mHeight);
+		glViewport((int)mViewPos.x, (int)mViewPos.y, mWidth, mHeight);
 			checkGLError("glViewport");
 //		lprintfln("%d. draw()::glViewport w=%d h=%d\n",cnt,mWidth,mHeight);
 		mDeltaTime.tick();

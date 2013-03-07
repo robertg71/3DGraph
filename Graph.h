@@ -371,6 +371,8 @@ public:
 };
 
 
+// TODO use a screen class. for handling view port and offset positions so that we can support sub windows for rendering multiple views. (graphs)
+
 /**
  * \brief Graph
  * This is the main interfaced class for the Graph lib.
@@ -389,6 +391,7 @@ protected:
 	DTime	mDeltaTime;		// Delta time class (handles time in between ticks)
 	Time	mTime;			// Elapsed time class (accumulated time since constr)
 	glm::vec4 mBKColor;
+	glm::vec2 mViewPos;		// View Port Position for view port. \note glViewPort uses this and mWidth mHeigh for positioning the view.
 	TouchInput mTouch;
 
 
@@ -403,16 +406,37 @@ protected:
 	int  initGL();
 
 public:
-	Graph() : mFont(0), mWidth(1), mHeight(1), mGridX(1), mGridZ(1), mBKColor(0.0f,0.0f,0.0f,1.0f) {}
+	Graph() :
+		mFont(0),
+		mWidth(1),
+		mHeight(1),
+		mGridX(1),
+		mGridZ(1),
+		mBKColor(0.0f,0.0f,0.0f,1.0f),
+		mViewPos(0.0f,0.0f)
+	{}
 	virtual ~Graph() {}
+
+	/**
+	 * \brief Graph::init initiate the whole graph system
+	 * @param x				, grid in X
+	 * @param z				, grid in Z
+	 * @param gridLines		, amount of Grids in Y
+	 * @param step			, step between Y grids
+	 * @param bFitScreen	, flag to fit screen or not
+	 * @param font			, font to use for rendering text in Graph
+	 * @param width			, width of screen
+	 * @param height		, height of screen
+	 * @return int if successfull or not.
+	 */
 	virtual int init(int x,int z, int gridLines, float step, bool bFitScreen, IFont* font,int width,int height);
+	virtual void draw();
+
 	virtual void setValues(float *values,int sz) 			{mScene.setValues(values,sz);}
 	virtual void setColors(glm::vec4 *colors, int sz) 		{mScene.setColors(colors,sz);}
 	virtual void setBKColor(glm::vec4 &color) 				{mBKColor = color;}
-	virtual void draw();
 	virtual Scene &getScene() 								{return mScene;}
-
-	TouchInput &getTouch()									{return mTouch;}
+	virtual TouchInput &getTouch()							{return mTouch;}
 };
 
 }

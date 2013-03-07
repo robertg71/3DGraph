@@ -19,38 +19,31 @@ MA 02110-1301, USA.
 #include <mavsprintf.h>
 
 #include <MAUtil/GLMoblet.h>
-
-//#define GLM_FORCE_INLINE
-//#include <limits>
-//#include <cmath>
 #include <GLES2/gl2.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
+#include <stdlib.h>
+#include <hash_map>
 #include "graph.h"
 #include "GFont.h"
 #include "Shaders.h"
 #include "RenderText.h"
 #include "MAHeaders.h"
 #include "DTime.h"
-#include <stdlib.h>
-
-#include <hash_map>
 #include "Touch.h"
 using namespace MAUtil;
 
 
-//typedef std::pair<int, Touch> TouchPair;
+// TODO HANDLE RENDERTEXT in Y aswell we might need to get hold of min/max Y...
 
-// TODO MOVE UI INSIDE MOGRAPH CLASSES.
 class MyGLMoblet: public GLMoblet
 {
 private:
 	// Bars location parameters
 	int 			mWidth;
 	int				mHeight;			// Screen resolution in ABS form e.g. 640,480
-	MoGraph::Graph	*mGraph;			// interface/Base class to MoGraph
+	MoGraph::IGraph	*mGraph;			// interface/Base class to MoGraph
 	IFont			*mFont;				// interface/Base class to Font
 	glm::vec4 		*mColors;			// array pointing towards a color table
 	float 			*mTables;			// array pointing towards a float table
@@ -60,11 +53,18 @@ private:
 
 
 public:
+
+	/**
+	 * Constructor for the main app class
+	 */
 	MyGLMoblet() :
 		GLMoblet(GLMoblet::GL2) , mGraph(0), mFont(0), mColors(0), mTables(0)
 	{
 	}
 
+	/**
+	 * Destructor
+	 */
 	virtual ~MyGLMoblet()
 	{
 		delete [] mTables;
@@ -99,38 +99,44 @@ public:
 	*/
 	void multitouchPressEvent(MAPoint2d p, int touchId)
 	{
-		mGraph->getTouch().multitouchPressEvent(p,touchId);
+		mGraph->getTouch().multitouchPressEvent(p,touchId);	// just forward function to the Graphs own touch handler
 	}
 
 	/**
 	*  This function is called with a coordinate when a pointer is moved.
 	*/
-
 	void multitouchMoveEvent(MAPoint2d p, int touchId)
 	{
-		mGraph->getTouch().multitouchMoveEvent(p,touchId);
+		mGraph->getTouch().multitouchMoveEvent(p,touchId); // just forward function to the Graphs own touch handler
 	}
 
 	/**
 	*  This function is called with a coordinate when a pointer is released.
 	*/
-
 	void multitouchReleaseEvent(MAPoint2d p, int touchId)
 	{
-		mGraph->getTouch().multitouchReleaseEvent(p,touchId);
+		mGraph->getTouch().multitouchReleaseEvent(p,touchId); // just forward function to the Graphs own touch handler
 	}
 
 	/**
 	 * init call backed from GLMoblet
 	 */
-
 	void init()
 	{
+		/*
+		 * *Graph object needs to be allocated and then initiated,
+		 * *Font is a separate system but is required in the graph for rendering text in 3D
+		 * *RenterText is an independent text renderer flat on screen. but very same class is being used in Graph aswell
+		 * can handle both orthogonal projection see drawText and drawText3D
+		 */
+
 		lprintfln("Init APP");
+		mWidth 		= (int)(1.0f*EXTENT_X(maGetScrSize()));
+		mHeight 	= (int)(1.0f*EXTENT_Y(maGetScrSize()));
+
 		mGraph 		= new MoGraph::Graph();			// Create MoGraph::Graph class
 		mFont 		= new BMFont();					// Create Font class
-		mWidth 		= EXTENT_X(maGetScrSize());
-		mHeight 	= EXTENT_Y(maGetScrSize());
+
 		int grid 	= 33;							// set up a desired grid for the graph in X & Z.
 		lprintfln("mGrid: %i", grid);
 
@@ -140,22 +146,24 @@ public:
 		mFont->Init(R_BOX_FNT, fontTexArray);		// Initiate font where to get its resources (.fnt) file generated from BMFont and the bitmap texture that contains the aphabet
 		lprintfln("Init RenderText w=%d h=%d\n",mWidth,mHeight);
 
-		mText.init(mWidth,mHeight,mFont);
+		mText.init(mWidth,mHeight,mFont);			// initiate the text system by setting a Font & Screen dimensions
 
 		float gridStepY = 0.5f;
 		int gridLines 	= 5;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
 
 
-		mDTime.setDesiredFps(50.0f);
-		setPreferredFramesPerSecond(50);
+		mDTime.setDesiredFps(50.0f);				// set up the DTime used for calculating FPS
+		setPreferredFramesPerSecond(50);			// set preferred fps for the Moblet
 
-
-
+		// initiate Graph by setting up a grid sz in X & Z , also grid in Y with grid step, additional info like fit to screen, screen resolutions.
 		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,mFont,mWidth,mHeight))	// initiate Graph with parameters as GridX, GridY, amount of gridLines in Y, stepping for each grid line in Y, fit to screen, Font class, screen width and screen height
 			maPanic(1,"Failed to initiate Graph");
 
 		mGraph->setBKColor(bkcolor);				// additional set background color
+
+
+		// TEXT MANIPULATION IN GRAPH
 
 		// Text strings in the graph has a default setup. everything is built upon the Text structs that are pushed to an std::vector<Text>   Text array
 		// We can change the existing setup by changeing the strings...

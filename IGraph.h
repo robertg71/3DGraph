@@ -26,9 +26,11 @@ class IFont;
 namespace MoGraph
 {
 	class Scene;
+	class TouchInput;
 
 	/**
 	 * \brief IGraph class,	interface for the Graph
+	 * \note Touch input is optional
 	 */
 	class IGraph
 	{
@@ -40,6 +42,7 @@ namespace MoGraph
 		virtual void setColors(glm::vec4 *colors, int sz) = 0;
 		virtual void draw() = 0;
 		virtual Scene &getScene() = 0;
+		virtual TouchInput &getTouch() = 0;
 	};
 }
 

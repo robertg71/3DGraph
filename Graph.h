@@ -27,6 +27,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "Shaders.h"
 #include "RenderText.h"
 #include "DTime.h"
+#include "Touch.h"
 // during development I like to keep all data public. cleanup will be done later.
 
 
@@ -388,6 +389,8 @@ protected:
 	DTime	mDeltaTime;		// Delta time class (handles time in between ticks)
 	Time	mTime;			// Elapsed time class (accumulated time since constr)
 	glm::vec4 mBKColor;
+	TouchInput mTouch;
+
 
 	RenderText		mRenderText;
 	void drawBars(float tick)	{mScene.getBarMgr().draw();}
@@ -408,6 +411,8 @@ public:
 	virtual void setBKColor(glm::vec4 &color) 				{mBKColor = color;}
 	virtual void draw();
 	virtual Scene &getScene() 								{return mScene;}
+
+	TouchInput &getTouch()									{return mTouch;}
 };
 
 }

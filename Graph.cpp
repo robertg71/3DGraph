@@ -501,6 +501,7 @@ namespace MoGraph
 			checkGLError("glViewport");
 //		lprintfln("%d. draw()::glViewport w=%d h=%d\n",cnt,mWidth,mHeight);
 		mDeltaTime.tick();
+
 		float tick = static_cast<float>(mTime.update()) * 0.001f;
 		mScene.setElapsedTime(tick);
 
@@ -508,6 +509,19 @@ namespace MoGraph
 		glClearColor(mBKColor.r,mBKColor.g,mBKColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		checkGLError("glClear");
+
+		mTouch.update();
+		mScene.updateCamera(mTouch.getScale());
+
+		// TODO support 3 z angle as well in the future.
+		const glm::vec2 rotPos = mTouch.getAngularOrientation();
+		glm::vec3 axisY(0.0,1.0f,0.0f);
+		glm::mat4 mY = glm::rotate(rotPos.x*30.0f,axisY);
+		glm::vec3 axisX(1.0,0.0f,0.0f);
+		glm::mat4 mX = glm::rotate(rotPos.y*30.0f,axisX);
+		glm::mat4 m = mY*mX;
+		mScene.setWorldMat( m );
+		mScene.updateMatrix();		// need to update the PVW Matrix, Projection * View * World.
 
 		drawBars(tick);
 		drawAxis(tick);
@@ -537,6 +551,7 @@ namespace MoGraph
 		mScene.create(x,z,gridLines,step,bFitScreen);
 		mScene.setWidth(width);
 		mScene.setHeight(height);
+		mTouch.init(mWidth,mHeight);
 		return initGL();
 	}
 

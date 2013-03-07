@@ -20,6 +20,7 @@ MA 02110-1301, USA.
 #define GRAPHAPI_H_
 
 #include <glm/glm.hpp>
+
 class IFont;
 
 namespace MoGraph

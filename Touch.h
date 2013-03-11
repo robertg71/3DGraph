@@ -47,6 +47,9 @@ namespace MoGraph
 
 	typedef std::pair<int, Touch> TouchPair;
 
+	/**
+	 * \brief TouchInput class used for handling the swipes for rotation and double swipe for scaling
+	 */
 	class TouchInput : public MAUtil::PointerListener
 	{
 	protected:

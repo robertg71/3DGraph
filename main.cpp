@@ -186,7 +186,7 @@ public:
 		MoGraph::Text text;
 		text.mColor = glm::vec4(1.0f,0.0f,0.0f,1.0f);
 		text.mPos = glm::vec3(0.0f,5.0f,0.0f);
-		text.mRotate = glm::vec3(0.0f,0.0f,0.0f);
+		text.mRotate = glm::vec3(0.0f,0.0f,0.0f);		// Rotation in degrees
 		text.mScale = glm::vec2(scale,scale);
 		text.mTextFlag = MoGraph::Text::CENTER;
 		text.mText = "MoGraph DEMO Beta";

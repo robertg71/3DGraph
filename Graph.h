@@ -419,17 +419,17 @@ public:
 
 	/**
 	 * \brief Graph::init initiate the whole graph system
-	 * @param x				, grid in X
-	 * @param z				, grid in Z
-	 * @param gridLines		, amount of Grids in Y
-	 * @param step			, step between Y grids
+	 * @param xGridSz		, grid in X
+	 * @param zGridSz		, grid in Z
+	 * @param gridLinesY	, amount of Grids in Y
+	 * @param stepY			, step between Y grids
 	 * @param bFitScreen	, flag to fit screen or not
 	 * @param font			, font to use for rendering text in Graph
-	 * @param width			, width of screen
-	 * @param height		, height of screen
+	 * @param scrWidth		, width of screen
+	 * @param scrHeight		, height of screen
 	 * @return int if successfull or not.
 	 */
-	virtual int init(int x,int z, int gridLines, float step, bool bFitScreen, IFont* font,int width,int height);
+	virtual int init(int xGridSz,int zGridSz, int gridLinesY, float stepY, bool bFitScreen, IFont* font,int scrWidth,int scrHeight);
 	virtual void draw();
 
 	virtual void setValues(float *values,int sz) 			{mScene.setValues(values,sz);}

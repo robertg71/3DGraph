@@ -23,6 +23,9 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 namespace MoGraph
 {
 
+	/**
+	 * \brief TouchInput, constructor
+	 */
 	TouchInput::TouchInput()
 	{
 		glm::vec2 clr(0.0f,0.0f);
@@ -83,6 +86,12 @@ namespace MoGraph
 		mTouchActive--;
 	}
 
+	/**
+	 * \brief getSpeed,  get swipe speed at single touch (local helper function)
+	 * @param t,		Touch param
+	 * @param speed,	input/output speed
+	 * @return vec2		output speed
+	 */
 	glm::vec2 TouchInput::getSpeed(Touch &t, glm::vec2 &speed)
 	{
 
@@ -118,12 +127,21 @@ namespace MoGraph
 		return speed;
 	}
 
+	/**
+	 * \brief init, initiate  class
+	 * @param width
+	 * @param height
+	 */
 	void TouchInput::init(int width,int height)
 	{
 		mWidth 		= width;
 		mHeight 	= height;
 	}
 
+	/**
+	 * \brief update, for every frame
+	 * takes care of borth scale and swipe functionality.
+	 */
 	void TouchInput::update()
 	{
 //		int cnt=0;

@@ -26,7 +26,9 @@ MA 02110-1301, USA.
 //--------------------------------------------------------------------------------------
 // BARS SHADERS
 //--------------------------------------------------------------------------------------
-
+/**
+ * \brief fragmentShaderBars, 	pixel shader for rendering bars
+ */
 // BARS FRAGMENT SHADER
 	char fragmentShaderBars[]=STRINGIFY(
 		precision lowp 	float;
@@ -35,10 +37,13 @@ MA 02110-1301, USA.
 		uniform float 	time;
 		void main( void )
 		{
-			gl_FragColor = vec4(v_color.x,v_color.y,v_color.z,v_color.w);
+			gl_FragColor = v_color;
 		}
 	);
 
+/**
+ * \brief vertexShaderBars,		vertex shader for building up the bars in 3D space.
+ */
 	// BARS VERTEX SHADER
 	char vertexShaderBars[]=STRINGIFY(
 		attribute vec4 vPosition;
@@ -64,7 +69,9 @@ MA 02110-1301, USA.
 //--------------------------------------------------------------------------------------
 // LINES SHADERS
 //--------------------------------------------------------------------------------------
-	// LINES FRAGMENT SHADER
+	/**
+	 * \brief fragmentShaderLines,		pixel shader for handling the Axis/Lines
+	 */
 	char fragmentShaderLines[]=STRINGIFY(
 		precision lowp 	float;
 		varying vec4 	v_color;
@@ -76,7 +83,9 @@ MA 02110-1301, USA.
 		}
 	);
 
-	// LINES VERTEX SHADER
+	/**
+	 * \brief vertexShaderLines,	vertex shader for handling vertex positions in 3D space.
+	 */
 	char vertexShaderLines[]=STRINGIFY(
 		attribute vec4 vPosition;
 		uniform mat4 ProjViewWorld;
@@ -100,65 +109,63 @@ MA 02110-1301, USA.
 		}
 	);
 
-	//--------------------------------------------------------------------------------------
-	// TEXT SHADERS
-	//--------------------------------------------------------------------------------------
 
+//--------------------------------------------------------------------------------------
+// LINES SHADERS
+//--------------------------------------------------------------------------------------
+	/**
+	 * fragmentShaderText,		pixel shader for text, using texture
+	 */
+	char fragmentShaderText[]=STRINGIFY(
+		precision highp 	float;
+		varying highp vec2	v_tex;
+		varying vec4 		v_color;
+		uniform vec2 		resolution;
+		uniform float 		time;
+		uniform sampler2D 	myTexture;
+		void main( void )
+		{
+			vec4 texval 	= texture2D(myTexture, v_tex);
+			gl_FragColor 	= texval*v_color;
+		}
+	);
 
-		// TEXT FRAGMENT SHADER
-		char fragmentShaderText[]=STRINGIFY(
-			precision highp 	float;
-			varying highp vec2	v_tex;
-			varying vec4 		v_color;
-			uniform vec2 		resolution;
-			uniform float 		time;
-			uniform sampler2D 	myTexture;
-			void main( void )
-			{
-				vec4 texval 	= texture2D(myTexture, v_tex);
-				gl_FragColor 	= texval*v_color;
-			}
-		);
+	/**
+	 * vertexShaderText,	vertex shader handling vertex positions in 3D space
+	 */
+	char vertexShaderText[]=STRINGIFY(
+		attribute vec4 	vPosition;
+		uniform mat4 	ProjViewWorld;
+		uniform vec4 	TPos;
+		uniform vec3 	ScaleV;
+		uniform vec4 	Color;
+		varying highp 	vec2 v_tex;
+		varying vec4 	v_color;
+		void main( void )
+		{
+			mat4 sm  	= mat4(1.0);
+			sm[3][0]	= TPos.x;
+			sm[3][1]	= TPos.y;
+			sm[3][2]	= TPos.z;
+			sm[0][0] 	= ScaleV.x;
+			sm[1][1] 	= ScaleV.y;
+			sm[2][2] 	= ScaleV.z;
 
-		// TEXT VERTEX SHADER
-		char vertexShaderText[]=STRINGIFY(
-			attribute vec4 	vPosition;
-			uniform mat4 	ProjViewWorld;
-			uniform vec4 	TPos;
-			uniform vec3 	ScaleV;
-			uniform vec4 	Color;
-			varying highp 	vec2 v_tex;
-			varying vec4 	v_color;
-			void main( void )
-			{
-				mat4 sm  	= mat4(1.0);
-				sm[3][0]	= TPos.x;
-				sm[3][1]	= TPos.y;
-				sm[3][2]	= TPos.z;
-				sm[0][0] 	= ScaleV.x;
-				sm[1][1] 	= ScaleV.y;
-				sm[2][2] 	= ScaleV.z;
+			v_tex	 	= vPosition.zw;
+			v_color 	= Color;
+			gl_Position = (ProjViewWorld * sm) * vec4(vPosition.xy, 0.0, 1.0);
 
-				v_tex	 	= vPosition.zw;
-				v_color 	= Color;
-				gl_Position = (ProjViewWorld * sm) * vec4(vPosition.xy, 0.0, 1.0);
-
-			}
-		);
+		}
+	);
 
 
 	// HELPER FUNCTIONS FOR LOADING SHADER & Error detection
 	//----------------------------------------------------------------
 
-		/*
-		 * #define GL_NO_ERROR                       0
-#define GL_INVALID_ENUM                   0x0500
-#define GL_INVALID_VALUE                  0x0501
-#define GL_INVALID_OPERATION              0x0502
-#define GL_OUT_OF_MEMORY                  0x0505
-		 *
-		 */
-
+	/**
+	 * \brief checkGLError,	general helper function to print visually the error msg in debug window
+	 * @param where
+	 */
 	void checkGLError(const char* where)
 	{
 		GLenum err = glGetError();
@@ -174,10 +181,12 @@ MA 02110-1301, USA.
 	}
 
 
-	///
-	// Create a shader object, load the shader source, and
-	// compile the shader.
-	//
+	/**
+	 * \brief loadShader helper function that loads a shader and compiles it.
+	 * @param shaderSrc,	input string containing shader source
+	 * @param type,			type of shader to compile
+	 * @return shader index, 0=fail
+	 */
 	GLuint loadShader(const char *shaderSrc, GLenum type) {
 		lprintfln("loading shader: %s", shaderSrc);
 		checkGLError("begin loading shader");
@@ -226,9 +235,13 @@ MA 02110-1301, USA.
 		return shader;
 	}
 
-	///
-	// Loads both Vertex and Fragment Shader into one shader setup
-	//
+	/**
+	 * \brief loadShaders,	Loads both Vertex and Fragment Shader into one shader setup, and link to a shader program
+	 * @param shader_vtx	input string of vertex shader
+	 * @param shader_frg	input string of fragment shader
+	 * @param isUsingTexCoord	input bool ctrl flag for if using texture coord. requires separate init
+	 * @return program object index, 0 = failure
+	 */
 	GLuint loadShaders(const char *shader_vtx, const char *shader_frg, bool isUsingTexCoord)
 	{
 		GLuint vertexShader;
@@ -293,10 +306,10 @@ MA 02110-1301, USA.
 		return programObject;
 	}
 
-///
-// LineShader class, contains all indexed references to locations of parameters.
-// init() initiates by loading vertex & fragment shader.
-//
+/**
+ * \brief LineShader::init,  initiates by loading vertex & fragment shader.
+ * Contains all indexed references to locations of parameters.
+ */
 void LineShader::init()
 {
 	mShader 		= loadShaders(vertexShaderLines,fragmentShaderLines,false);
@@ -318,10 +331,10 @@ void LineShader::init()
 	lprintfln("LineShader::init: initiate");
 }
 
-///
-// LineShader class, contains all indexed references to locations of parameters.
-// init() initiates by loading vertex & fragment shader.
-//
+/**
+ * \brief BarShader::init() initiates by loading vertex & fragment shader for Bars.
+ * contains all indexed references to locations of parameters.
+ */
 void BarShader::init()
 {
 	mShader 		= loadShaders(vertexShaderBars,fragmentShaderBars,false);
@@ -341,6 +354,10 @@ void BarShader::init()
 	lprintfln("BarShader::init: initiate");
 }
 
+/**
+ * \brief TextShader::init() ,initiates by loading vertex & fragment shader for Text.
+ * contains all indexed references to locations of parameters.
+ */
 void TextShader::init()
 {
 	mShader 		= loadShaders(vertexShaderText,fragmentShaderText,true);

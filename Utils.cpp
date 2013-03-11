@@ -25,6 +25,14 @@ namespace Utils
 {
 	// StringCopy
 	//-------------------------------------------------------------------------
+/**
+ * \brief stringCopy, copy a subset of a string, with optinal trim parameters.
+ * @param in	,input string
+ * @param start	,start from index
+ * @param end	,end at index
+ * @param trim	,trim spaces if flag == true (removes all spaces in string, by brute force)
+ * @return 		,output string result
+ */
 	std::string stringCopy(std::string &in, size_t start, size_t end, bool trim)
 	{
 		std::string value;
@@ -39,6 +47,13 @@ namespace Utils
 
 	// Spilt function, like from boost, perl, Java etc.
 	//-------------------------------------------------------------------------
+/**
+ * \brief split		,tokenizer that splits string up into vectored string sing delimiter and/or trimming text
+ * @param line		,one row of data untill EOL
+ * @param delimiter ,using delimiter to split substrings left right side
+ * @param trim		,optional parameter for removing spaces from string
+ * @return vector of strings that has been splitted up with the delimiter.
+ */
 	std::vector<std::string> split(std::string &line,char delimiter,bool trim)
 	{
 		size_t len = line.size();
@@ -58,6 +73,12 @@ namespace Utils
 
 	// Un Quote a string (remove its quotes)
 	//-----------------------------------------------------------
+/**
+ * \brief unQuote	,removes quotes from a string e.g. "test123" => test123
+ * @param str		,input string
+ * @param quote		,quote char e.g. "
+ * @return output unquoted string
+ */
 	std::string unQuote(const std::string &str,const char quote)
 	{
 		std::string out;

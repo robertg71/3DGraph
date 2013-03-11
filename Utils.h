@@ -22,10 +22,39 @@ MA 02110-1301, USA.
 #include <vector>
 #include <string>
 
+/**
+ * \brief namespace Utils	, small global functions encapsulated under the namespace Utils
+ */
 namespace Utils
 {
+	/**
+	 * \brief stringCopy, copy a subset of a string, with optinal trim parameters.
+	 * @param in	,input string
+	 * @param start	,start from index
+	 * @param end	,end at index
+	 * @param trim	,trim spaces if flag == true (removes all spaces in string, by brute force)
+	 * @return 		,output string result
+	 */
+
 	std::vector<std::string> split(std::string &line,char delimiter,bool trim);
+
+	/**
+	 * \brief split		,tokenizer that splits string up into vectored string sing delimiter and/or trimming text
+	 * @param line		,one row of data untill EOL
+	 * @param delimiter ,using delimiter to split substrings left right side
+	 * @param trim		,optional parameter for removing spaces from string
+	 * @return vector of strings that has been splitted up with the delimiter.
+	 */
+
 	std::string stringCopy(std::string &in, size_t start, size_t end, bool trim);
+
+	/**
+	 * \brief unQuote	,removes quotes from a string e.g. "test123" => test123
+	 * @param str		,input string
+	 * @param quote		,quote char e.g. "
+	 * @return output unquoted string
+	 */
+
 	std::string unQuote(const std::string &str,const char quote= '\"');
 }
 

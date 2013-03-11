@@ -21,6 +21,10 @@ MA 02110-1301, USA.
 
 #include <GLES2/gl2.h>
 
+
+/**
+ * \brief, base class for Shader
+ */
 class Shader
 {
 public:
@@ -29,6 +33,9 @@ public:
 	virtual void init() 		= 0;	// initiate loads shader and setsup each parameter locations
 };
 
+/**
+ * \brief BarShader class
+ */
 struct BarShader : public Shader
 {
 	BarShader() {}				// NOTE common problem do not initiate in constr.
@@ -48,6 +55,9 @@ struct BarShader : public Shader
 	virtual void init();
 };
 
+/**
+ * \brief LineShader class
+ */
 struct LineShader : public Shader
 {
 	LineShader() {}
@@ -68,6 +78,9 @@ struct LineShader : public Shader
 	virtual void init();
 };
 
+/**
+ * \brief TextShader class
+ */
 struct TextShader : public Shader
 {
 	TextShader() {}
@@ -87,8 +100,26 @@ struct TextShader : public Shader
 };
 
 // Helper functions for common use.
+/**
+ * \brief checkGLError, checks basic gl error message.
+ * @param where, input string from the system
+ */
 void checkGLError(const char* where);									// Common GL error handling
+
+/**
+ * \brief loadShader, load shader function
+ * @param shaderSrc
+ * @param type
+ * @return
+ */
 GLuint loadShader(const char *shaderSrc, GLenum type);					// Loads one type of shader
+
+/**
+ * \brief loadShaders, mother function that handles both vertex and fragment shader.
+ * @param shader_vtx
+ * @param shader_frg
+ * @return
+ */
 GLuint loadShaders(const char *shader_vtx, const char *shader_frg);		// Loads both vertex and fragment shader
 
 

@@ -191,6 +191,12 @@ protected:
 	std::vector<unsigned short> mFaces;
 	BarShader					mShader;
 
+	/**
+	 * \brief create3D
+	 * helper function to set the vertex array & index array
+	 * Creates default vertex buffer & index buffer
+	 */
+
 	void create3D();			// create 3D obj. one instance of a cube with origo at bottom with indices
 public:
 
@@ -338,8 +344,25 @@ protected:
 	std::vector<unsigned short> mIndices;	// Index list of faces
 
 public:
-	Scene(); // : mFitToScreen(true), mGridX(1), mGridZ(1), mWidth(1), mHeight(1), mDistToCam(1.0f), mAxisMgr(*this), mBarMgr(*this), mTextMgr(*this), mDefaultBarColor(0.25f,1.0f,0.25f,1.0f){}
+
+	/**
+	 * \brief Scene, Construction
+	 */
+
+	Scene();
+
+	/**
+	 * \brief create, whole scene by using Axis,Bars,Text
+	 * @param gridX	,create amount of bars in X
+	 * @param gridZ	,create amount of bars in Y
+	 * @param lines	,amount lines in Y used for grid.
+	 * @param step	,grid steps in Y
+	 * @param bFitToScreen	,fit to screen flag, whole bars.
+	 */
+
 	void 	create(int gridX,int gridZ, int lines = 5, float stepY = 1.0f, bool bFitToScreen = true);
+
+
 	BarMgr 	&getBarMgr() 			{return mBarMgr;}
 	AxisMgr &getAxisMgr()			{return mAxisMgr;}
 	TextMgr &getTextMgr()			{return mTextMgr;}
@@ -361,7 +384,19 @@ public:
 	void	setHeight(int h)		{mHeight = h;}
 	int		getHeight()				{return mHeight;}
 	void 	setDefaultBarColor(glm::vec4 color) {mDefaultBarColor = color;}
+
+	/**
+	 * \brief updateMatrix, prepares a Perspective View World = PVW matrix used for the vertex shader.
+	 */
+
 	void updateMatrix();
+
+	/**
+	 * \brief updateCamera , update the ViewMatrix and PerspectiveProjection
+	 * with new values like distance to the Camera
+	 * @param scale
+	 */
+
 	void updateCamera(float scale);
 	void setValues(float *values,int sz) 		{ mValues = values; mValuesSz = sz;}
 	void setColors(glm::vec4 *colors, int sz) 	{mColors = colors; mColorsSz = sz;}

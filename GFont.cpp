@@ -114,12 +114,15 @@ BMFont::BMFont(const BMFont& other) :
 
 BMFont::~BMFont()
 {
+	Clear();
 }
 
 /**
  * \brief Init(), initiates from resource data .fnt file and texture.
- * @param fontResource, resource of a .fnt contains textual information about this font.
- * @param textureResources, array of resource of one or multiple font textures that represents a Font.
+ * @param fontResource, resource of a .fnt contains textual information about
+ * this font.
+ * @param textureResources,
+ * array of resource of one or multiple font textures that represents a Font.
  * @return bool true/false true = success, false = failed.
  */
 
@@ -188,6 +191,7 @@ BMFont::ParseBMFont BMFont::getBMType(std::string &header)
 }
 
 /**
+ * \note helper function
  * \brief GetValue gets a value from a string e.g. "label = 10" => value is int 10
  * @param keyValue e.g. "label = 10"
  * @return returns the value part of = XX e.g. int 10
@@ -199,6 +203,7 @@ int GetValue(std::string &keyValue)
 }
 
 /**
+ * \note helper function
  * \brief GetKeyValueFrom gets both Key and Value from a string
  * e.g. "label = 10" => key=label value=10
  * @param keyValue input string e.g. "label = 10"
@@ -516,21 +521,37 @@ bool BMFont::LoadFontData(MAHandle resource)
 }
 
 /**
- * \brief ReleaseFontData... OBSOLETE!! TODO REMOVE
+ * \brief ReleaseFontData...
  */
+
 void BMFont::ReleaseFontData()
 {
 	// Release the font data array.
-	return;
+	m_chars.clear();
+	m_kernings.clear();
+	m_pages.clear();
+	m_nchars = 0;
+	m_nkernings = 0;
 }
 
 /**
- * \brief ReleaseTexture... OBSOLETE!! TODO REMOVE
+ * \brief ReleaseTexture...
  */
+
 void BMFont::ReleaseTexture()
 {
-	// Release the texture object.
-	return;
+	if (m_texStores.size())
+	{
+		std::vector<GLuint> textures;
+		for(size_t i=0; i<m_texStores.size(); i++)
+		{
+			textures.push_back(m_texStores[i].m_texture);
+		}
+
+		// make sure that OpenGL gets this resource cleared.
+		glDeleteTextures(textures.size(), &textures[0]);
+		m_texStores.clear();
+	}
 }
 
 /**

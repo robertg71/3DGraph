@@ -58,6 +58,7 @@ typedef std::pair <int, std::vector<BMKerning> > Int_Vector_BMKerning_Pair;
  * stores texture index for the shader to use.
  * TODO add more texture info in here in the future.
  */
+
 struct TextureStore
 {
 	GLuint m_texture;
@@ -67,6 +68,7 @@ struct TextureStore
 * \brief Struct name: BMFont
 *  used for parsing BMInfo (header part of .fnt file)
 */
+
 struct BMInfo
 {
 	std::string m_face;
@@ -82,6 +84,12 @@ struct BMInfo
 	int m_spacing[2]; 
 	int m_outline;
 
+	/**
+	 * \brief BMInfo::parse function
+	 * @param line, contains string contains whole line of text from .fnt file
+	 * chopped up in string array from the space delimited data.
+	 */
+
 	void parse(std::vector<std::string> &line);
 
 };
@@ -91,6 +99,7 @@ struct BMInfo
 *	used for parsing BMCommon information from .fnt file
 *	contains information that is common for this font
 */
+
 struct BMCommon
 {
 
@@ -104,6 +113,12 @@ struct BMCommon
 	int m_redChnl; 
 	int m_greenChnl;
 	int m_blueChnl;
+
+	/**
+	 * \brief BMCommon::parse function
+	 * @param line, contains string contains whole line of text from .fnt file
+	 * chopped up in string array from the space delimited data.
+	 */
 
 	void parse(std::vector<std::string> &line);
 };
@@ -127,6 +142,12 @@ struct BMChar
 	int m_page;
 	int m_chnl;
 
+	/**
+	 * \brief BMChar::parse function
+	 * @param line, contains string contains whole line of text from .fnt file
+	 * chopped up in string array from the space delimited data.
+	 */
+
 	void parse(std::vector<std::string> &line);
 };
 
@@ -142,6 +163,12 @@ struct BMKerning
 	int m_second;
 	int m_amount;
 
+	/**
+	 * \brief BMKerning::parse function
+	 * @param line, contains string contains whole line of text from .fnt file
+	 * chopped up in string array from the space delimited data.
+	 */
+
 	void parse(std::vector<std::string> &line);
 };
 
@@ -155,6 +182,12 @@ struct BMPage
 {
 	int			m_id;
 	std::string m_file;
+
+	/**
+	 * \brief BMPage::parse function
+	 * @param line, contains string contains whole line of text from .fnt file
+	 * chopped up in string array from the space delimited data.
+	 */
 
 	void parse(std::vector<std::string> &line);
 };
@@ -206,20 +239,94 @@ private:
 
 public:
 
+	/**
+	 * \brief BMFont
+	 * Constructor
+	 */
+
 	BMFont();
+
+	/**
+	 * \brief BMFont
+	 * Copy Constructor
+	 */
+
 	BMFont(const BMFont&);
+
+	/**
+	 *	\brief ~BMFont
+	 *	Destructor
+	 */
+
 	virtual ~BMFont();
 
+	/**
+	 * \brief Init(), initiates from resource data .fnt file and texture.
+	 * @param fontResource, resource of a .fnt contains textual information about this font.
+	 * @param textureResources, array of resource of one or multiple font textures that represents a Font.
+	 * @return bool true/false true = success, false = failed.
+	 */
+
 	virtual bool Init(MAHandle fontResource, std::vector<MAHandle> &textureResources);
+
+	/**
+	 * \brief Clear
+	 * Release Texture and Font DB creation
+	 */
+
 	virtual void Clear();
+
+	/**
+	 * \brief GetTexture get texture after its index from array
+	 * @param i, index in array to lookup the texture
+	 * @return GLuint shader index.
+	 */
+
 	virtual GLuint GetTexture(int i=0);
+
+	/**
+	 * \brief BuildVertexArray buids the vertex array
+	 * from any given string containing this BMFont.
+	 * @param vertexPtr vertex, pointer where the user provides to be filled,
+	 * user also needs to have sufficient allocated space for this
+	 * @param sentence char* string, to build a vertex table from
+	 * @param drawX, position in X
+	 * @param drawY, position in Y
+	 * @param scaleX, scale in X
+	 * @param scaleY, scale in Y
+	 * @return string width
+	 */
+
 	virtual float BuildVertexArray(glm::vec4 * vertexPtr, const char * str, float dX, float dY, float scaleX, float scaleY);
 
 private:
 	// Helper functions (internal use)
+	/**
+	 * \brief LoadFontData.. load a .fnt file and parse
+	 * @param resource of an .fnt file
+	 * @return bool true/false, true = success, false = failed
+	 */
+
 	bool LoadFontData(MAHandle resource);
+
+	/**
+	 * \brief ReleaseFontData...
+	 */
+
 	void ReleaseFontData();
+
+	/**
+	 * \brief ReleaseTexture...
+	 */
+
 	void ReleaseTexture();
+
+	/**
+	 * \brief getBMType
+	 * @param header lookup enum from string hence the name
+	 * @return ParseBMFont enum
+	 */
+
 	ParseBMFont getBMType(std::string &header);
 
 	std::hash_map<std::string, ParseBMFont> 	m_string2enum;	// Parsing setup should be static! or singleton

@@ -85,6 +85,7 @@ namespace MoGraph
 	/**
 	 * \brief Scene, Construction
 	 */
+
 	Scene::Scene() :
 			mFitToScreen(true),
 			mGridX(1),

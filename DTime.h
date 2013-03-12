@@ -31,12 +31,44 @@ class Time
 	unsigned int mStart;
 	unsigned int mElapsed;
 public:
+
+	/**
+	 * \brief Time,	constructor, by default starts a timer
+	 */
+
 	Time() {start();}
+
+	/**
+	 * \brief ~Time, destructor
+	 */
+
 	virtual ~Time() {}
 
+	/**
+	 * \brief start,	restart the timer.
+	 */
+
 	void start() {mStart = maGetMilliSecondCount();}
+
+	/**
+	 * \brief update,	udate elapsed time since start
+	 * @return calculated elapsed
+	 */
+
 	float update() {return mElapsed = maGetMilliSecondCount() - mStart;}
+
+	/**
+	 * \brief getElapsed   get the elapsed time since start
+	 * @return mElapsed member variable
+	 */
+
 	unsigned int getElapsed() {return mElapsed;}
+
+	/**
+	 * \brief, getStart get start member variable. where time was started
+	 * @return mStart member variable
+	 */
+
 	unsigned int getStart() {return mStart;}
 };
 
@@ -48,20 +80,62 @@ public:
 class DTime : public Time
 {
 public:
+
+	/**
+	 * \brief DTime, class Constructor
+	 * Delta Time class restarts at every tick and calculates fps and delta time between ticks.
+	 */
+
 	DTime() : mDesiredFps(50.0f),mFps(0.0f),mDeltaMs(0.0f),mDelta(1.0f){start();}
 	virtual ~DTime() {}
 
+	/**
+	 * \brief tick()
+	 * heart beat function called once every frame.
+	 */
+
 	void 	tick();					// update time used as a tick called once every frame
+
+	/**
+	 * \brief getDeltaTime()
+	 * gets the delta time in ms between from last tick() call
+	 */
+
 	float 	getDeltaTime() 				{return mDeltaMs;}	//get elapsed time since last tick (in our case frame)
+
+	/**
+	 * \brief setDesiredFps()
+	 * sets the desired FPS to have.
+	 * this will give you delta values based on desired fps
+	 * e.g. if the app is running half speed from desired 50 fps,
+	 * delta will then be 2.0 * 25 = 50 fps.
+	 * so that the user can compensate for the time lost by
+	 * using constant rotation etc to avoid slowdowns
+	 * this is commonly used in the gaming industry
+	 */
+
 	void 	setDesiredFps(float fps)	{mDesiredFps = fps;}
+
+	/**
+	 * \brief currentFps()
+	 * returns the actual fps
+	 * @return fps
+	 */
+
 	float 	currentFps()				{return mFps;}
+
+	/**
+	 * \brief getDesiredFps()
+	 * @return desired fps
+	 */
+
 	float 	getDesiredFps()				{return mDesiredFps;}
 
 protected:
 	float	mDesiredFps;	// Desired fps
 	float	mFps;			// Current fps.
 	float	mDeltaMs;		// Float delta time in ms elapsed since last frame
-	float	mDelta;			// delta in frames
+	float	mDelta;			// delta in frames by % , when maintaining desired fps delta is 1.0
 
 };
 

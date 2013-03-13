@@ -187,15 +187,15 @@ namespace MoGraph
 			0.0f, 0.0f, 1.0f
 		};
 		// set up 2D axis X and Y
-		mAxis[0].vertices().push_back(glm::vec3(v[0],v[1],v[2]));
-		mAxis[0].vertices().push_back(glm::vec3(v[3],v[4],v[5]));
-		mAxis[1].vertices().push_back(glm::vec3(v[6],v[7],v[8]));
-		mAxis[1].vertices().push_back(glm::vec3(v[9],v[10],v[11]));
+		mAxisArray[0].vertices().push_back(glm::vec3(v[0],v[1],v[2]));
+		mAxisArray[0].vertices().push_back(glm::vec3(v[3],v[4],v[5]));
+		mAxisArray[1].vertices().push_back(glm::vec3(v[6],v[7],v[8]));
+		mAxisArray[1].vertices().push_back(glm::vec3(v[9],v[10],v[11]));
 
-		if(mAxis.size()>2)		// 3D Graph use a 3rd axis in Z.
+		if(mAxisArray.size()>2)		// 3D Graph use a 3rd axis in Z.
 		{
-			mAxis[2].vertices().push_back(glm::vec3(v[12],v[13],v[14]));
-			mAxis[2].vertices().push_back(glm::vec3(v[15],v[16],v[17]));
+			mAxisArray[2].vertices().push_back(glm::vec3(v[12],v[13],v[14]));
+			mAxisArray[2].vertices().push_back(glm::vec3(v[15],v[16],v[17]));
 		}
 		else
 		{
@@ -209,7 +209,7 @@ namespace MoGraph
 	 */
 	void AxisMgr::addAxis(int n)
 	{
-		mAxis.resize(n);
+		mAxisArray.resize(n);
 		create3D();
 	}
 
@@ -220,9 +220,9 @@ namespace MoGraph
 	void AxisMgr::init()
 	{
 		mShader.init();
-		for (size_t i=0; i<mAxis.size();i++)
+		for (size_t i=0; i<mAxisArray.size();i++)
 		{
-			Axis &axis = mAxis[i];								// get reference of obj.
+			Axis &axis = mAxisArray[i];								// get reference of obj.
 			glGenBuffers(1, &mShader.mVertexbuffer[i]);					// Generate a vertex buffer for all axis (line)
 			glBindBuffer(GL_ARRAY_BUFFER, mShader.mVertexbuffer[i]);
 			glBufferData(GL_ARRAY_BUFFER, axis.size() * sizeof(glm::vec3), &axis.vertices()[0], GL_STATIC_DRAW);
@@ -256,7 +256,7 @@ namespace MoGraph
 		const float centerX = mScene.getCx()*1.01f;
 		const float centerZ = mScene.getCz()*1.01f;
 
-		for(size_t i=0; i<mAxis.size(); i++)
+		for(size_t i=0; i<mAxisArray.size(); i++)
 		{
 			// 1rst attribute buffer : vertices
 			glEnableVertexAttribArray(shader.mAttribVtxLoc);
@@ -422,7 +422,8 @@ namespace MoGraph
 	}
 
 	/**
-	 * \brief TextMgr::draw() OBSOLETE.. TODO REMOVE
+	 * \brief TextMgr::draw() OBSOLETE..
+	 * \note not in use due to RenderText class used by Graph does this job
 	 */
 	void TextMgr::draw()
 	{
@@ -456,7 +457,7 @@ namespace MoGraph
 		t.mText		= "MoSync 3D Graph Library 0.7 Beta";		// Subtitle
 		t.mScale	= scaleXZ;
 		t.mPos		= pos;
-		mText.push_back(t);
+		mTextArray.push_back(t);
 
 		scaleXZ.x 	*= 0.8f;
 		scaleXZ.y   *= 0.8f;
@@ -464,12 +465,12 @@ namespace MoGraph
 		t.mPos.y	+= 5.5f;
 		t.mText		= "Y-Axis";		// Subtitle
 		t.mScale	= scaleXZ;
-		mText.push_back(t);
+		mTextArray.push_back(t);
 
 		t.mText		= "X-Axis";		// Subtitle
 		t.mPos 		= glm::vec3(-centerX, 0.0f,centerZ);
 		t.mTextFlag = Text::CENTER_RIGHT;
-		mText.push_back(t);
+		mTextArray.push_back(t);
 
 		if (gridZ > 1)		// Check if there is a z-Axis at all
 		{
@@ -478,7 +479,7 @@ namespace MoGraph
 			t.mText 	= "Z-axis";
 			t.mPos 		= glm::vec3(centerX, 0.0f,centerZ);
 			t.mRotate	= glm::vec3(0.0f,-90.0f,0.0f);
-			mText.push_back(t);
+			mTextArray.push_back(t);
 		}
 	}
 
@@ -507,14 +508,13 @@ namespace MoGraph
 		mScene.setElapsedTime(tick);
 
 		// Clear the color buffer
-		glClearColor(mBKColor.r,mBKColor.g,mBKColor.b, 1.0f);
+		glClearColor(mBGColor.r,mBGColor.g,mBGColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		checkGLError("glClear");
 
 		mTouch.update();
 		mScene.updateCamera(mTouch.getScale());
 
-		// TODO support 3 z angle as well in the future.
 		const glm::vec2 rotPos = mTouch.getAngularOrientation();
 		glm::vec3 axisY(0.0,1.0f,0.0f);
 		glm::mat4 mY = glm::rotate(rotPos.x*30.0f,axisY);
@@ -577,7 +577,7 @@ namespace MoGraph
 		glEnable(GL_CULL_FACE);
 
 		// set up clear color
-		glClearColor(mBKColor.r,mBKColor.g,mBKColor.b, 1.0f);
+		glClearColor(mBGColor.r,mBGColor.g,mBGColor.b, 1.0f);
 		mRenderText.init(mWidth,mHeight,mFont);
 
 		// create a braph with grid times grid
@@ -591,7 +591,6 @@ namespace MoGraph
 /**
  * \brief Graph::drawText,	Text rendering for the Graph using TextMgr
  * @param tick, 	elapsed time since start in ms
- * TODO a system to set up text in the graph, it might need Z sorting etc.
  */
 	void Graph::drawText(float tick)
 	{

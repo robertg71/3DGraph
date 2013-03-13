@@ -25,8 +25,6 @@ MA 02110-1301, USA.
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-// A SIMPLYFIED TEXT RENDERING CLASS
-//-----------------------------------------------------
 
 /**
  * \brief RenderText,	Constructor
@@ -36,7 +34,7 @@ RenderText::RenderText()
 	m_width(0),
 	m_height(0),
 	m_scaleX(0),
-	m_scaleZ(0),
+	m_scaleY(0),
 	m_blendType(BL_ADDITIVE)
 {
 }
@@ -65,11 +63,10 @@ void RenderText::release()
 
 /**
  * \brief init,	initiate the text shader and parameters
- * TODO Suppose we could use text box support with the width / height
  * @param width,	input screen width
  * @param height,	input screen height
  * @param font,		input useing font
- * @return bool true/false,	true=success false=failed (not it use) TODO fix error handling properly
+ * @return bool true/false,	true=success false=failed (not it use)
  */
 
 bool RenderText::init(float width, float height, IFont *font)
@@ -77,10 +74,7 @@ bool RenderText::init(float width, float height, IFont *font)
 	m_width		= width;
 	m_height	= height;
 	m_font		= font;
-
 	m_textShader.init();
-	// This could be commonly used.
-	// TODO create a common blend state class that holds all blendstates we need.
 	return true;
 }
 
@@ -118,9 +112,9 @@ glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache, float *width
 			if(!vertices)						// check if memory alocation was ok
 				maPanic(1,"RenderText: Failed to allocate vertex buffer");
 
-			*width = m_font->BuildVertexArray(vertices, key.c_str(), m_pos.x, m_pos.y, m_scaleX, m_scaleZ);			// get vertex array from string,
+			*width = m_font->BuildVertexArray(vertices, key.c_str(), m_pos.x, m_pos.y, m_scaleX, m_scaleY);			// get vertex array from string,
 
-			glm::vec2 scaleXZ(m_scaleX,m_scaleZ);
+			glm::vec2 scaleXZ(m_scaleX,m_scaleY);
 			VertStore vstore(vertices,*width,scaleXZ);
 
 			if ( (m_textCache.insert(TextCachePair(key,vstore))).second == false )
@@ -137,7 +131,7 @@ glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache, float *width
 
 			// may need to check current scale state or restore system with it.
 			m_scaleX = vstore.mScaleXZ.x;
-			m_scaleZ = vstore.mScaleXZ.y;
+			m_scaleY = vstore.mScaleXZ.y;
 		}
 	}
 	else	// Not using cache create one
@@ -147,7 +141,7 @@ glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache, float *width
 		if(!vertices)
 			maPanic(1,"RenderText: Failed to allocate vertex buffer");
 
-		*width = m_font->BuildVertexArray(vertices, str, m_pos.x, m_pos.y, m_scaleX, m_scaleZ);			// get vertex array from string,
+		*width = m_font->BuildVertexArray(vertices, str, m_pos.x, m_pos.y, m_scaleX, m_scaleY);			// get vertex array from string,
 	}
 	return vertices;
 }
@@ -269,7 +263,7 @@ float RenderText::drawText3D(const char*str, glm::vec3 &pos, glm::vec4 &rgba, gl
 /**
  * \brief drawText,		render 2D text on the screen (Orthogonal Projection)
  * @param str,			text string.
- * @param pos,			2D position on screen, TODO support Z as priority for future reference, but for now not used
+ * @param pos,			2D position on screen,
  * @param rgba,			text color
  * @param tick			time elapsed
  * @return float width 	of text string.
@@ -288,9 +282,9 @@ float RenderText::drawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 	// Use the font class to build the vertex array from the sentence text and sentence draw location.
 	// Create the vertex array.
 
-	m_scaleZ = -m_scaleZ;
+	m_scaleY = -m_scaleY;
 	vertices = getVertices(str, false, &width);		// note uses m_pos creates or retrieves existing vertex buffer from a cache table
-	m_scaleZ = -m_scaleZ;
+	m_scaleY = -m_scaleY;
 
 	TextShader &shader= m_textShader;
 	glEnable (GL_BLEND);
@@ -384,7 +378,7 @@ float RenderText::getTextWidth(const char *str)
 	if(!vertices)
 		maPanic(1,"RenderText: Failed to allocate temporary vertex buffer");
 
-	float width = m_font->BuildVertexArray(vertices, str, 0.0f, 0.0f, m_scaleX, m_scaleZ);			// get vertex array from string,
+	float width = m_font->BuildVertexArray(vertices, str, 0.0f, 0.0f, m_scaleX, m_scaleY);			// get vertex array from string,
 	delete [] vertices;
 	return width;
 }

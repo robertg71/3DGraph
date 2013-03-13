@@ -28,17 +28,28 @@ MA 02110-1301, USA.
 class Shader
 {
 public:
+	/**
+	 * \brief ~Shader,	Destuctor
+	 */
 	virtual ~Shader(){}
-
-	virtual void init() 		= 0;	// initiate loads shader and setsup each parameter locations
+	/**
+	 * \brief init,	initiate loads shader and setsup each parameter locations
+	 */
+	virtual void init() 		= 0;	// initiate loads shader
 };
 
 /**
- * \brief BarShader class
+ * \brief BarShader class, Shader class for holding its specific parameters.
  */
 struct BarShader : public Shader
 {
+	/**
+	 * \brief BarShader, Constructor
+	 */
 	BarShader() {}				// NOTE common problem do not initiate in constr.
+	/**
+	 * \brief ~BarShader, Destructor
+	 */
 	virtual ~BarShader(){}
 
 	GLuint 	mShader;			// shader for bars
@@ -52,6 +63,9 @@ struct BarShader : public Shader
 	GLuint 	mElementbuffer;		// Element buffer holding the index buffer for bars
 	GLuint 	mVertexbuffer;		// Vertex buffer for bars. (cube)
 
+	/**
+	 * \brief,	init, initiate loads shader and setsup each parameter locations
+	 */
 	virtual void init();
 };
 
@@ -60,7 +74,13 @@ struct BarShader : public Shader
  */
 struct LineShader : public Shader
 {
+	/**
+	 * \brief LineShader, Constructor
+	 */
 	LineShader() {}
+	/**
+	 * \brief ~LineShader, Destructor
+	 */
 	virtual ~LineShader(){}
 
 	// Line location parameters
@@ -74,7 +94,9 @@ struct LineShader : public Shader
 	GLuint	mColor;				// individual color of a bar.
 	GLuint	mLength;			// Shader Line Length (line scales up 0..LineLength)
 	GLuint 	mVertexbuffer[3];		// Vertex buffer for Axis aligned lines. (world)
-
+	/**
+	 * \brief,	init, initiate loads shader and setsup each parameter locations
+	 */
 	virtual void init();
 };
 
@@ -83,7 +105,13 @@ struct LineShader : public Shader
  */
 struct TextShader : public Shader
 {
+	/**
+	 * \brief TextShader, Constructor
+	 */
 	TextShader() {}
+	/**
+	 * \brief ~TextShader, Destructor
+	 */
 	virtual ~TextShader(){}
 
 	GLuint 	mShader;			// shader for Text
@@ -95,7 +123,9 @@ struct TextShader : public Shader
 	GLuint 	mScaleV;			// Scale vector of bars. its height...
 	GLuint	mColor;				// individual color of a Text.
 	GLuint	mTexture;			// Texture for the font
-
+	/**
+	 * \brief,	init, initiate loads shader and setsup each parameter locations
+	 */
 	virtual void init();
 };
 

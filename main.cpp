@@ -35,8 +35,6 @@ MA 02110-1301, USA.
 using namespace MAUtil;
 
 
-// TODO HANDLE RENDERTEXT in Y aswell we might need to get hold of min/max Y...
-
 class MyGLMoblet: public GLMoblet
 {
 private:
@@ -160,7 +158,7 @@ public:
 		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,mFont,mWidth,mHeight))	// initiate Graph with parameters as GridX, GridY, amount of gridLines in Y, stepping for each grid line in Y, fit to screen, Font class, screen width and screen height
 			maPanic(1,"Failed to initiate Graph");
 
-		mGraph->setBKColor(bkcolor);				// additional set background color
+		mGraph->setBGColor(bkcolor);				// additional set background color
 
 
 		// TEXT MANIPULATION IN GRAPH

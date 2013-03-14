@@ -12,14 +12,14 @@
 
 namespace MoGraph
 {
-/**
- * 	\brief Render
- *  Base class used for all render objects like Bars, Text, Lines
- *	contains a reference to the scene,
- *	the scene objects has all relevant information about the scene
- */
 	class Scene;
 
+	/**
+	 * 	\brief Render
+	 *  Base class used for all render objects like Bars, Text, Lines
+	 *	contains a reference to the scene,
+	 *	the scene objects has all relevant information about the scene
+	 */
 	class IRender
 	{
 	public:

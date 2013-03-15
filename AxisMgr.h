@@ -62,7 +62,7 @@ public:
 class AxisMgr : public Render
 {
 protected:
-	std::vector<Axis> 	mAxisArray;		// value and time  can support up to 3D X,Y,Z
+	std::vector<Axis> 	mAxisArray;	// value and time  can support up to 3D X,Y,Z
 	LineShader			mShader; 	// Shader to be used for rendering the lines.
 	float				mGridStep;	// Step of each grid bars in height. (note total height is amount*step)
 	int 				mGridLines;	// Grid lines for graph bar in Y... stepped with mStep, to get height grid,

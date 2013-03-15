@@ -150,7 +150,6 @@ public:
 		int gridLines 	= 5;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
 
-
 		mDTime.setDesiredFps(50.0f);				// set up the DTime used for calculating FPS
 		setPreferredFramesPerSecond(50);			// set preferred fps for the Moblet
 
@@ -168,7 +167,7 @@ public:
 		std::vector<MoGraph::Text> &textArray = mGraph->getScene().getTextMgr().getTextArray();
 
 		std::vector<std::string> strArray;
-
+/*
 		strArray.push_back("Sinus table ala Carte");
 		strArray.push_back("Y-Axel");
 		strArray.push_back("X-Axel");
@@ -177,7 +176,7 @@ public:
 		{
 			textArray[i].mText = strArray[i];
 		}
-
+*/
 		// and we can also push new ones to the table for more text in the graph... you can add as many as you please... fps issue in the end.
 		float scale = mGraph->getScene().getGridX()/500.0f;
 		// create additional example text

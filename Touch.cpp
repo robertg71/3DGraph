@@ -144,8 +144,6 @@ namespace MoGraph
 	 */
 	void TouchInput::update()
 	{
-//		int cnt=0;
-//		MoGraph::Scene &scene = mGraph->getScene();
 		if (mTouchActive>1)
 		{
 			if (mTouchActive > 2)
@@ -156,11 +154,11 @@ namespace MoGraph
 
 			// double touch scale
 			glm::vec2 scale((float)mWidth,(float)mHeight);
-			mScaleSpeed[0] = mTouch[0].mPos/scale;//getSpeed(mTouch[0],mScaleSpeed[0]);
-			mScaleSpeed[1] = mTouch[1].mPos/scale;//getSpeed(mTouch[1],mScaleSpeed[1]);
+			mScaleSpeed[0] = mTouch[0].mPos/scale;
+			mScaleSpeed[1] = mTouch[1].mPos/scale;
 			glm::vec2 diff = mScaleSpeed[0] - mScaleSpeed[1];
 
-			float delta = glm::length(diff);//diff.length();
+			float delta = glm::length(diff);
 
 			delta = (delta < 0.0f)? -delta: delta;
 			delta = (delta < 0.1f)? 0.1f: delta;
@@ -181,12 +179,10 @@ namespace MoGraph
 				mDelta = 0.1f;
 
 	//		lprintfln("%d. Delta = %f = %f - %f",cnt, mDelta,mScaleOldPos,mScalePos);
-
-	//		scene.updateCamera( mDelta );
 		}
 		else
 		{
-			mScalePos = mScaleOldPos = 1.0f;
+		//	mScalePos = mScaleOldPos = 1.0f;
 
 			mRotSpeed = getSpeed(mTouch[0],mRotSpeed);
 			mRotPos += mRotSpeed;
@@ -194,17 +190,6 @@ namespace MoGraph
 		}
 
 		mScaleOldPos = mScalePos;
-
-	/*
-		glm::vec3 axisY(0.0,1.0f,0.0f);
-		glm::mat4 mY = glm::rotate(mRotPos.x*30.0f,axisY);
-		glm::vec3 axisX(1.0,0.0f,0.0f);
-		glm::mat4 mX = glm::rotate(mRotPos.y*30.0f,axisX);
-
-		glm::mat4 m = mY*mX;
-		scene.setWorldMat( m );
-		scene.updateMatrix();		// need to update the PVW Matrix, Projection * View * World.
-*/
 	}
 
 }

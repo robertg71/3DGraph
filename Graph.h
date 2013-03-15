@@ -141,7 +141,34 @@ protected:
 };
 */
 
+/**
+ * \brief GraphInput,
+ * input struct for the MoGraph to controll the system set up from here
+ */
+struct	GraphInput
+{
+	int sXGridSz;		// number of bars in X
+	int sGridLinesY;	// number of grids/lines in Y
+	int sZGridSz; 		// number of bars in Z
+	int sWidth;			// Width of Screen
+	int sHeight;		// Height of Screen
+	unsigned sbFitScreen:1, sbEnableTextGrid:1;	// flags to enable or disable,
+	IFont* sFont;		// Use Font TODO Should provide with a default font in the future
+	glm::vec3 sSteps;	// Steps of numbers in grid (if bEnableTextGrid is true)
 
+	GraphInput()
+	{
+		sXGridSz 		= 10;
+		sGridLinesY 	= 5;
+		sZGridSz 		= 10;
+		sWidth 			= 0;
+		sHeight 		= 0;
+		sSteps 			= glm::vec3(10.0f,10.0f,10.0f);
+		sFont 			= 0;
+		sbFitScreen 	= 0;
+		sbEnableTextGrid = 0;
+	}
+};
 
 // TODO use a screen class. for handling view port and offset positions so that we can support sub windows for rendering multiple views. (graphs)
 
@@ -188,14 +215,17 @@ protected:
 	 * \brief initShaderLines, initiate shader for lines
 	 */
 	void initShaderLines()		{mScene.getAxisMgr().init();}
+
 	/**
 	 * \brief initShaderBars,	initiate shader for bars
 	 */
 	void initShaderBars()		{mScene.getBarMgr().init();}
+
 	/**
 	 * \brief initShaderText,	initiate shader for Text
 	 */
 	void initShaderText()		{mScene.getTextMgr().init();}
+
 	/**
 	 * \brief initGL,	initiate OpenGL basic stuff that required for MoGraph
 	 * @return

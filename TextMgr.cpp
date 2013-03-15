@@ -48,7 +48,7 @@ namespace MoGraph
 		glm::vec4 color(1.0f,1.0f,1.0f,1.0f);
 
 		t.mColor 	= color;
-		t.mText		= "MoSync 3D Graph Library 0.7 Beta";		// Subtitle
+		t.mText		= "MoSync 3D Graph Library 0.8 Beta";		// Subtitle
 		t.mScale	= scaleXZ;
 		t.mPos		= pos;
 		mTextArray.push_back(t);

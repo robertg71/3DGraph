@@ -15,13 +15,14 @@
 #include "AxisMgr.h"
 #include "BarMgr.h"
 #include "TextMgr.h"
+#include "GraphDesc.h"
 
 namespace MoGraph{
+
 /**
  * \brief Scene handling all object in scene.
  * holds scene matrices like Perspective Projection, View and World Matrices
  */
-
 	class Scene
 	{
 	protected:
@@ -33,7 +34,7 @@ namespace MoGraph{
 		int			mHeight;
 		float 		mElapsedTime;		// Elapsed time in ms
 		float 		mDistToCam;			// internally calculated for fit to screen.
-
+		GraphDesc	mDesc;				// keep copy of the graph description
 		glm::mat4 	mProjection;		// Projection Matrix
 		glm::mat4 	mView;				// View Matrix
 		glm::mat4 	mWorld;				// World Matrix
@@ -62,14 +63,9 @@ namespace MoGraph{
 
 		/**
 		 * \brief create, whole scene by using Axis,Bars,Text
-		 * @param gridX	,create amount of bars in X
-		 * @param gridZ	,create amount of bars in Y
-		 * @param lines	,amount lines in Y used for grid.
-		 * @param step	,grid steps in Y
-		 * @param bFitToScreen	,fit to screen flag, whole bars.
+		 * @param GraphDesc, Graph Description struct contains all prefs for the graph
 		 */
-		void 	create(int gridX,int gridZ, int lines = 5, float stepY = 1.0f, bool bFitToScreen = true);
-
+		void 	create(GraphDesc *desc);
 
 		BarMgr 	&getBarMgr() 			{return mBarMgr;}
 		AxisMgr &getAxisMgr()			{return mAxisMgr;}

@@ -33,65 +33,10 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "AxisMgr.h"
 #include "BarMgr.h"
 #include "TextMgr.h"
+#include "GraphDesc.h"
+
+
 // during development I like to keep all data public. cleanup will be done later.
-
-
-/*
- * Helper class that split a string and parse its values to an array of floats.
- */
-/*
-class ParseInput
-{
-public:
-	// static data
-	// dynamic data
-	ParseInput(){}
-	ParseInput(char *data,int len = -1) : m_data(data) {}
-	~ParseInput() {}
-
-	void set(char *data,int len = -1)
-	{
-		m_data = data;
-		m_len = len;
-		if (m_len < 0)
-			m_len = strlen(data);
-	}
-
-	int parse2d(std::vector<float>&table, char delim=',')
-	{
-		// Need a join function... check where...
-
-		// simple join func
-		if (m_len < 0)
-			m_len = strlen(m_data);
-
-		if (m_len <= 0)
-			return -1;
-
-		for(int i=0; i < m_len;)
-		{
-			char *pos = strchr(&m_data[i], (int)delim);
-			if (pos == 0)
-			{
-				// whole string is one data entry or error
-				float f = atof(&m_data[i]);
-				table.push_back(f);
-				break;
-			}
-			int len = pos - &m_data[i];
-			i += len+1;
-		}
-		return 0;
-	}
-
-protected:
-
-	char *m_data;		// input data stream or static.
-	int  m_len;
-};
-*/
-
-
 
 /**
  * \brief MoGraph namespace
@@ -102,73 +47,6 @@ namespace MoGraph
 {
 
 class Scene;
-
-
-
-/*
- * Input class for Graphs handling Static or Dynamic or Stream of data.
- */
-/*
-class Input
-{
-public:
-	ParseInput m_input;
-
-	// static
-
-	// dynamic
-protected:
-};
-*/
-/*
- * Screen class manageing widget size in absolute resolutions, info
- */
-/*
-class Screen
-{
-public:
-	// gui obj
-	int 				m_width;
-	int 				m_height;
-	bool 				m_fullscreen;
-	int 				m_type;
-	// table should be an own class handling the range of data to be displayed, average out dependent on scale etc.
-	std::vector<float> 	m_table;
-	// input obj
-
-protected:
-
-};
-*/
-
-/**
- * \brief GraphInput,
- * input struct for the MoGraph to controll the system set up from here
- */
-struct	GraphInput
-{
-	int sXGridSz;		// number of bars in X
-	int sGridLinesY;	// number of grids/lines in Y
-	int sZGridSz; 		// number of bars in Z
-	int sWidth;			// Width of Screen
-	int sHeight;		// Height of Screen
-	unsigned sbFitScreen:1, sbEnableTextGrid:1;	// flags to enable or disable,
-	IFont* sFont;		// Use Font TODO Should provide with a default font in the future
-	glm::vec3 sSteps;	// Steps of numbers in grid (if bEnableTextGrid is true)
-
-	GraphInput()
-	{
-		sXGridSz 		= 10;
-		sGridLinesY 	= 5;
-		sZGridSz 		= 10;
-		sWidth 			= 0;
-		sHeight 		= 0;
-		sSteps 			= glm::vec3(10.0f,10.0f,10.0f);
-		sFont 			= 0;
-		sbFitScreen 	= 0;
-		sbEnableTextGrid = 0;
-	}
-};
 
 // TODO use a screen class. for handling view port and offset positions so that we can support sub windows for rendering multiple views. (graphs)
 
@@ -186,6 +64,7 @@ protected:
 	int 	mHeight;			// screen height
 	int		mGridX;				// grid in X (graph area)
 	int 	mGridZ;				// grid in Z (graph area)
+	GraphDesc mDesc;			// copy of the description struct
 	DTime	mDeltaTime;			// Delta time class (handles time in between ticks)
 	Time	mTime;				// Elapsed time class (accumulated time since constr)
 	glm::vec4 mBGColor;			// background color for graph
@@ -252,18 +131,12 @@ public:
 	virtual ~Graph() {}
 
 	/**
-	 * \brief Graph::init initiate the whole graph system
-	 * @param xGridSz		, grid in X
-	 * @param zGridSz		, grid in Z
-	 * @param gridLinesY	, amount of Grids in Y
-	 * @param stepY			, step between Y grids
-	 * @param bFitScreen	, flag to fit screen or not
-	 * @param font			, font to use for rendering text in Graph
-	 * @param scrWidth		, width of screen
-	 * @param scrHeight		, height of screen
-	 * @return int if successfull or not.
+	 * \brief GraphDesc, using the Graph Description struct
+	 * to fill in the input values of the Graph
+	 * @param desc, see GraphDesc struct
+	 * @return
 	 */
-	virtual int init(int xGridSz,int zGridSz, int gridLinesY, float stepY, bool bFitScreen, IFont* font,int scrWidth,int scrHeight);
+	virtual int init(GraphDesc *desc);
 
 	/**
 	 * \brief draw,	render entire scene

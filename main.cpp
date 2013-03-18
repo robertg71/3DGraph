@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #include "MAHeaders.h"
 #include "DTime.h"
 #include "Touch.h"
+#include "GraphDesc.h"
 using namespace MAUtil;
 
 
@@ -154,7 +155,20 @@ public:
 		setPreferredFramesPerSecond(50);			// set preferred fps for the Moblet
 
 		// initiate Graph by setting up a grid sz in X & Z , also grid in Y with grid step, additional info like fit to screen, screen resolutions.
-		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,mFont,mWidth,mHeight))	// initiate Graph with parameters as GridX, GridY, amount of gridLines in Y, stepping for each grid line in Y, fit to screen, Font class, screen width and screen height
+		MoGraph::GraphDesc desc;
+		desc.scrWidth = mWidth;
+		desc.scrHeight = mHeight;
+		desc.gridX = grid;
+		desc.gridZ = grid;
+		desc.gridYLines = gridLines;
+		desc.gridStepYLines = gridStepY;
+		desc.bFitScreen = true;
+		desc.bNegGridLines = false;
+		desc.bUseGridValue = true;
+		desc.font = mFont;
+
+//		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,mFont,mWidth,mHeight))	// initiate Graph with parameters as GridX, GridY, amount of gridLines in Y, stepping for each grid line in Y, fit to screen, Font class, screen width and screen height
+		if (!mGraph->init(&desc))	// initiate Graph with parameters as GridX, GridY, amount of gridLines in Y, stepping for each grid line in Y, fit to screen, Font class, screen width and screen height
 			maPanic(1,"Failed to initiate Graph");
 
 		mGraph->setBGColor(bkcolor);				// additional set background color

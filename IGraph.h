@@ -26,6 +26,7 @@ class IFont;
 namespace MoGraph
 {
 	class Scene;
+	class GraphDesc;
 	class TouchInput;
 
 	/**
@@ -39,19 +40,14 @@ namespace MoGraph
 		 * \brief ~IGraph Destructor
 		 */
 		virtual ~IGraph()  {}
+
 		/**
-		 * \brief Graph::init initiate the whole graph system
-		 * @param xGridSz		, grid in X
-		 * @param zGridSz		, grid in Z
-		 * @param gridLinesY	, amount of Grids in Y
-		 * @param stepY			, step between Y grids
-		 * @param bFitScreen	, flag to fit screen or not
-		 * @param font			, font to use for rendering text in Graph
-		 * @param scrWidth		, width of screen
-		 * @param scrHeight		, height of screen
-		 * @return int if successfull or not.
+		 * \brief GraphDesc, using the Graph Description struct
+		 * to fill in the input values of the Graph
+		 * @param desc, see GraphDesc struct
+		 * @return
 		 */
-		virtual int init(int x,int z, int gridLines, float step, bool bFitScreen, IFont* font,int width,int height) = 0;
+		virtual int init(GraphDesc *desc) = 0;
 		/**
 		 * \brief setBGColor
 		 * @param color

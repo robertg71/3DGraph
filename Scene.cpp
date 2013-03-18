@@ -15,7 +15,7 @@
 #include <string>
 #include "Shaders.h"
 #include "RenderText.h"
-
+#include "GraphDesc.h"
 
 namespace MoGraph
 {
@@ -54,24 +54,26 @@ namespace MoGraph
 	 * @param step	,grid steps in Y
 	 * @param bFitToScreen	,fit to screen flag, whole bars.
 	 */
-	void Scene::create(int gridX, int gridZ, int lines, float step ,bool bFitToScreen)
+//	void Scene::create(int gridX, int gridZ, int lines, float step ,bool bFitToScreen)
+	void Scene::create(GraphDesc *desc)
 	{
-		mFitToScreen 		= bFitToScreen;
-		mGridX 				= gridX;
-		mGridZ 				= gridZ;
-		mGrid.x				= gridX;
+		mDesc				= *desc;			// store a copy of the graph description struct.
+		mFitToScreen 		= desc->bFitScreen;
+		mGridX 				= desc->gridX;
+		mGridZ 				= desc->gridZ;
+		mGrid.x				= desc->gridX;
 		mGrid.y				= 1.0f;
-		mGrid.z				= gridZ;
-		int newSize 		= gridX*gridZ;
+		mGrid.z				= desc->gridZ;
+		int newSize 		= mGridX*mGridZ;
 
 		lprintfln("Scene::create: %i*%i=%i",mGridX,mGridZ,newSize);
 		mBarMgr.addBars(newSize);
 		lprintfln("vector<Bar> bars, size() = %i == %i", mBarMgr.size(),newSize);
 
-		int axis = ((gridX>1)&&(gridZ>1))?3:2;	// how many axis should be displayed 2 or 3 dependent on layout... 2d => 2 => 3d => 3
+		int axis = ((mGridX>1)&&(mGridZ>1))?3:2;	// how many axis should be displayed 2 or 3 dependent on layout... 2d => 2 => 3d => 3
 		mAxisMgr.addAxis(axis);
-		mAxisMgr.setGridLines(lines);
-		mAxisMgr.setGridStep(step);
+		mAxisMgr.setGridLines(desc->gridYLines);
+		mAxisMgr.setGridStep(desc->gridStepYLines);
 		mWorld = glm::mat4(1.0f);				// set up an identity matrix
 		updateCamera(1.0f);
 	}

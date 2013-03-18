@@ -21,6 +21,7 @@ MA 02110-1301, USA.
 #include "GFont.h"
 #include "RenderText.h"
 #include "MAHeaders.h"
+#include "GraphDesc.h"
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,7 +31,6 @@ MA 02110-1301, USA.
 // Name space Graph
 namespace MoGraph
 {
-
 
 	/**
 	 * Graph::draw,	render whole scene.
@@ -72,27 +72,24 @@ namespace MoGraph
 	}
 
 	/**
-	 * \brief Graph::init initiate the whole graph system
-	 * @param x				, grid in X
-	 * @param z				, grid in Z
-	 * @param gridLines		, amount of Grids in Y
-	 * @param step			, step between Y grids
-	 * @param bFitScreen	, flag to fit screen or not
-	 * @param font			, font to use for rendering text in Graph
-	 * @param width			, width of screen
-	 * @param height		, height of screen
-	 * @return int if successfull or not.
+	 * \brief GraphDesc, using the Graph Description struct
+	 * to fill in the input values of the Graph
+	 * @param desc, see GraphDesc struct
+	 * @return
 	 */
-	int Graph::init(int x,int z, int gridLines, float step, bool bFitScreen, IFont* font,int width,int height)
+
+	int Graph::init(GraphDesc *desc)
 	{
-		mWidth 	= width;
-		mHeight = height;
-		mGridX	= x;
-		mGridZ	= z;
-		mFont	= font;
-		mScene.create(x,z,gridLines,step,bFitScreen);
-		mScene.setWidth(width);
-		mScene.setHeight(height);
+		mWidth 	= desc->scrWidth;
+		mHeight = desc->scrHeight;
+		mGridX	= desc->gridX;
+		mGridZ	= desc->gridZ;
+		mFont	= desc->font;
+		mDesc	= *desc;	// keep copy of the description struct to keep track of all other init settings
+//		mScene.create(mGridX,mGridZ,desc->gridYLines,desc->gridStepYLines,desc->bFitScreen);
+		mScene.create(desc);
+		mScene.setWidth(mWidth);
+		mScene.setHeight(mHeight);
 		mTouch.init(mWidth,mHeight);
 		return initGL();
 	}

@@ -108,8 +108,8 @@ namespace MoGraph
 		glUniform3fv(shader.mScaleV,1, (float *)&sv.x);				// mScale location => variable "ScaleV" in vertex shader
 		checkGLError("glUniform3fv");
 
-		const float centerX = mScene->getCx()*1.01f;
-		const float centerZ = mScene->getCz()*1.01f;
+		const float centerX = mScene->getCx()*mScene->getBoundScale();
+		const float centerZ = mScene->getCz()*mScene->getBoundScale();
 
 		for(size_t i=0; i<mAxisArray.size(); i++)
 		{

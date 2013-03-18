@@ -33,6 +33,8 @@ namespace MoGraph
 	 */
 	void TextMgr::init()
 	{
+		// to do, align text with axis..
+
 		Text t;
 		t.mRotate 			= glm::vec3(0.0f,0.0f,0.0f);
 		t.mTextFlag			= Text::NO_ACTION;
@@ -42,9 +44,11 @@ namespace MoGraph
 		float centerX		= mScene->getCx();
 		float centerZ		= mScene->getCz();
 		float scale 		= mScene->getGridX()/500.0f;
-
+		float bound			= mScene->getBoundScale();
+		float dcenterX		= centerX*bound;
+		float dcenterZ		= centerZ*bound;
 		glm::vec2 scaleXZ(scale,scale);
-		glm::vec3 pos(centerX, 0.0f,centerZ);
+		glm::vec3 pos(dcenterX, 0.0f,dcenterZ);
 		glm::vec4 color(1.0f,1.0f,1.0f,1.0f);
 
 		t.mColor 	= color;
@@ -62,7 +66,7 @@ namespace MoGraph
 		mTextArray.push_back(t);
 
 		t.mText		= "X-Axis";		// Subtitle
-		t.mPos 		= glm::vec3(-centerX, 0.0f,centerZ);
+		t.mPos 		= glm::vec3(-dcenterX, 0.0f,dcenterZ);
 		t.mTextFlag = Text::CENTER_RIGHT;
 		mTextArray.push_back(t);
 
@@ -71,7 +75,7 @@ namespace MoGraph
 			// set up text for Z-Axis
 			t.mTextFlag = Text::NO_ACTION;
 			t.mText 	= "Z-axis";
-			t.mPos 		= glm::vec3(-centerZ, 0.0f,-centerX);
+			t.mPos 		= glm::vec3(-dcenterZ, 0.0f,-dcenterX);
 			t.mRotate	= glm::vec3(0.0f,-90.0f,0.0f);
 			mTextArray.push_back(t);
 		}

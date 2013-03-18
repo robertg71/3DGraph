@@ -92,6 +92,14 @@ namespace MoGraph{
 		void	setHeight(int h)		{mHeight = h;}
 		int		getHeight()				{return mHeight;}
 		void 	setDefaultBarColor(glm::vec4 color) {mDefaultBarColor = color;}
+		/**
+		 * \brief BoundScale, to get slightly larger bounds for lines or text
+		 * in order not to be inside the graph objects.
+		 * \note Axis/grid lines uses this scale for the lines.
+		 * @return 1.01f
+		 */
+		float getBoundScale() const			{return 1.01f;}
+
 
 		/**
 		 * \brief updateMatrix, prepares a Perspective View World = PVW matrix used for the vertex shader.

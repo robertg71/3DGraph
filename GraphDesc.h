@@ -14,6 +14,8 @@ namespace MoGraph
 {
 	/**
 	 * \brief GraphDesc. Graph Description used for its input data to set up the graph
+	 * \note extDesc ptr has been reserved for the future in case the interface grows.
+	 * it is set to zero and must not be used until provided with further info.
 	 */
 	struct GraphDesc
 	{
@@ -28,10 +30,11 @@ namespace MoGraph
 			gridYLines(5),
 			gridStepYLines(5.0f),
 			gridStepValue(0.5f),
+			font(0),
 			bFitScreen(true),
 			bNegGridLines(false),
 			bUseGridValue(true),
-			font(0)
+			extDesc(0)
 		{
 		}
 
@@ -42,10 +45,9 @@ namespace MoGraph
 		int 	gridYLines;			// Amount of grid lines
 		float 	gridStepYLines;		// The steps in height for each line
 		float	gridStepValue;		// Grid step value (step=10 => 10,20,30,40,50)
-		bool 	bFitScreen;			// Fit to screen flag
-		bool	bNegGridLines;		// Enable grid lines on the negatice axis in Y (mirrored)
-		bool	bUseGridValue;		// Enable values for grid lines
 		IFont* 	font;				// ptr to the Font system
+		signed  bFitScreen:1, bNegGridLines:1, bUseGridValue:1;
+		void *	extDesc;			// extended parameter struct, reserved for future reference.
 	};
 }
 

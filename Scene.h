@@ -88,6 +88,7 @@ namespace MoGraph{
 		void	setHeight(int h)		{mHeight = h;}
 		int		getHeight()				{return mHeight;}
 		void 	setDefaultBarColor(glm::vec4 color) {mDefaultBarColor = color;}
+		const 	GraphDesc&	getGraphDesc()		{return mDesc;}
 		/**
 		 * \brief BoundScale, to get slightly larger bounds for lines or text
 		 * in order not to be inside the graph objects.

@@ -147,8 +147,8 @@ public:
 
 		mText.init(mWidth,mHeight,mFont);			// initiate the text system by setting a Font & Screen dimensions
 
-		float gridStepY = 0.5f;
-		int gridLines 	= 5;
+		float gridStepY = 1.0f;
+		int gridLines 	= 4;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
 
 		mDTime.setDesiredFps(50.0f);				// set up the DTime used for calculating FPS
@@ -163,7 +163,7 @@ public:
 		desc.gridYLines = gridLines;
 		desc.gridStepYLines = gridStepY;
 		desc.bFitScreen = true;
-		desc.bNegGridLines = false;
+		desc.bNegGridLines = true;
 		desc.bUseGridValue = true;
 		desc.font = mFont;
 

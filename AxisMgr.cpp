@@ -110,7 +110,8 @@ namespace MoGraph
 
 		const float centerX = mScene->getCx()*mScene->getBoundScale();
 		const float centerZ = mScene->getCz()*mScene->getBoundScale();
-
+		const GraphDesc &desc = mScene->getGraphDesc();
+		bool bMirror = (desc.bNegGridLines != 0);
 		for(size_t i=0; i<mAxisArray.size(); i++)
 		{
 			// 1rst attribute buffer : vertices
@@ -127,14 +128,25 @@ namespace MoGraph
 			checkGLError("glEnableVertexAttribArray");
 			glLineWidth(2);
 
+			float totGridHeight = desc.gridStepYLines * desc.gridYLines;
+
+
+			// Dray Line for Y Axis
 			glm::vec4 col(0.5f,0.5f,0.5f,1.0f);
-			glm::vec3 llength(-centerX*2.0f,5.0f,-centerZ*2.0f);	// length is always abs
+			glm::vec3 llength(-centerX*2.0f,totGridHeight,-centerZ*2.0f);	// length is always abs
 			glm::vec4 tpos(centerX, 0.0f,centerZ, 1.0f);
 			glUniform4fv(shader.mTPos,1, (float *)&tpos.x);
 			glUniform4fv(shader.mColor,1, (float *)&col.x);
 			glUniform3fv(shader.mLength,1, (float *)&llength.x);				// mScale location => variable "ScaleV" in vertex shader
 
 			glDrawArrays(GL_LINES, 0, 2);
+			if (bMirror)
+			{
+				llength.y = -llength.y;
+				glUniform3fv(shader.mLength,1, (float *)&llength.x);				// mScale location => variable "ScaleV" in vertex shader
+				glDrawArrays(GL_LINES, 0, 2);
+			}
+
 
 			// Set up grid lines on height for X-Axis
 			if (i == 0)
@@ -142,12 +154,21 @@ namespace MoGraph
 				glLineWidth(1);
 				glm::vec4 col(0.25f,0.25f,0.25f,1.0f);
 				glUniform4fv(shader.mColor,1, (float *)&col.x);
+
 				for (int l=1;l<mGridLines;l++)
 				{
 					float gridY = static_cast<float>(l) * mGridStep;
+
 					glm::vec4 tpos(centerX, gridY, centerZ, 1.0f);
 					glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
 					glDrawArrays(GL_LINES, 0, 2);
+
+					if (bMirror)
+					{
+						tpos.y = -tpos.y;
+						glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
+						glDrawArrays(GL_LINES, 0, 2);
+					}
 				}
 			}
 			else if (i==2)	// Set up grid lines in height for Z-Axis
@@ -161,6 +182,13 @@ namespace MoGraph
 					glm::vec4 tpos(centerX, gridY, centerZ, 1.0f);
 					glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
 					glDrawArrays(GL_LINES, 0, 2);
+
+					if (bMirror)
+					{
+						tpos.y = -tpos.y;
+						glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
+						glDrawArrays(GL_LINES, 0, 2);
+					}
 				}
 			}
 			glDisableVertexAttribArray(shader.mAttribVtxLoc);

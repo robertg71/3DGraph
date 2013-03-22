@@ -107,23 +107,23 @@ public:
 	virtual ~AxisMgr() {}
 
 	/**
-	 * \brief getAxis
+	 * \brief getLine
 	 * @param i,	input index entry
-	 * @return Axis output element
+	 * @return Line output element
 	 */
-	Axis &getAxis(int i) 				{return mAxisArray[i];}
+	Line &getLine(int i) 				{return mLineArray[i];}
 
 	/**
-	 * \brief getAxisArray
-	 * @return	reference of Axis array
+	 * \brief getLineArray
+	 * @return	reference of LineArray
 	 */
-	std::vector<Axis>& getAxisArray() 	{return mAxisArray;}
+	std::vector<Line>& getLineArray() 	{return mLineArray;}
 
 	/**
-	 * \brief size, size of AxisArray
+	 * \brief size, size of LineArray
 	 * @return size
 	 */
-	int size() 							{return mAxisArray.size();}
+	int size() 							{return mLineArray.size();}
 
 	/**
 	 * \brief getShader , get Shader of Axis lines

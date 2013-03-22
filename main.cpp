@@ -266,7 +266,7 @@ public:
 			const float scale = 0.6f;
 			const float sy = scale/**(1.0f+0.5f*sin(tick+(i*0.03f)))*/;
 			mText.setScale(sy,sy);		// note text needs to be written up side down due to orthogonal  matrix 0,0 upper corner.. 640,480 lower right corner.
-			pos.x = 0.0f;//static_cast<float>(50.0f+50.0f*sy);
+			pos.x = 0.0f; //static_cast<float>(50.0f+50.0f*sy);
 			pos.y = 0.0f; //static_cast<float>(i*20*sy);
 
 			char buf[64];

@@ -56,12 +56,13 @@ namespace MoGraph
 		mTouch.update();
 		mScene.updateCamera(mTouch.getScale());
 
-		const glm::vec2 rotPos = mTouch.getAngularOrientation();
-		glm::vec3 axisY(0.0,1.0f,0.0f);
-		glm::mat4 mY = glm::rotate(rotPos.x*30.0f,axisY);
-		glm::vec3 axisX(1.0,0.0f,0.0f);
-		glm::mat4 mX = glm::rotate(rotPos.y*30.0f,axisX);
-		glm::mat4 m = mY*mX;
+		const glm::vec2 rotSpeed = mTouch.getAngularSpeed(); //mTouch.getAngularOrientation();
+		glm::vec3 axisY(0.0f,1.0f,0.0f);
+		glm::mat4 mY = glm::rotate(rotSpeed.x*30.0f,axisY);
+		glm::vec3 axisX(1.0f,0.0f,0.0f);
+		glm::mat4 mX = glm::rotate(rotSpeed.y*30.0f,axisX);
+		glm::mat4 mW = mScene.getWorldMat();
+		glm::mat4 m = mY*mX*mW;
 		mScene.setWorldMat( m );
 		mScene.updateMatrix();		// need to update the PVW Matrix, Projection * View * World.
 

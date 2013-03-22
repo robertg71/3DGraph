@@ -86,8 +86,8 @@ namespace MoGraph
 
 		scaleXZ.x 	*= 0.8f;
 		scaleXZ.y   *= 0.8f;
-
-		float totGridHeight = desc.gridStepYLines * desc.gridYLines + desc.gridStepYLines;
+		float textHeight = 2.0f;
+		float totGridHeight = desc.gridStepYLines * desc.gridYLines + textHeight;
 
 		t.mPos.y	+= totGridHeight;
 		t.mText		= "Y-Axis";		// Subtitle

@@ -110,7 +110,11 @@ namespace MoGraph
 		 * @return yaw angle and pitch angle (y,x) in prio order
  		 */
 		virtual glm::vec2 getAngularOrientation() {return mRotPos;}
-
+		/**
+		 * \brief getAngularSpeed, in degrees
+		 * @return yaw speed angle and pitch speed angle (y,x) in prio order
+ 		 */
+		virtual glm::vec2 getAngularSpeed() {return mRotSpeed;}
 		// optional multi touch is in use here
 		/**
 		 * \brief multitouchPressEvent,	fwd events from the event handler to here

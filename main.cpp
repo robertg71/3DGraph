@@ -147,8 +147,8 @@ public:
 
 		mText.init(mWidth,mHeight,mFont);			// initiate the text system by setting a Font & Screen dimensions
 
-		float gridStepY = 1.0f;
-		int gridLines 	= 4;
+		float gridStepY = 0.5f;
+		int gridLines 	= 5;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
 
 		mDTime.setDesiredFps(50.0f);				// set up the DTime used for calculating FPS
@@ -162,6 +162,8 @@ public:
 		desc.gridZ = grid;
 		desc.gridYLines = gridLines;
 		desc.gridStepYLines = gridStepY;
+		desc.gridStepValue = 0.5f;
+		desc.gridDecimals = 0;
 		desc.bFitScreen = true;
 		desc.bNegGridLines = true;
 		desc.bUseGridValue = true;
@@ -245,25 +247,27 @@ public:
 		mGraph->setValues(mTables,sz);	// set the value array to the Graph to read from
 		mGraph->setColors(mColors,sz);	// set the color array to the Graph to read from
 		mGraph->draw();								// Draw the whole graph system
-
+/*
 		glm::vec3 pos(100.0f,100.0f,100.0f);
 		glm::vec4 col(1.0f,1.0f,1.0f,1.0f);
 		mText.setScale(1.0f,1.0f);
 
 		mText.drawText("Testing 123!",pos,col);
-
+*/
+		glm::vec4 col(1.0f,1.0f,1.0f,1.0f);
+		glm::vec3 pos;
 		pos.x = 0.0f;
 		pos.y = 0.0f;
 		pos.z = 10.0f;
 
-		for(int i=0; i<10; i+=1)
+		for(int i=0; i<1; i+=1)
 		{
 
 			const float scale = 0.6f;
-			const float sy = scale*(1.0f+0.5f*sin(tick+(i*0.03f)));
+			const float sy = scale/**(1.0f+0.5f*sin(tick+(i*0.03f)))*/;
 			mText.setScale(sy,sy);		// note text needs to be written up side down due to orthogonal  matrix 0,0 upper corner.. 640,480 lower right corner.
-			pos.x = static_cast<float>(50.0f+50.0f*sy);
-			pos.y = static_cast<float>(i*20*sy);
+			pos.x = 0.0f;//static_cast<float>(50.0f+50.0f*sy);
+			pos.y = 0.0f; //static_cast<float>(i*20*sy);
 
 			char buf[64];
 			sprintf ( buf, "%d FPS=%.2f ms=%d",i,mDTime.currentFps(),mDTime.getElapsed());

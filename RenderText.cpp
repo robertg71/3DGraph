@@ -112,7 +112,7 @@ glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache, float *width
 			if(!vertices)						// check if memory alocation was ok
 				maPanic(1,"RenderText: Failed to allocate vertex buffer");
 
-			*width = m_font->BuildVertexArray(vertices, key.c_str(), m_pos.x, m_pos.y, m_scaleX, m_scaleY);			// get vertex array from string,
+			*width = m_font->BuildVertexArray(vertices, key.c_str(), m_opos.x, m_opos.y, m_scaleX, m_scaleY);			// get vertex array from string,
 
 			glm::vec2 scaleXZ(m_scaleX,m_scaleY);
 			VertStore vstore(vertices,*width,scaleXZ);
@@ -141,7 +141,7 @@ glm::vec4 *RenderText::getVertices(const char *str, bool bUseCache, float *width
 		if(!vertices)
 			maPanic(1,"RenderText: Failed to allocate vertex buffer");
 
-		*width = m_font->BuildVertexArray(vertices, str, m_pos.x, m_pos.y, m_scaleX, m_scaleY);			// get vertex array from string,
+		*width = m_font->BuildVertexArray(vertices, str, m_opos.x, m_opos.y, m_scaleX, m_scaleY);			// get vertex array from string,
 	}
 	return vertices;
 }
@@ -172,7 +172,8 @@ float RenderText::drawText3D(const char*str, glm::vec3 &pos, glm::vec4 &rgba, gl
 //	checkGLError("RenderText::DrawText   Should be ok!");
 
 	float width = 0;
-	m_pos 		= pos;
+	m_opos 		= glm::vec3(0.0f,0.0f,0.0f);//pos;
+	m_pos		= pos;
 	int num 	= strlen(str);
 	glm::vec4 *vertices = 0;
 	// Use the font class to build the vertex array from the sentence text and sentence draw location.
@@ -240,7 +241,7 @@ float RenderText::drawText3D(const char*str, glm::vec3 &pos, glm::vec4 &rgba, gl
 	glm::vec4 color = rgba;
 	glUniform4fv(shader.mColor,1, (float *)&color.x);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
-	glm::vec4 TPos(0.0f,0.0f,m_pos.z, 1.0f);
+	glm::vec4 TPos(m_pos.x,m_pos.y,m_pos.z, 1.0f);
 	glUniform4fv(shader.mTPos, 1, (float *)&TPos.x);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
 	glDrawArrays(GL_TRIANGLES, 0, 6*num);
@@ -272,6 +273,7 @@ float RenderText::drawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 {
 //	checkGLError("RenderText::DrawText   Should be ok!");
 	float width = 0;
+	m_opos = glm::vec3(0.0f,0.0f,0.0f);
 	m_pos = pos;
 	int num = strlen(str);
 	glm::vec4 *vertices = 0;
@@ -344,7 +346,7 @@ float RenderText::drawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 	glm::vec4 color = rgba;
 	glUniform4fv(shader.mColor,1, (float *)&color.x);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
-	glm::vec4 TPos(0.0f,0.0f,m_pos.z, 1.0f);
+	glm::vec4 TPos(m_pos.x,m_pos.y,m_pos.z, 1.0f);
 	glUniform4fv(shader.mTPos, 1, (float *)&TPos.x);
 	checkGLError("RenderText::DrawText   glUniformMatrix4fv");
 	glDrawArrays(GL_TRIANGLES, 0, 6*num);

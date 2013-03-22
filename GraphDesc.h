@@ -30,6 +30,7 @@ namespace MoGraph
 			gridYLines(5),
 			gridStepYLines(5.0f),
 			gridStepValue(0.5f),
+			gridDecimals(1),
 			font(0),
 			bFitScreen(true),
 			bNegGridLines(false),
@@ -45,6 +46,7 @@ namespace MoGraph
 		int 	gridYLines;			// Amount of grid lines
 		float 	gridStepYLines;		// The steps in height for each line
 		float	gridStepValue;		// Grid step value (step=10 => 10,20,30,40,50)
+		int		gridDecimals;		// set amount of decimals to be displayed as height data. 1 = 0.0 , 2 = 0.00 , 3 = 0.000 etc
 		IFont* 	font;				// ptr to the Font system
 		signed  bFitScreen:1, bNegGridLines:1, bUseGridValue:1;
 		void *	extDesc;			// extended parameter struct, reserved for future reference.

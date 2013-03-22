@@ -129,7 +129,8 @@ protected:
 	float			m_height;		// screen height
 	float 			m_scaleX;		// used for scaling text in X
 	float			m_scaleY;		// used for scaling text in Y
-	glm::vec3		m_pos;			// position of text. (origo)
+	glm::vec3		m_opos;			// position of text. (origo), disposition the origo within the text.
+	glm::vec3		m_pos;			// position of text in 3D space
 	TextShader		m_textShader;	// Text shader to be used for the rendering
 	TextCacheTable	m_textCache;	// using text cache re using vertex buffers for specific text.
 	BlendType		m_blendType;	// blend parameters for th text.

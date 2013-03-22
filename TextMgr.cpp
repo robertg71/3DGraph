@@ -15,6 +15,21 @@
 namespace MoGraph
 {
 
+	const char *getFormatDecimalStr(int d)
+	{
+		switch (d)
+		{
+			case 0:	return "%.0f";
+			case 1:	return "%.1f";
+			case 2:	return "%.2f";
+			case 3:	return "%.3f";
+			case 4:	return "%.4f";
+			case 5:	return "%.5f";
+			default: return "%.0f";
+		}
+		return "%.0f";
+	}
+
 	/**
 	 * \brief TextMgr::draw() OBSOLETE..
 	 * \note not in use due to RenderText class used by Graph does this job
@@ -87,30 +102,39 @@ namespace MoGraph
 
 		if (desc.bUseGridValue)
 		{
-			char buf[32];
-			float step = desc.gridStepValue;
-			float value = 0.0f;
-			float yPosOffset = 0.0f;
-			float sc = orgScale * 0.5f;
+			char buf[64];
+			const char *formatDecimals = getFormatDecimalStr(desc.gridDecimals);
+			float step 			= desc.gridStepValue;
+			float value 		= 0.0f;
+			float yPosOffset 	= desc.gridStepYLines*0.5f;
+			float sc 			= orgScale * desc.gridStepYLines * 0.75f;
+			int	i 				= 0;
 
-			glm::vec3 pos(dcenterX, yPosOffset, dcenterZ);
-			t.mPos = pos;
-			t.mScale = glm::vec2(sc,sc);
-			for(int i=0; i<desc.gridYLines; i++)
+			if (bMirror)
 			{
-				// let user provide formatting string.
-				sprintf(buf,"%.1f",value);
-				t.mText = buf;
-				t.mPos.y += desc.gridStepYLines;
-				t.mTextFlag = Text::CENTER_RIGHT;
-				mTextArray.push_back(t);
-				value += step;
+				value 		= -step*desc.gridYLines+step;
+				yPosOffset 	= -desc.gridStepYLines*desc.gridYLines+desc.gridStepYLines*0.75f;
+				i			= -desc.gridYLines+1;
 			}
 
+			glm::vec3 pos(dcenterX*1.01f, yPosOffset, dcenterZ*1.01f);
+			t.mPos 		= pos;
+			t.mScale 	= glm::vec2(sc,sc);
+
+			for(; i<desc.gridYLines; i++)
+			{
+				// let user provide formatting string.
+				sprintf(buf,formatDecimals,value);
+
+				t.mText 	= buf;
+//				lprintfln("Bar Value %f=>%d and %s => %s" ,value,(int)value,formatDecimals,buf);   			// error not declared.
+
+				t.mPos.y 	+= desc.gridStepYLines;
+				t.mTextFlag = Text::CENTER_RIGHT;
+				mTextArray.push_back(t);
+				value 		+= step;
+			}
 		}
-
-
-
 
 
 		if (gridZ > 1)		// Check if there is a z-Axis at all

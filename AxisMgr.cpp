@@ -27,6 +27,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 namespace MoGraph
 {
 
+
 	/**
 	 * \brief AxisMgr::create3D  creates default vertex buffer
 	 */
@@ -78,9 +79,78 @@ namespace MoGraph
 		for (size_t i=0; i<mAxisArray.size();i++)
 		{
 			Axis &axis = mAxisArray[i];								// get reference of obj.
-			glGenBuffers(1, &mShader.mVertexbuffer[i]);					// Generate a vertex buffer for all axis (line)
+			glGenBuffers(1, &mShader.mVertexbuffer[i]);				// Generate a vertex buffer for all axis (line)
 			glBindBuffer(GL_ARRAY_BUFFER, mShader.mVertexbuffer[i]);
 			glBufferData(GL_ARRAY_BUFFER, axis.size() * sizeof(glm::vec3), &axis.vertices()[0], GL_STATIC_DRAW);
+		}
+		// build up the line structs in order to be able to let users add and change the grids by them selves.
+		Line ln;
+		glm::vec3 sv(1.0f,1.0f,1.0f);
+
+
+
+
+
+		const float centerX = mScene->getCx()*mScene->getBoundScale();
+		const float centerZ = mScene->getCz()*mScene->getBoundScale();
+		const GraphDesc &desc = mScene->getGraphDesc();
+		bool bMirror = (desc.bNegGridLines != 0);
+		for(size_t i=0; i<mAxisArray.size(); i++)
+		{
+			float totGridHeight = desc.gridStepYLines * desc.gridYLines;
+			ln.mAxisAlign 	= static_cast<Line::LineEnum>(i);
+			ln.mType 		= Line::AXIS_LINE;
+			ln.mWidth 		= 2;
+			ln.mColor 		= glm::vec4(0.5f,0.5f,0.5f,1.0f);
+			ln.mScale 		= glm::vec3(-centerX*2.0f,totGridHeight,-centerZ*2.0f);	// length is always abs
+			ln.mPos 		= glm::vec3(centerX, 0.0f,centerZ);
+			ln.mRotate		= glm::vec3(0.0f,0.0f,0.0f);
+			mLineArray.push_back(ln);
+
+			if (bMirror)
+			{
+				ln.mScale.y = -ln.mScale.y;
+				mLineArray.push_back(ln);
+			}
+
+
+			// Set up grid lines on height for X-Axis
+			if (i == 0)
+			{
+				ln.mWidth = 1;
+				ln.mColor = glm::vec4(0.25f,0.25f,0.25f,1.0f);
+
+				for (int l=1;l<mGridLines;l++)
+				{
+					float gridY = static_cast<float>(l) * mGridStep;
+
+					ln.mPos = glm::vec3(centerX, gridY, centerZ);
+					mLineArray.push_back(ln);
+
+					if (bMirror)
+					{
+						ln.mPos.y = -ln.mPos.y;
+						mLineArray.push_back(ln);
+					}
+				}
+			}
+			else if (i==2)	// Set up grid lines in height for Z-Axis
+			{
+				ln.mWidth = 1;
+				ln.mColor = glm::vec4(0.25f,0.25f,0.25f,1.0f);
+				for (int l=1;l<mGridLines;l++)
+				{
+					float gridY = static_cast<float>(l) * mGridStep;
+					ln.mPos = glm::vec3(centerX, gridY, centerZ);
+					mLineArray.push_back(ln);
+
+					if (bMirror)
+					{
+						ln.mPos.y = -ln.mPos.y;
+						mLineArray.push_back(ln);
+					}
+				}
+			}
 		}
 	}
 
@@ -108,10 +178,36 @@ namespace MoGraph
 		glUniform3fv(shader.mScaleV,1, (float *)&sv.x);				// mScale location => variable "ScaleV" in vertex shader
 		checkGLError("glUniform3fv");
 
-		const float centerX = mScene->getCx()*mScene->getBoundScale();
-		const float centerZ = mScene->getCz()*mScene->getBoundScale();
-		const GraphDesc &desc = mScene->getGraphDesc();
-		bool bMirror = (desc.bNegGridLines != 0);
+		glEnableVertexAttribArray(shader.mAttribVtxLoc);
+
+		for(size_t i = 0; i<mLineArray.size(); i++)
+		{
+			Line &ln = mLineArray[i];
+			glBindBuffer(GL_ARRAY_BUFFER, shader.mVertexbuffer[ln.mAxisAlign]);
+			glVertexAttribPointer(
+				shader.mAttribVtxLoc,      // attribute
+				3,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				0,                  // stride
+				(void*)0            // array buffer offset
+			);
+//			checkGLError("glEnableVertexAttribArray");
+			glLineWidth(ln.mWidth);
+
+			glm::vec4 tpos = glm::vec4(ln.mPos.x, ln.mPos.y, ln.mPos.z, 1.0f);
+			glUniform4fv(shader.mTPos,1, (float *)&tpos.x);
+			glUniform4fv(shader.mColor,1, (float *)&ln.mColor.x);
+			glUniform3fv(shader.mLength,1, (float *)&ln.mScale.x);				// mScale location => variable "ScaleV" in vertex shader
+			glDrawArrays(GL_LINES, 0, 2);
+		}
+
+		glDisableVertexAttribArray(shader.mAttribVtxLoc);
+		glBindBuffer(GL_ARRAY_BUFFER,0);
+
+
+
+/*
 		for(size_t i=0; i<mAxisArray.size(); i++)
 		{
 			// 1rst attribute buffer : vertices
@@ -129,7 +225,6 @@ namespace MoGraph
 			glLineWidth(2);
 
 			float totGridHeight = desc.gridStepYLines * desc.gridYLines;
-
 
 			// Dray Line for Y Axis
 			glm::vec4 col(0.5f,0.5f,0.5f,1.0f);
@@ -194,7 +289,10 @@ namespace MoGraph
 			glDisableVertexAttribArray(shader.mAttribVtxLoc);
 			glBindBuffer(GL_ARRAY_BUFFER,0);
 		}
+		*/
 		// Clean-up
+
 		glUseProgram(0);
 	}
+
 }

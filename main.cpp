@@ -163,7 +163,7 @@ public:
 		desc.gridYLines = gridLines;
 		desc.gridStepYLines = gridStepY;
 		desc.gridStepValue = 0.5f;
-		desc.gridDecimals = 0;
+		desc.gridDecimals = 1;
 		desc.bFitScreen = true;
 		desc.bNegGridLines = true;
 		desc.bUseGridValue = true;

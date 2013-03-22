@@ -31,6 +31,30 @@ namespace MoGraph
 
 class Scene;
 
+
+/**
+ * \brief Line struct Grid/Axis/Line display in graph,
+ * axis aligned, but could be rotated at will
+ */
+
+struct Line
+{
+	/**
+	 * \brief TextEnum
+	 * where the origo is relative inside the text string should be.
+	 */
+	enum LineEnum{ X_AXIS_ALIGN=0, Y_AXIS_ALIGN, Z_AXIS_ALIGN };
+	enum LineType{ AXIS_LINE, GRID_LINE_Y, GRID_LINE_X };
+
+	LineEnum		mAxisAlign;		// Use Line with axis alignment of X,Y,Z
+	LineType		mType;			// Line Type to be used, as AXIS, as GRIDS etc..
+	glm::vec3 		mPos;			// Text position in 3d space
+	glm::vec4 		mColor;			// Text color
+	glm::vec3		mScale;			// Line scale
+	glm::vec3		mRotate;		// Rotation in degrees. prio Yaw Pitch Roll
+	int				mWidth;			// Line Width (Thickness)
+};
+
 /**
  * \brief Handles the AXIS lines includeing grid marks to show the steps for a value.
  *
@@ -63,6 +87,7 @@ class AxisMgr : public Render
 {
 protected:
 	std::vector<Axis> 	mAxisArray;	// value and time  can support up to 3D X,Y,Z
+	std::vector<Line>	mLineArray;	// array of lines.
 	LineShader			mShader; 	// Shader to be used for rendering the lines.
 	float				mGridStep;	// Step of each grid bars in height. (note total height is amount*step)
 	int 				mGridLines;	// Grid lines for graph bar in Y... stepped with mStep, to get height grid,

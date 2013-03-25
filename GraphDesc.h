@@ -12,11 +12,19 @@ class IFont;
 
 namespace MoGraph
 {
+	enum
+	{
+		DEFAULT_GRIDS = 0,
+		MIRRORED_GRIDS = 1,
+		OFFSET_GRIDS = 2
+	};
+
 	/**
 	 * \brief GraphDesc. Graph Description used for its input data to set up the graph
 	 * \note extDesc ptr has been reserved for the future in case the interface grows.
 	 * it is set to zero and must not be used until provided with further info.
 	 */
+
 	struct GraphDesc
 	{
 		/**
@@ -29,13 +37,14 @@ namespace MoGraph
 			gridZ(10),
 			gridDecimals(1),
 			gridYLines(5),
+			gridOffsetStartLine(0.0f),
 			gridStepYLines(5.0f),
 			gridStepValue(0.5f),
-			font(0),
+			gridOffsetStartValue(0.0f),
 			bFitScreen(true),
-			bNegGridLines(false),
+			flagGridLines(DEFAULT_GRIDS),
 			bUseGridValue(true),
-			bUseOffsetStartLine(false),
+			font(0),
 			extDesc(0)
 		{
 		}
@@ -46,12 +55,12 @@ namespace MoGraph
 		int 	gridZ;				// Grid size on X for graph
 		int		gridDecimals;		// set amount of decimals to be displayed as height data. 1 = 0.0 , 2 = 0.00 , 3 = 0.000 etc
 		int 	gridYLines;			// Amount of grid lines
+		float	gridOffsetStartLine;	// Lowest bound of line to start grid from
 		float 	gridStepYLines;		// The steps in height for each line
 		float	gridStepValue;		// Grid step value (step=10 => 10,20,30,40,50)
 		float	gridOffsetStartValue;	// Lowest bound of Value to start from
-		float	gridOffsetStartLine;	// Lowest bound of line to start grid from
+		unsigned  bFitScreen:1, flagGridLines:2, bUseGridValue:1;
 		IFont* 	font;				// ptr to the Font system
-		signed  bFitScreen:1, bNegGridLines:1, bUseGridValue:1, bUseOffsetStartLine:1;
 		void *	extDesc;			// extended parameter struct, reserved for future reference.
 	};
 }

@@ -64,7 +64,7 @@ namespace MoGraph
 		float bound			= mScene->getBoundScale();
 		float dcenterX		= centerX*bound;
 		float dcenterZ		= centerZ*bound;
-		bool bMirror		= (desc.bNegGridLines != 0);
+//		bool bMirror		= (desc.flagGridLines == MoGraph::MIRRORED_GRIDS);
 		glm::vec2 scaleXZ(scale,scale);
 		glm::vec3 pos(dcenterX, 0.0f,dcenterZ);
 		glm::vec4 color(1.0f,1.0f,1.0f,1.0f);
@@ -73,21 +73,43 @@ namespace MoGraph
 		t.mText		= "MoSync 3D Graph Library 0.8 Beta";		// Subtitle
 		t.mScale	= scaleXZ;
 		t.mPos		= pos;
-		if (bMirror)
+
+		switch (desc.flagGridLines)
 		{
-			t.mPos.y	= -(desc.gridYLines * desc.gridStepYLines);
-			mTextArray.push_back(t);
-			t.mPos.y	= pos.y;	// restore
-		}
-		else
-		{
-			mTextArray.push_back(t);
+//			case MoGraph::DEFAULT_GRIDS:
+//			{
+//				mTextArray.push_back(t);
+//			}
+//			break;
+			case MoGraph::MIRRORED_GRIDS:
+			{
+				t.mPos.y	= -(desc.gridYLines * desc.gridStepYLines);
+				mTextArray.push_back(t);
+				t.mPos.y	= pos.y;	// restore
+			}
+			break;
+			case MoGraph::OFFSET_GRIDS:
+			{
+				t.mPos.y	= desc.gridOffsetStartLine;
+				mTextArray.push_back(t);
+				t.mPos.y	= pos.y;	// restore
+			}
+			break;
+			default:
+			{
+				mTextArray.push_back(t);
+			}
+			break;
 		}
 
 		scaleXZ.x 	*= 0.8f;
 		scaleXZ.y   *= 0.8f;
 		float textHeight = 2.0f;
 		float totGridHeight = desc.gridStepYLines * desc.gridYLines + textHeight;
+		if (desc.flagGridLines == MoGraph::OFFSET_GRIDS)
+		{
+			totGridHeight += desc.gridOffsetStartLine;	// adjusting top position occording to offset
+		}
 
 		t.mPos.y	+= totGridHeight;
 		t.mText		= "Y-Axis";		// Subtitle
@@ -105,19 +127,48 @@ namespace MoGraph
 			char buf[64];
 			const char *formatDecimals = getFormatDecimalStr(desc.gridDecimals);
 			float step 			= desc.gridStepValue;
-			float value 		= 0.0f;
-			float yPosOffset 	= desc.gridStepYLines*0.5f;
+			float value;
+			float yPosOffset;
 			float sc 			= orgScale * desc.gridStepYLines * 0.75f;
-			int	i 				= 0;
+			int	i;
 
-			if (bMirror)
+			switch(desc.flagGridLines)
 			{
-				value 		= -step*desc.gridYLines+step;
-				yPosOffset 	= -desc.gridStepYLines*desc.gridYLines+desc.gridStepYLines*0.75f;
-				i			= -desc.gridYLines+1;
+/*				case MoGraph::DEFAULT_GRIDS:
+					{
+						value 		= 0.0f;
+						yPosOffset 	= desc.gridStepYLines * 0.5f;
+						i 			= 0;
+					}
+					break;
+*/				case MoGraph::MIRRORED_GRIDS:
+					{
+						lprintfln("TextMgr::init: MIRRORED_GRIDS");
+						value 		= -step * desc.gridYLines + step;
+						yPosOffset 	= -desc.gridStepYLines * desc.gridYLines + desc.gridStepYLines*0.75f;
+						i			= -desc.gridYLines+1;
+					}
+					break;
+				case MoGraph::OFFSET_GRIDS:
+					{
+						lprintfln("TextMgr::init: OFFSET_GRIDS");
+						value		= desc.gridOffsetStartValue;
+						yPosOffset	= desc.gridOffsetStartLine /*+ desc.gridStepYLines * 0.75f*/;
+						i			= 0;	//desc.gridOffsetStartLine + 1;
+					}
+					break;
+				default:
+					{
+						lprintfln("TextMgr::init: DEFAULT_GRIDS");
+
+						value 		= 0.0f;
+						yPosOffset 	= desc.gridStepYLines * 0.5f;
+						i 			= 0;
+					}
+					break;
 			}
 
-			glm::vec3 pos(dcenterX*1.01f, yPosOffset, dcenterZ*1.01f);
+			glm::vec3 pos(dcenterX * 1.01f, yPosOffset, dcenterZ * 1.01f);
 			t.mPos 		= pos;
 			t.mScale 	= glm::vec2(sc,sc);
 

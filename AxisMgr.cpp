@@ -94,25 +94,44 @@ namespace MoGraph
 		const float centerX = mScene->getCx()*mScene->getBoundScale();
 		const float centerZ = mScene->getCz()*mScene->getBoundScale();
 		const GraphDesc &desc = mScene->getGraphDesc();
-		bool bMirror = (desc.bNegGridLines != 0);
+//		bool bMirror = (desc.flagGridLines != 0);
 		for(size_t i=0; i<mAxisArray.size(); i++)
 		{
 			float totGridHeight = desc.gridStepYLines * desc.gridYLines;
-			ln.mAxisAlign 	= static_cast<Line::LineEnum>(i);
+/*			if (desc.flagGridLines == MoGraph::OFFSET_GRIDS)
+			{
+				totGridHeight += desc.gridOffsetStartLine;
+			}
+*/			ln.mAxisAlign 	= static_cast<Line::LineEnum>(i);
 			ln.mType 		= Line::AXIS_LINE;
 			ln.mWidth 		= 2;
 			ln.mColor 		= glm::vec4(0.5f,0.5f,0.5f,1.0f);
 			ln.mScale 		= glm::vec3(-centerX*2.0f,totGridHeight,-centerZ*2.0f);	// length is always abs
 			ln.mPos 		= glm::vec3(centerX, 0.0f,centerZ);
 			ln.mRotate		= glm::vec3(0.0f,0.0f,0.0f);
-			mLineArray.push_back(ln);
-
-			if (bMirror)
+			int startOffset = 1;
+			switch (desc.flagGridLines)
 			{
-				ln.mScale.y = -ln.mScale.y;
-				mLineArray.push_back(ln);
+//				case DEFAULT_GRIDS:
+//					break;
+				case MIRRORED_GRIDS:
+					mLineArray.push_back(ln);
+					ln.mScale.y = -ln.mScale.y;
+					mLineArray.push_back(ln);
+					startOffset = 1;
+					break;
+				case OFFSET_GRIDS:
+					ln.mScale.y = desc.gridStepYLines * desc.gridYLines;
+					if (i==1)
+						ln.mPos.y	= desc.gridOffsetStartLine;
+					mLineArray.push_back(ln);
+					startOffset = 0;
+					break;
+				default:
+					mLineArray.push_back(ln);
+					startOffset = 1;
+					break;
 			}
-
 
 			// Set up grid lines on height for X-Axis
 			if (i == 0)
@@ -120,36 +139,78 @@ namespace MoGraph
 				ln.mWidth = 1;
 				ln.mColor = glm::vec4(0.25f,0.25f,0.25f,1.0f);
 
-				for (int l=1;l<mGridLines;l++)
+				for (int l=startOffset;l<mGridLines;l++)		// note l is initated above
 				{
 					float gridY = static_cast<float>(l) * mGridStep;
 
 					ln.mPos = glm::vec3(centerX, gridY, centerZ);
-					mLineArray.push_back(ln);
+//					mLineArray.push_back(ln);
 
-					if (bMirror)
+//					checkFlagsAddLine(ln);
+
+					switch (desc.flagGridLines)
+					{
+		//				case DEFAULT_GRIDS:
+		//					break;
+						case MIRRORED_GRIDS:
+							mLineArray.push_back(ln);
+							ln.mPos.y = -ln.mPos.y;
+							mLineArray.push_back(ln);
+							break;
+						case OFFSET_GRIDS:
+							ln.mPos.y = desc.gridOffsetStartLine + desc.gridStepYLines * l;//desc.gridYLines;
+							mLineArray.push_back(ln);
+							break;
+						default:
+							mLineArray.push_back(ln);
+							break;
+					}
+
+
+/*					if (bMirror)
 					{
 						ln.mPos.y = -ln.mPos.y;
 						mLineArray.push_back(ln);
 					}
-				}
+*/				}
 			}
 			else if (i==2)	// Set up grid lines in height for Z-Axis
 			{
 				ln.mWidth = 1;
 				ln.mColor = glm::vec4(0.25f,0.25f,0.25f,1.0f);
-				for (int l=1;l<mGridLines;l++)
+				for (int l=startOffset;l<mGridLines;l++)
 				{
 					float gridY = static_cast<float>(l) * mGridStep;
 					ln.mPos = glm::vec3(centerX, gridY, centerZ);
-					mLineArray.push_back(ln);
+//					mLineArray.push_back(ln);
 
-					if (bMirror)
+//					checkFlagsAddLine(ln);
+
+					switch (desc.flagGridLines)
+					{
+		//				case DEFAULT_GRIDS:
+		//					break;
+						case MIRRORED_GRIDS:
+							mLineArray.push_back(ln);
+							ln.mPos.y = -ln.mPos.y;
+							mLineArray.push_back(ln);
+							break;
+						case OFFSET_GRIDS:
+							ln.mPos.y = desc.gridOffsetStartLine + desc.gridStepYLines * (l); //desc.gridYLines;
+							mLineArray.push_back(ln);
+							break;
+						default:
+							mLineArray.push_back(ln);
+							break;
+					}
+
+
+/*					if (bMirror)
 					{
 						ln.mPos.y = -ln.mPos.y;
 						mLineArray.push_back(ln);
 					}
-				}
+*/				}
 			}
 		}
 	}

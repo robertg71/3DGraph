@@ -147,8 +147,8 @@ public:
 
 		mText.init(mWidth,mHeight,mFont);			// initiate the text system by setting a Font & Screen dimensions
 
-		float gridStepY = 0.5f;
-		int gridLines 	= 5;
+		float gridStepY = 1.0f;
+		int gridLines 	= 10;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
 
 		mDTime.setDesiredFps(50.0f);				// set up the DTime used for calculating FPS
@@ -156,18 +156,20 @@ public:
 
 		// initiate Graph by setting up a grid sz in X & Z , also grid in Y with grid step, additional info like fit to screen, screen resolutions.
 		MoGraph::GraphDesc desc;
-		desc.scrWidth = mWidth;
-		desc.scrHeight = mHeight;
-		desc.gridX = grid;
-		desc.gridZ = grid;
-		desc.gridYLines = gridLines;
+		desc.scrWidth 		= mWidth;
+		desc.scrHeight 		= mHeight;
+		desc.gridX 			= grid;
+		desc.gridZ 			= grid;
+		desc.gridYLines 	= gridLines;
 		desc.gridStepYLines = gridStepY;
-		desc.gridStepValue = 0.5f;
-		desc.gridDecimals = 1;
-		desc.bFitScreen = true;
-		desc.bNegGridLines = true;
-		desc.bUseGridValue = true;
-		desc.font = mFont;
+		desc.gridStepValue 	= 1.0f;
+		desc.gridDecimals 	= 1;
+		desc.gridOffsetStartLine = -2;			// requires OFFSET_GRIDS to be set.
+		desc.gridOffsetStartValue = -2.0f;
+		desc.bFitScreen 	= true;
+		desc.flagGridLines 	= MoGraph::OFFSET_GRIDS; // MoGraph::MIRRORED_GRIDS;
+		desc.bUseGridValue 	= true;
+		desc.font 			= mFont;
 
 //		if (!mGraph->init(grid,grid,gridLines,gridStepY,true,mFont,mWidth,mHeight))	// initiate Graph with parameters as GridX, GridY, amount of gridLines in Y, stepping for each grid line in Y, fit to screen, Font class, screen width and screen height
 		if (!mGraph->init(&desc))	// initiate Graph with parameters as GridX, GridY, amount of gridLines in Y, stepping for each grid line in Y, fit to screen, Font class, screen width and screen height
@@ -197,12 +199,12 @@ public:
 		float scale = mGraph->getScene().getGridX()/500.0f;
 		// create additional example text
 		MoGraph::Text text;
-		text.mColor = glm::vec4(1.0f,0.0f,0.0f,1.0f);
-		text.mPos = glm::vec3(0.0f,5.0f,0.0f);
-		text.mRotate = glm::vec3(0.0f,0.0f,0.0f);		// Rotation in degrees
-		text.mScale = glm::vec2(scale,scale);
-		text.mTextFlag = MoGraph::Text::CENTER;
-		text.mText = "MoGraph DEMO Beta";
+		text.mColor 	= glm::vec4(1.0f,0.0f,0.0f,1.0f);
+		text.mPos 		= glm::vec3(0.0f,5.0f,0.0f);
+		text.mRotate 	= glm::vec3(0.0f,0.0f,0.0f);		// Rotation in degrees
+		text.mScale 	= glm::vec2(scale,scale);
+		text.mTextFlag 	= MoGraph::Text::CENTER;
+		text.mText 		= "MoGraph DEMO Beta";
 		textArray.push_back(text);
 
 		// just add more. here
@@ -231,12 +233,12 @@ public:
 			k += 1-(iGridX&1);	// if grid is even then extra add would be required
 			for(int i=0; i<iGridX; i++)
 			{
-				const int id = j*iGridX+i;
+				const int id 	= j*iGridX+i;
 				mTables[id] 	= 1.1f+1.0f*(sin(j*0.3f+	1.3f*tick)+cos(i*0.3f+1.3f*tick));
 		//		float c 			= 0.5f+0.5f*(float)(k&1);
 		//		glm::vec4 col(1.0f-c,0.75f,c,1.0f);
 				glm::vec4 col(1.0f/iGridX*i,0.0f,1.0f/iGridZ*j,1.0f);
-				mColors[id]	= col;
+				mColors[id]		= col;
 				k++;
 			}
 		}
@@ -251,7 +253,6 @@ public:
 		glm::vec3 pos(100.0f,100.0f,100.0f);
 		glm::vec4 col(1.0f,1.0f,1.0f,1.0f);
 		mText.setScale(1.0f,1.0f);
-
 		mText.drawText("Testing 123!",pos,col);
 */
 		glm::vec4 col(1.0f,1.0f,1.0f,1.0f);

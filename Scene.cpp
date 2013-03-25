@@ -57,7 +57,9 @@ namespace MoGraph
 //	void Scene::create(int gridX, int gridZ, int lines, float step ,bool bFitToScreen)
 	void Scene::create(GraphDesc *desc)
 	{
+lprintfln("flagGridLines=%d",desc->flagGridLines);
 		mDesc				= *desc;			// store a copy of the graph description struct.
+lprintfln("flagGridLines=%d",mDesc.flagGridLines);
 		mFitToScreen 		= desc->bFitScreen;
 		mGridX 				= desc->gridX;
 		mGridZ 				= desc->gridZ;

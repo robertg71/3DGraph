@@ -67,10 +67,19 @@ bool ReadCSV::load( MAHandle resource, char delim, bool trim)
 	std::string line, tmp;
 	std::vector<std::string> lineData;
 	char *pch = strtok(data,"\r\n");
+    line = pch;
+//    lprintfln("ReadCSV::Load Line=%s",line.c_str());
+	lineData = Utils::split(line,delim,trim);
+	if (lineData.size() > /*1*/0)
+		m_db.push_back(lineData);
+	else
+	    lprintfln("WARNING ReadCSV::load missing (First Line) lineData =%s\n",line.c_str());
+
 	for (int i=0;pch != NULL;i++)
 	{
 	    pch = strtok(NULL, "\r\n");
 	    line = pch;
+//	    lprintfln("ReadCSV::Load Line=%s",line.c_str());
 		lineData = Utils::split(line,delim,trim);
 		if (lineData.size() > /*1*/0)
 			m_db.push_back(lineData);

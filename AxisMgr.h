@@ -92,6 +92,8 @@ protected:
 	float				mGridStep;	// Step of each grid bars in height. (note total height is amount*step)
 	int 				mGridLines;	// Grid lines for graph bar in Y... stepped with mStep, to get height grid,
 	void create3D();
+	void handleGridLines(int startOffset, Line &ln, float centerX, float centerZ);
+
 public:
 	enum {AXIS_X,AXIS_Y,AXIS_Z};
 

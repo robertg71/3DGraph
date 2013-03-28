@@ -99,6 +99,20 @@ public:
 	 */
 	virtual float getTextWidth(const char *str);
 	/**
+	 * \brief getTextHeight, get a text Height from string
+	 *
+	 * @param str,	input string
+	 * @return float height,	text width
+	 */
+	virtual float getTextHeight(const char *str);
+	/**
+	 * \brief getTextProperty, get text property containing width height of the text and the current text line height scale. from string
+	 *
+	 * @param str,	input string
+	 * @param property, output property struct containing width height line height.
+	 */
+	virtual void getTextProperty(const char *str, TextProperty *property);
+	/**
 	 * \brief setScale,	scales the text.
 	 * @param x,
 	 * @param y,

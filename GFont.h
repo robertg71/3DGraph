@@ -299,6 +299,30 @@ public:
 
 	virtual float BuildVertexArray(glm::vec4 * vertexPtr, const char * str, float dX, float dY, float scaleX, float scaleY);
 
+	/**
+	 * \brief getTextProperties calculates the vertex array from any given string containing this BMFont.
+	 * @param sentence char* string, to build a vertex table from
+	 * @param drawX, position in X
+	 * @param drawY, position in Y
+	 * @param scaleX, scale in X
+	 * @param scaleY, scale in Y
+	 * @param property, output vec2 => width , height of text.
+	 * @return string width
+	 */
+	virtual float getTextProperties(const char* sentence, float drawX, float drawY, float scaleX, float scaleY,TextProperty *property);
+
+	/**
+	 * \brief getCommon information for the font
+	 * @return struct of BMCommon
+	 */
+	virtual const BMCommon *getCommon()	{return &m_common;}
+
+	/**
+	 * \brief getInfo information
+	 * @return struct BMInfo
+	 */
+	virtual const BMInfo *getInfo()	{return &m_info;}
+
 private:
 	// Helper functions (internal use)
 	/**

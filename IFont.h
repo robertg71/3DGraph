@@ -22,6 +22,17 @@ MA 02110-1301, USA.
 #include <glm/glm.hpp>
 #include <vector>
 
+struct BMCommon;
+struct BMInfo;
+
+struct TextProperty
+{
+	float sWidth;
+	float sHeight;
+	float sLineHeight;
+};
+
+
 /**
  * \brief Interface for any Font class to use.
  */
@@ -58,6 +69,18 @@ public:
 	virtual GLuint GetTexture(int i=0) = 0;
 
 	/**
+	 * \brief getTextProperties calculates the vertex array from any given string containing this BMFont.
+	 * @param sentence char* string, to build a vertex table from
+	 * @param drawX, position in X
+	 * @param drawY, position in Y
+	 * @param scaleX, scale in X
+	 * @param scaleY, scale in Y
+	 * @param property, output vec2 => width , height of text.
+	 * @return string width
+	 */
+	virtual float getTextProperties(const char* sentence, float drawX, float drawY, float scaleX, float scaleY,TextProperty *property) = 0;
+
+	/**
 	 * \brief BuildVertexArray, builds up the vertex array from text.
 	 * @param vertexPtr
 	 * @param str
@@ -68,6 +91,18 @@ public:
 	 * @return width, output width of the string from vertices .
 	 */
 	virtual float BuildVertexArray(glm::vec4 * vertexPtr, const char * str, float dX, float dY, float scaleX, float scaleY) = 0;
+
+	/**
+	 * \brief getCommon information for the font
+	 * @return struct of BMCommon
+	 */
+	virtual const BMCommon *getCommon() = 0;
+
+	/**
+	 * \brief getInfo information
+	 * @return struct BMInfo
+	 */
+	virtual const BMInfo *getInfo() = 0;
 };
 
 #endif /* IFONT_H_ */

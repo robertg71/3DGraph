@@ -367,24 +367,38 @@ float RenderText::drawText(const char*str, glm::vec3 &pos, glm::vec4 &rgba, floa
 
 /**
  * \brief getTextWidth, get a text width from string
- * \note recreates a temporary vertex buffer due to the scaling factors could be different.
- * expensive function
  *
  * @param str,	input string
  * @return float width,	text width
  */
 float RenderText::getTextWidth(const char *str)
 {
-	int num	= strlen(str);						// get number chars
-	glm::vec4 *vertices	= new glm::vec4[6*num];
-	if(!vertices)
-		maPanic(1,"RenderText: Failed to allocate temporary vertex buffer");
-
-	float width = m_font->BuildVertexArray(vertices, str, 0.0f, 0.0f, m_scaleX, m_scaleY);			// get vertex array from string,
-	delete [] vertices;
-	return width;
+	TextProperty property;
+	return m_font->getTextProperties(str, 0.0f, 0.0f, m_scaleX, m_scaleY,&property);		// get vertex array from string,
 }
 
+/**
+ * \brief getTextHeight, get a text Height from string
+ *
+ * @param str,	input string
+ * @return float height,	text width
+ */
+float RenderText::getTextHeight(const char *str)
+{
+	TextProperty property;
+	m_font->getTextProperties(str, 0.0f, 0.0f, m_scaleX, m_scaleY,&property);				// get vertex array from string,
+	return property.sHeight;
+}
 
+/**
+ * \brief getTextProperty, get text property containing width height of the text and the current text line height scale. from string
+ *
+ * @param str,	input string
+ * @param property, output property struct containing width height line height.
+ */
+void RenderText::getTextProperty(const char *str, TextProperty *property)
+{
+	m_font->getTextProperties(str, 0.0f, 0.0f, m_scaleX, m_scaleY,property);				// get vertex array from string,
+}
 
 

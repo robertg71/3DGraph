@@ -134,21 +134,36 @@ namespace MoGraph
 	void Graph::drawText(float tick)
 	{
 		TextMgr &textMgr = mScene.getTextMgr();
+	//	float lineHeight = ((BMCommon *)mFont->getCommon())->m_lineHeight;		// need to get hold of the line height from the Font. need to extend the Font API
+//		float graphScale = mDesc.gridStepYLines;//mGridX/500.0f;
 
 		for (int i=0; i<textMgr.size(); i++)
 		{
 			Text &text = textMgr.getText(i);
 			mRenderText.setScale(text.mScale.x,text.mScale.y);
 			glm::vec3 pos = text.mPos;
-			switch (text.mTextFlag)
+			switch (text.mTextFlagX)
 			{
-				case Text::CENTER:
-					pos.x -= 0.5f * mRenderText.getTextWidth(text.mText.c_str());
+				case Text::CENTER_X:
+					pos.x -= 0.5f * mRenderText.getTextWidth(text.mText.c_str());	// this function is expensive.
 					break;
 				case Text::CENTER_RIGHT:
 					pos.x -= mRenderText.getTextWidth(text.mText.c_str());
 					break;
 				case Text::CENTER_LEFT:		// obsolete because it is by default
+					break;
+				default:
+					break;
+			}
+			switch (text.mTextFlagY)
+			{
+				case Text::CENTER_TOP:
+					pos.y += 0.5f * mRenderText.getTextHeight(text.mText.c_str());// * lineHeight; 	//mRenderText.getTextWidth(text.mText.c_str());
+					break;
+				case Text::CENTER_BOTTOM:
+					pos.y -= 0.5f * mRenderText.getTextHeight(text.mText.c_str());// * lineHeight; 	//mRenderText.getTextHeight(text.mText.c_str()); // -= mRenderText.getTextWidth(text.mText.c_str());
+					break;
+				case Text::CENTER_Y:			// obsolete because it is by default
 					break;
 				default:
 					break;

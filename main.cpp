@@ -136,7 +136,7 @@ public:
 		mGraph 		= new MoGraph::Graph();			// Create MoGraph::Graph class
 		mFont 		= new BMFont();					// Create Font class
 
-		int grid 	= 33;							// set up a desired grid for the graph in X & Z.
+		int grid 	= 5;							// set up a desired grid for the graph in X & Z.
 		lprintfln("mGrid: %i", grid);
 
 		std::vector<MAHandle> fontTexArray;
@@ -147,7 +147,7 @@ public:
 
 		mText.init(mWidth,mHeight,mFont);			// initiate the text system by setting a Font & Screen dimensions
 
-		float gridStepY = 1.0f;
+		float gridStepY = 0.5f;
 		int gridLines 	= 10;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -158,13 +158,13 @@ public:
 		MoGraph::GraphDesc desc;
 		desc.scrWidth 		= mWidth;
 		desc.scrHeight 		= mHeight;
-		desc.gridX 			= grid;
-		desc.gridZ 			= grid;
+		desc.gridX 			= 10;//grid;
+		desc.gridZ 			= 10;//grid;
 		desc.gridYLines 	= gridLines;
 		desc.gridStepYLines = gridStepY;
 		desc.gridStepValue 	= 1.0f;
 		desc.gridDecimals 	= 1;
-		desc.gridOffsetStartLine = -2;			// requires OFFSET_GRIDS to be set.
+		desc.gridOffsetStartLine = -1;			// requires OFFSET_GRIDS to be set.
 		desc.gridOffsetStartValue = -2.0f;
 		desc.bFitScreen 	= true;
 		desc.flagGridLines 	= MoGraph::OFFSET_GRIDS; // MoGraph::MIRRORED_GRIDS;
@@ -203,7 +203,7 @@ public:
 		text.mPos 		= glm::vec3(0.0f,5.0f,0.0f);
 		text.mRotate 	= glm::vec3(0.0f,0.0f,0.0f);		// Rotation in degrees
 		text.mScale 	= glm::vec2(scale,scale);
-		text.mTextFlag 	= MoGraph::Text::CENTER;
+		text.mTextFlagX = MoGraph::Text::CENTER_X;
 		text.mText 		= "MoGraph DEMO Beta";
 		textArray.push_back(text);
 

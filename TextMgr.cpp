@@ -50,20 +50,32 @@ namespace MoGraph
 	{
 		// to do, align text with axis..
 		const GraphDesc &desc = mScene->getGraphDesc();
+		float lineHeight 	= desc.font->getCommon()->m_lineHeight;
 
 		Text t;
 		t.mRotate 			= glm::vec3(0.0f,0.0f,0.0f);
-		t.mTextFlag			= Text::NO_ACTION;
+		t.mTextFlagX		= Text::CENTER_LEFT;
+		t.mTextFlagY		= Text::CENTER_Y;
 
 //		float gridX 		= mScene->getGridX();
 		float gridZ 		= mScene->getGridZ();
 		float centerX		= mScene->getCx();
 		float centerZ		= mScene->getCz();
-		float orgScale 		= mScene->getGridX()/500.0f;
+		float size			= desc.font->getInfo()->m_size;
+		float orgScale 		= 1.0f/size; //0.5f/(size*desc.gridStepYLines);	//desc.gridStepYLines/(10.0f*lineHeight); //500.0f;
 		float scale			= orgScale;
 		float bound			= mScene->getBoundScale();
 		float dcenterX		= centerX*bound;
 		float dcenterZ		= centerZ*bound;
+
+/*
+		lprintfln("lineHeight = %f",lineHeight);
+		lprintfln("orgScale = %f", orgScale);
+		lprintfln("size = %f",size);
+*/
+
+
+
 //		bool bMirror		= (desc.flagGridLines == MoGraph::MIRRORED_GRIDS);
 		glm::vec2 scaleXZ(scale,scale);
 		glm::vec3 pos(dcenterX, 0.0f,dcenterZ);
@@ -104,7 +116,7 @@ namespace MoGraph
 
 		scaleXZ.x 	*= 0.8f;
 		scaleXZ.y   *= 0.8f;
-		float textHeight = 2.0f;
+		float textHeight = lineHeight * orgScale;
 		float totGridHeight = desc.gridStepYLines * desc.gridYLines + textHeight;
 		if (desc.flagGridLines == MoGraph::OFFSET_GRIDS)
 		{
@@ -118,7 +130,7 @@ namespace MoGraph
 
 		t.mText		= "X-Axis";		// Subtitle
 		t.mPos 		= glm::vec3(-dcenterX, 0.0f,dcenterZ);
-		t.mTextFlag = Text::CENTER_RIGHT;
+		t.mTextFlagX = Text::CENTER_RIGHT;
 		mTextArray.push_back(t);
 
 
@@ -129,7 +141,7 @@ namespace MoGraph
 			float step 			= desc.gridStepValue;
 			float value;
 			float yPosOffset;
-			float sc 			= orgScale * desc.gridStepYLines * 0.75f;
+			float sc 			= orgScale*0.5f ;// * desc.gridStepYLines * 0.75f;
 			int	i;
 
 			switch(desc.flagGridLines)
@@ -181,7 +193,7 @@ namespace MoGraph
 //				lprintfln("Bar Value %f=>%d and %s => %s" ,value,(int)value,formatDecimals,buf);   			// error not declared.
 
 				t.mPos.y 	+= desc.gridStepYLines;
-				t.mTextFlag = Text::CENTER_RIGHT;
+				t.mTextFlagX = Text::CENTER_RIGHT;
 				mTextArray.push_back(t);
 				value 		+= step;
 			}
@@ -192,7 +204,7 @@ namespace MoGraph
 		{
 			// set up text for Z-Axis
 			t.mScale	= scaleXZ;
-			t.mTextFlag = Text::NO_ACTION;
+			t.mTextFlagX = Text::CENTER_LEFT;
 			t.mText 	= "Z-axis";
 			t.mPos 		= glm::vec3(-dcenterZ, 0.0f,-dcenterX);
 			t.mRotate	= glm::vec3(0.0f,-90.0f,0.0f);

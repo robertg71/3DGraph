@@ -225,9 +225,12 @@ void GetKeyValueFrom(std::string &keyValue,std::string &key, std::string &value)
 void BMInfo::parse(std::vector<std::string> &line)
 {
 	std::string key,value;
+	lprintfln("BMInfo parse size=%d",(int)line.size());
 	for(size_t i=1; i<line.size(); i++)
 	{
 		GetKeyValueFrom(line[i],key,value);
+//		lprintfln("BMInfo line=%s key=%s = value=%s",line[i].c_str(), key.c_str(), value.c_str());
+
 		if (key == "face")
 			m_face = Utils::unQuote(value);
 		else if(key == "size")
@@ -398,7 +401,7 @@ bool BMFont::LoadFontData(MAHandle resource)
 	ReadCSV csv;
 
 	csv.load(resource,delim,trim);
-	lprintfln("Info: BMFont::LoadFontData => loaded db size=%i/n",(int)csv.getDB().size());
+	lprintfln("Info: BMFont::LoadFontData => loaded db size=%i",(int)csv.getDB().size());
 
 	std::vector<std::vector<std::string> >& lineData = csv.getDB();
 	std::string key,value;
@@ -424,15 +427,22 @@ bool BMFont::LoadFontData(MAHandle resource)
 		
 
 		ParseBMFont state = getBMType(line[0]);
+//		lprintfln("Parsing BMFONT state=%d\n",(int)state);
+
 		switch(state)
 		{
-			case PBM_INFO:		m_info.parse(line);		break;
-			case PBM_COMMON:	m_common.parse(line);		break;
+			case PBM_INFO:
+				m_info.parse(line);
+				break;
+			case PBM_COMMON:
+				m_common.parse(line);
+				break;
 			case PBM_PAGE:
 			{
 				BMPage		bmpage;
 				bmpage.parse(line);
-				m_pages.push_back(bmpage);	break;
+				m_pages.push_back(bmpage);
+				break;
 			}
 			case PBM_CHARS:
 				m_nchars = GetValue(line[1]); lprintfln("BMFont::LoadFontData => PBM_CHARS n_kernings=%d\n",m_nchars);
@@ -568,6 +578,93 @@ GLuint BMFont::GetTexture(int i)
 		lprintfln("Error:BMFont::GetTexture(%d) = %d No textures Loaded! nTextures=%d",i,0,(int)m_texStores.size());
 		return 0;
 	}
+}
+
+/**
+ * \brief getTextProperties calculates the vertex array from any given string containing this BMFont.
+ * @param sentence char* string, to build a vertex table from
+ * @param drawX, position in X
+ * @param drawY, position in Y
+ * @param scaleX, scale in X
+ * @param scaleY, scale in Y
+ * @param property, output vec2 => width , height of text.
+ * @return string width
+ */
+
+float BMFont::getTextProperties(const char* sentence, float drawX, float drawY, float scaleX, float scaleY,TextProperty *property)
+{
+	int numLetters, i, letter, second;
+	float start = drawX;
+	float minY = 9999.0f;
+	float maxY = -9999.0f;
+
+	// Get the number of letters in the sentence.
+	numLetters = (int)strlen(sentence);
+
+	// Draw each letter onto a quad.
+	for(i=0; i<numLetters; i++)
+	{
+		std::vector<BMKerning> 	*kernings 	= 0;
+		BMChar 					*bc 		= 0;
+
+		letter = ((unsigned int)sentence[i]);
+		second = ((unsigned int)sentence[i+1]);
+
+		std::hash_map<int, std::vector<BMKerning> >::iterator itk = m_kernings.find(letter);
+		if(itk != m_kernings.end())
+			kernings = &itk->second;
+
+
+		std::hash_map<int,BMChar>::iterator itc = m_chars.find(letter);
+		if(itc != m_chars.end())
+			bc = &itc->second;
+
+		if(bc == 0)	// unknown default
+		{
+			drawX = drawX + 3.0f;	// Could be other values.
+			lprintfln("deadspace =%c => %d\n", letter,letter);
+		}
+		else
+		{
+			float w,h,ox,oy,posX,posY,ax,ks;
+			// positions and relative ofsets etc.
+			ox = ((float)bc->m_xoffset) 	* scaleX;
+			oy = ((float)bc->m_yoffset) 	* scaleY;
+			w  = ((float)bc->m_width) 		* scaleX;
+			h  = ((float)bc->m_height) 		* scaleY;
+			ax = ((float)bc->m_xadvance)	* scaleX;
+			ks = 0.0f;
+
+			posX = drawX + ox;	// move offset position for char
+			posY = drawY - oy;
+
+			// Update the x location for drawing by the size of the letter and one pixel.
+			if (kernings && second)	// second could point to a null term
+			{
+				for(size_t j=0;j<kernings->size(); j++)
+				{
+					BMKerning &kn = kernings->at(j);
+					if (second == kn.m_second)
+					{
+						ks = (float)kn.m_amount * scaleX;
+						break;
+					}
+				}
+			}
+
+			drawX = posX - ox + ax + ks;	// calculate out position of second char.
+
+			if (posY > maxY)
+				maxY = posY;
+			if (posY-h < minY)
+				minY = posY-h;
+		}
+	}
+
+	property->sWidth = drawX-start;				// return the total width of the text
+	property->sHeight = maxY - minY;				// return the height of the text.
+	property->sLineHeight = m_common.m_lineHeight*scaleY;
+	return property->sWidth;
 }
 
 /**

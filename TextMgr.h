@@ -25,14 +25,25 @@ namespace MoGraph{
 
 struct Text
 {
+	Text() :
+		mTextFlagX(CENTER_LEFT),
+		mTextFlagY(/*CENTER_Y*/ CENTER_Y)
+	{
+
+	}
 	/**
 	 * \brief TextEnum
 	 * where the origo is relative inside the text string should be.
+	 * CENTER_LEFT (origo left side of the string)  DEFAULT
+	 * CENTER		(origo in the middle of the string)
+	 * CENTER_RIGHT (origo set to the right side of the string)
 	 */
-	enum TextEnum{ NO_ACTION, CENTER_LEFT, CENTER, CENTER_RIGHT };
+	enum TextEnumX{ CENTER_LEFT, CENTER_X, CENTER_RIGHT};
+	enum TextEnumY{ CENTER_TOP, CENTER_Y, CENTER_BOTTOM};
 
 	std::string 	mText;			// Output text string
-	TextEnum		mTextFlag;		// Enumeration flag where origo shall be
+	TextEnumX		mTextFlagX;		// Enumeration flag where origo shall be
+	TextEnumY		mTextFlagY;		// Enumeration flag where origo shall be
 	glm::vec3 		mPos;			// Text position in 3d space
 	glm::vec4 		mColor;			// Text color
 	glm::vec2		mScale;			// Text scale

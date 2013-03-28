@@ -69,6 +69,38 @@ namespace MoGraph
 		create3D();
 	}
 
+	void AxisMgr::handleGridLines(int startOffset, Line &ln, float centerX, float centerZ)
+	{
+		const GraphDesc &desc = mScene->getGraphDesc();
+		ln.mWidth = 1;
+		ln.mColor = glm::vec4(0.25f,0.25f,0.25f,1.0f);
+
+		for (int l=startOffset;l<mGridLines;l++)
+		{
+			float gridY = static_cast<float>(l) * mGridStep;
+			ln.mPos = glm::vec3(centerX, gridY, centerZ);
+
+			switch (desc.flagGridLines)
+			{
+//				case DEFAULT_GRIDS:
+//					break;
+				case MIRRORED_GRIDS:
+					mLineArray.push_back(ln);
+					ln.mPos.y = -ln.mPos.y;
+					mLineArray.push_back(ln);
+					break;
+				case OFFSET_GRIDS:
+					ln.mPos.y = desc.gridOffsetStartLine + desc.gridStepYLines * l; //desc.gridYLines;
+					mLineArray.push_back(ln);
+					break;
+				default:
+					mLineArray.push_back(ln);
+					break;
+			}
+		}
+	}
+
+
 	/**
 	 * \brief AxisMgr::init
 	 * initiates buffers for openGL for all Axis
@@ -87,22 +119,13 @@ namespace MoGraph
 		Line ln;
 		glm::vec3 sv(1.0f,1.0f,1.0f);
 
-
-
-
-
 		const float centerX = mScene->getCx()*mScene->getBoundScale();
 		const float centerZ = mScene->getCz()*mScene->getBoundScale();
 		const GraphDesc &desc = mScene->getGraphDesc();
-//		bool bMirror = (desc.flagGridLines != 0);
 		for(size_t i=0; i<mAxisArray.size(); i++)
 		{
 			float totGridHeight = desc.gridStepYLines * desc.gridYLines;
-/*			if (desc.flagGridLines == MoGraph::OFFSET_GRIDS)
-			{
-				totGridHeight += desc.gridOffsetStartLine;
-			}
-*/			ln.mAxisAlign 	= static_cast<Line::LineEnum>(i);
+			ln.mAxisAlign 	= static_cast<Line::LineEnum>(i);
 			ln.mType 		= Line::AXIS_LINE;
 			ln.mWidth 		= 2;
 			ln.mColor 		= glm::vec4(0.5f,0.5f,0.5f,1.0f);
@@ -110,6 +133,8 @@ namespace MoGraph
 			ln.mPos 		= glm::vec3(centerX, 0.0f,centerZ);
 			ln.mRotate		= glm::vec3(0.0f,0.0f,0.0f);
 			int startOffset = 1;
+
+
 			switch (desc.flagGridLines)
 			{
 //				case DEFAULT_GRIDS:
@@ -136,81 +161,11 @@ namespace MoGraph
 			// Set up grid lines on height for X-Axis
 			if (i == 0)
 			{
-				ln.mWidth = 1;
-				ln.mColor = glm::vec4(0.25f,0.25f,0.25f,1.0f);
-
-				for (int l=startOffset;l<mGridLines;l++)		// note l is initated above
-				{
-					float gridY = static_cast<float>(l) * mGridStep;
-
-					ln.mPos = glm::vec3(centerX, gridY, centerZ);
-//					mLineArray.push_back(ln);
-
-//					checkFlagsAddLine(ln);
-
-					switch (desc.flagGridLines)
-					{
-		//				case DEFAULT_GRIDS:
-		//					break;
-						case MIRRORED_GRIDS:
-							mLineArray.push_back(ln);
-							ln.mPos.y = -ln.mPos.y;
-							mLineArray.push_back(ln);
-							break;
-						case OFFSET_GRIDS:
-							ln.mPos.y = desc.gridOffsetStartLine + desc.gridStepYLines * l;//desc.gridYLines;
-							mLineArray.push_back(ln);
-							break;
-						default:
-							mLineArray.push_back(ln);
-							break;
-					}
-
-
-/*					if (bMirror)
-					{
-						ln.mPos.y = -ln.mPos.y;
-						mLineArray.push_back(ln);
-					}
-*/				}
+				handleGridLines(startOffset, ln, centerX, centerZ);
 			}
 			else if (i==2)	// Set up grid lines in height for Z-Axis
 			{
-				ln.mWidth = 1;
-				ln.mColor = glm::vec4(0.25f,0.25f,0.25f,1.0f);
-				for (int l=startOffset;l<mGridLines;l++)
-				{
-					float gridY = static_cast<float>(l) * mGridStep;
-					ln.mPos = glm::vec3(centerX, gridY, centerZ);
-//					mLineArray.push_back(ln);
-
-//					checkFlagsAddLine(ln);
-
-					switch (desc.flagGridLines)
-					{
-		//				case DEFAULT_GRIDS:
-		//					break;
-						case MIRRORED_GRIDS:
-							mLineArray.push_back(ln);
-							ln.mPos.y = -ln.mPos.y;
-							mLineArray.push_back(ln);
-							break;
-						case OFFSET_GRIDS:
-							ln.mPos.y = desc.gridOffsetStartLine + desc.gridStepYLines * (l); //desc.gridYLines;
-							mLineArray.push_back(ln);
-							break;
-						default:
-							mLineArray.push_back(ln);
-							break;
-					}
-
-
-/*					if (bMirror)
-					{
-						ln.mPos.y = -ln.mPos.y;
-						mLineArray.push_back(ln);
-					}
-*/				}
+				handleGridLines(startOffset, ln, centerX, centerZ);
 			}
 		}
 	}
@@ -266,91 +221,6 @@ namespace MoGraph
 		glDisableVertexAttribArray(shader.mAttribVtxLoc);
 		glBindBuffer(GL_ARRAY_BUFFER,0);
 
-
-
-/*
-		for(size_t i=0; i<mAxisArray.size(); i++)
-		{
-			// 1rst attribute buffer : vertices
-			glEnableVertexAttribArray(shader.mAttribVtxLoc);
-			glBindBuffer(GL_ARRAY_BUFFER, shader.mVertexbuffer[i]);
-			glVertexAttribPointer(
-				shader.mAttribVtxLoc,      // attribute
-				3,                  // size
-				GL_FLOAT,           // type
-				GL_FALSE,           // normalized?
-				0,                  // stride
-				(void*)0            // array buffer offset
-			);
-			checkGLError("glEnableVertexAttribArray");
-			glLineWidth(2);
-
-			float totGridHeight = desc.gridStepYLines * desc.gridYLines;
-
-			// Dray Line for Y Axis
-			glm::vec4 col(0.5f,0.5f,0.5f,1.0f);
-			glm::vec3 llength(-centerX*2.0f,totGridHeight,-centerZ*2.0f);	// length is always abs
-			glm::vec4 tpos(centerX, 0.0f,centerZ, 1.0f);
-			glUniform4fv(shader.mTPos,1, (float *)&tpos.x);
-			glUniform4fv(shader.mColor,1, (float *)&col.x);
-			glUniform3fv(shader.mLength,1, (float *)&llength.x);				// mScale location => variable "ScaleV" in vertex shader
-
-			glDrawArrays(GL_LINES, 0, 2);
-			if (bMirror)
-			{
-				llength.y = -llength.y;
-				glUniform3fv(shader.mLength,1, (float *)&llength.x);				// mScale location => variable "ScaleV" in vertex shader
-				glDrawArrays(GL_LINES, 0, 2);
-			}
-
-
-			// Set up grid lines on height for X-Axis
-			if (i == 0)
-			{
-				glLineWidth(1);
-				glm::vec4 col(0.25f,0.25f,0.25f,1.0f);
-				glUniform4fv(shader.mColor,1, (float *)&col.x);
-
-				for (int l=1;l<mGridLines;l++)
-				{
-					float gridY = static_cast<float>(l) * mGridStep;
-
-					glm::vec4 tpos(centerX, gridY, centerZ, 1.0f);
-					glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
-					glDrawArrays(GL_LINES, 0, 2);
-
-					if (bMirror)
-					{
-						tpos.y = -tpos.y;
-						glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
-						glDrawArrays(GL_LINES, 0, 2);
-					}
-				}
-			}
-			else if (i==2)	// Set up grid lines in height for Z-Axis
-			{
-				glLineWidth(1);
-				glm::vec4 col(0.25f,0.25f,0.25f,1.0f);
-				glUniform4fv(shader.mColor,1, (float *)&col.x);
-				for (int l=1;l<mGridLines;l++)
-				{
-					float gridY = static_cast<float>(l) * mGridStep;
-					glm::vec4 tpos(centerX, gridY, centerZ, 1.0f);
-					glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
-					glDrawArrays(GL_LINES, 0, 2);
-
-					if (bMirror)
-					{
-						tpos.y = -tpos.y;
-						glUniform4fv(shader.mTPos, 1, (float *)&tpos.x);
-						glDrawArrays(GL_LINES, 0, 2);
-					}
-				}
-			}
-			glDisableVertexAttribArray(shader.mAttribVtxLoc);
-			glBindBuffer(GL_ARRAY_BUFFER,0);
-		}
-		*/
 		// Clean-up
 
 		glUseProgram(0);

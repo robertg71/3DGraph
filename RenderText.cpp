@@ -395,10 +395,12 @@ float RenderText::getTextHeight(const char *str)
  *
  * @param str,	input string
  * @param property, output property struct containing width height line height.
+ * @return float text line height
  */
-void RenderText::getTextProperty(const char *str, TextProperty *property)
+float RenderText::getTextProperty(const char *str, TextProperty *property)
 {
 	m_font->getTextProperties(str, 0.0f, 0.0f, m_scaleX, m_scaleY,property);				// get vertex array from string,
+	return property->sLineHeight;
 }
 
 

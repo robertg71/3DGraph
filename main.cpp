@@ -147,7 +147,7 @@ public:
 
 		mText.init(mWidth,mHeight,mFont);			// initiate the text system by setting a Font & Screen dimensions
 
-		float gridStepY = 0.5f;
+		float gridStepY = 0.33f;
 		int gridLines 	= 10;
 		glm::vec4 bkcolor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -158,16 +158,16 @@ public:
 		MoGraph::GraphDesc desc;
 		desc.scrWidth 		= mWidth;
 		desc.scrHeight 		= mHeight;
-		desc.gridX 			= 10;//grid;
-		desc.gridZ 			= 10;//grid;
+		desc.gridX 			= 20;//grid;
+		desc.gridZ 			= 20;//grid;
 		desc.gridYLines 	= gridLines;
 		desc.gridStepYLines = gridStepY;
-		desc.gridStepValue 	= 1.0f;
-		desc.gridDecimals 	= 1;
+		desc.gridStepValue 	= 0.5f;
+		desc.gridDecimals 	= 2;
 		desc.gridOffsetStartLine = -1;			// requires OFFSET_GRIDS to be set.
 		desc.gridOffsetStartValue = -2.0f;
 		desc.bFitScreen 	= true;
-		desc.flagGridLines 	= MoGraph::OFFSET_GRIDS; // MoGraph::MIRRORED_GRIDS;
+		desc.flagGridLines 	= MoGraph::DEFAULT_GRIDS; // /* MoGraph::OFFSET_GRIDS; //*/ MoGraph::MIRRORED_GRIDS;
 		desc.bUseGridValue 	= true;
 		desc.font 			= mFont;
 

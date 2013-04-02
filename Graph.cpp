@@ -134,6 +134,7 @@ namespace MoGraph
 	void Graph::drawText(float tick)
 	{
 		TextMgr &textMgr = mScene.getTextMgr();
+		TextProperty prop;
 	//	float lineHeight = ((BMCommon *)mFont->getCommon())->m_lineHeight;		// need to get hold of the line height from the Font. need to extend the Font API
 //		float graphScale = mDesc.gridStepYLines;//mGridX/500.0f;
 
@@ -155,15 +156,17 @@ namespace MoGraph
 				default:
 					break;
 			}
+
+			// Note the text height will be scaled with Y at shader level.
 			switch (text.mTextFlagY)
 			{
-				case Text::CENTER_TOP:
-					pos.y += 0.5f * mRenderText.getTextHeight(text.mText.c_str());// * lineHeight; 	//mRenderText.getTextWidth(text.mText.c_str());
+				case Text::CENTER_Y:
+					pos.y -= 0.5f * mRenderText.getTextProperty(text.mText.c_str(),&prop);
 					break;
 				case Text::CENTER_BOTTOM:
-					pos.y -= 0.5f * mRenderText.getTextHeight(text.mText.c_str());// * lineHeight; 	//mRenderText.getTextHeight(text.mText.c_str()); // -= mRenderText.getTextWidth(text.mText.c_str());
+					pos.y -= mRenderText.getTextProperty(text.mText.c_str(),&prop);
 					break;
-				case Text::CENTER_Y:			// obsolete because it is by default
+				case Text::CENTER_TOP:		// obsolete because it is by default
 					break;
 				default:
 					break;

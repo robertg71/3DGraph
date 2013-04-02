@@ -48,9 +48,12 @@ namespace MoGraph
 	 */
 	void TextMgr::init()
 	{
+
+
+
 		// to do, align text with axis..
 		const GraphDesc &desc = mScene->getGraphDesc();
-		float lineHeight 	= desc.font->getCommon()->m_lineHeight;
+	//	float lineHeight 	= desc.font->getCommon()->m_lineHeight;
 
 		Text t;
 		t.mRotate 			= glm::vec3(0.0f,0.0f,0.0f);
@@ -61,8 +64,8 @@ namespace MoGraph
 		float gridZ 		= mScene->getGridZ();
 		float centerX		= mScene->getCx();
 		float centerZ		= mScene->getCz();
-		float size			= desc.font->getInfo()->m_size;
-		float orgScale 		= 1.0f/size; //0.5f/(size*desc.gridStepYLines);	//desc.gridStepYLines/(10.0f*lineHeight); //500.0f;
+		float size			= desc.font->getInfo()->m_size;	// get character x & y size...
+		float orgScale 		= desc.gridStepYLines/size; // constant size of scalem depends on size of character.			//0.5f/(size*desc.gridStepYLines);	//desc.gridStepYLines/(10.0f*lineHeight); //500.0f;
 		float scale			= orgScale;
 		float bound			= mScene->getBoundScale();
 		float dcenterX		= centerX*bound;
@@ -114,10 +117,16 @@ namespace MoGraph
 			break;
 		}
 
-		scaleXZ.x 	*= 0.8f;
-		scaleXZ.y   *= 0.8f;
-		float textHeight = lineHeight * orgScale;
-		float totGridHeight = desc.gridStepYLines * desc.gridYLines + textHeight;
+
+		// Axis Text are scaled dependent on the entire graph size.
+
+//		scaleXZ.x 	*= 0.8f;
+//		scaleXZ.y   *= 0.8f;
+
+		// Text height is a scale factor from text line height, e.g. textLineHeight = 32 => size = 32 => 32/32
+//		float textScaleFactor 	= lineHeight * orgScale;
+
+		float totGridHeight = desc.gridStepYLines * desc.gridYLines + desc.gridStepYLines;
 		if (desc.flagGridLines == MoGraph::OFFSET_GRIDS)
 		{
 			totGridHeight += desc.gridOffsetStartLine;	// adjusting top position occording to offset
@@ -138,10 +147,10 @@ namespace MoGraph
 		{
 			char buf[64];
 			const char *formatDecimals = getFormatDecimalStr(desc.gridDecimals);
-			float step 			= desc.gridStepValue;
+			float step 			= desc.gridStepValue;	// grid line Y step value
 			float value;
 			float yPosOffset;
-			float sc 			= orgScale*0.5f ;// * desc.gridStepYLines * 0.75f;
+			float sc 			= orgScale;
 			int	i;
 
 			switch(desc.flagGridLines)
@@ -157,7 +166,7 @@ namespace MoGraph
 					{
 						lprintfln("TextMgr::init: MIRRORED_GRIDS");
 						value 		= -step * desc.gridYLines + step;
-						yPosOffset 	= -desc.gridStepYLines * desc.gridYLines + desc.gridStepYLines*0.75f;
+						yPosOffset 	= -desc.gridStepYLines * desc.gridYLines + desc.gridStepYLines;//*0.75f;
 						i			= -desc.gridYLines+1;
 					}
 					break;
@@ -174,7 +183,7 @@ namespace MoGraph
 						lprintfln("TextMgr::init: DEFAULT_GRIDS");
 
 						value 		= 0.0f;
-						yPosOffset 	= desc.gridStepYLines * 0.5f;
+						yPosOffset 	= 0.0f; //desc.gridStepYLines;// * 0.5f;
 						i 			= 0;
 					}
 					break;

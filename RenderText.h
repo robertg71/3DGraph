@@ -110,8 +110,9 @@ public:
 	 *
 	 * @param str,	input string
 	 * @param property, output property struct containing width height line height.
+	 * @return text line height
 	 */
-	virtual void getTextProperty(const char *str, TextProperty *property);
+	virtual float getTextProperty(const char *str, TextProperty *property);
 	/**
 	 * \brief setScale,	scales the text.
 	 * @param x,

@@ -402,5 +402,3 @@ float RenderText::getTextProperty(const char *str, TextProperty *property)
 	m_font->getTextProperties(str, 0.0f, 0.0f, m_scaleX, m_scaleY,property);				// get vertex array from string,
 	return property->sLineHeight;
 }
-
-

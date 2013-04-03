@@ -107,8 +107,8 @@ namespace MoGraph
 		{
 			glm::vec2 scale((float)mWidth,(float)mHeight);
 
-			p 	= mTouch[0].mPos/scale;
-			op 	= mTouch[0].mOldPos/scale;
+			p	= mTouch[0].mPos/scale;
+			op	= mTouch[0].mOldPos/scale;
 			speed = p - op;
 		}
 

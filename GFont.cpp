@@ -95,9 +95,10 @@ BMFont::BMFont()
  */
 
 BMFont::BMFont(const BMFont& other) :
-	m_chars(other.m_chars), 
-	m_kernings(other.m_kernings), 
-	m_texStores(other.m_texStores), 
+	IFont(),
+	m_chars(other.m_chars),
+	m_kernings(other.m_kernings),
+	m_texStores(other.m_texStores),
 	m_pages(other.m_pages)
 {
 	if (this != &other)
@@ -150,7 +151,7 @@ bool BMFont::Init(MAHandle fontResource, std::vector<MAHandle> &textureResources
 	{
 		GLuint texHandle = CreateTexture(textureResources[i]);
 
-		if (texHandle < 0)
+		if (((int)texHandle) < 0)
 		{
 			lprintfln("Error: BMFont::Init => Invalid 2D Image err=%i",texHandle);
 			return false;
@@ -384,7 +385,7 @@ void BMKerning::parse(std::vector<std::string> &line)
 			m_second = atoi(value.c_str());
 		else if (key == "amount")
 			m_amount = atoi(value.c_str());
-		else 
+		else
 			lprintfln("BMKerning::parse at line %d => Unknown type:%s/n",(int)i,key.c_str());
 	}
 }
@@ -405,7 +406,7 @@ bool BMFont::LoadFontData(MAHandle resource)
 
 	std::vector<std::vector<std::string> >& lineData = csv.getDB();
 	std::string key,value;
-	
+
 	for(size_t i=0; i<lineData.size(); i++)			// array of lines
 	{
 		// Note beginning of each line there is a chapter tag.
@@ -424,7 +425,7 @@ bool BMFont::LoadFontData(MAHandle resource)
 			lprintfln("INFO BMFont::LoadFontData => Skip line %d => tokens %d\n",(int)i,(int)line.size());
 			continue;
 		}
-		
+
 
 		ParseBMFont state = getBMType(line[0]);
 //		lprintfln("Parsing BMFONT state=%d\n",(int)state);
@@ -805,6 +806,3 @@ float BMFont::BuildVertexArray(glm::vec4 * vertexPtr, const char* sentence, floa
 
 	return drawX-start;
 }
-
-
-

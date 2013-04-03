@@ -82,7 +82,7 @@ namespace Utils
 	std::string unQuote(const std::string &str,const char quote)
 	{
 		std::string out;
-		out.reserve(str.size());
+		// out.reserve(str.size());
 		for(size_t i=0; i<str.size(); i++)
 		{
 			char c = str[i];

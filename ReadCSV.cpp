@@ -109,4 +109,3 @@ bool ReadCSV_hash::load(MAHandle resource, char delim, bool trim)
 
 	return true;
 }
-

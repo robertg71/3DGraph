@@ -75,13 +75,13 @@ struct BMInfo
 	int m_size;
 	bool m_bold;
 	bool m_italic;
-	std::string m_charset; 
-	int m_unicode; 
-	int m_stretchH; 
-	int m_smooth; 
-	int m_aa; 
+	std::string m_charset;
+	int m_unicode;
+	int m_stretchH;
+	int m_smooth;
+	int m_aa;
 	int m_padding[4];
-	int m_spacing[2]; 
+	int m_spacing[2];
 	int m_outline;
 
 	/**
@@ -110,7 +110,7 @@ struct BMCommon
 	int m_pages;
 	int m_packed;
 	int m_alphaChnl;
-	int m_redChnl; 
+	int m_redChnl;
 	int m_greenChnl;
 	int m_blueChnl;
 

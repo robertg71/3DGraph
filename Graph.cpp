@@ -20,7 +20,8 @@ MA 02110-1301, USA.
 #include "graph.h"
 #include "GFont.h"
 #include "RenderText.h"
-#include "MAHeaders.h"
+//#include "MAHeaders.h"
+#include <maapi.h>
 #include "GraphDesc.h"
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
@@ -184,15 +185,3 @@ namespace MoGraph
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-

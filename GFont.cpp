@@ -265,7 +265,6 @@ void BMInfo::parse(std::vector<std::string> &line)
 		else if (key == "outline")
 			m_outline = atoi(value.c_str());
 		else
-		//	debugOut << "BMInfo::parse => Unknown type:" << key.c_str() << std::endl;
 			lprintfln("BMInfo::parse at line %d => Unknown type: %s/n",(int)i,key.c_str());
 
 	}
@@ -304,7 +303,6 @@ void BMCommon::parse(std::vector<std::string> &line)
 		else if (key == "blueChnl")
 			m_blueChnl = atoi(value.c_str());
 		else
-//			debugOut << "BMCommon::parse => Unknown type:" << key.c_str() << std::endl;
 			lprintfln("BMCommon::parse at line %d => Unknown type:%s/n",(int)i,key.c_str());
 	}
 }

@@ -53,7 +53,6 @@ namespace MoGraph
 
 		// to do, align text with axis..
 		const GraphDesc &desc = mScene->getGraphDesc();
-	//	float lineHeight 	= desc.font->getCommon()->m_lineHeight;
 
 		Text t;
 		t.mRotate 			= glm::vec3(0.0f,0.0f,0.0f);

@@ -94,7 +94,7 @@ public:
 	 * heart beat function called once every frame.
 	 */
 
-	void 	tick()									// update time used as a tick called once every frame
+	void 	tick()					// update time used as a tick called once every frame
 	{
 		float currentDelta = update();				// get elapsed time since last frame
 		start();									// reset counter and start counting from here! affects mStart.

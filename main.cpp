@@ -225,7 +225,7 @@ public:
 			for(int i=0; i<iGridX; i++)
 			{
 				const int id 	= j*iGridX+i;
-				mTables[id] 	= 2.0f+1.0f*(sin(i*0.3f+mOmega) + jcos);					// generate a sine wave and add depth wave
+				mTables[id] 	= 1.0f+1.0f*(sin(i*0.3f+mOmega) + jcos);					// generate a sine wave and add depth wave
 				mColors[id]		= glm::vec4(1.0f/iGridX*i,0.0f,1.0f/iGridZ*j,1.0f);			// set color gradients
 			}
 		}

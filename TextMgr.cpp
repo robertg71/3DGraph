@@ -59,7 +59,6 @@ namespace MoGraph
 		t.mTextFlagX		= Text::CENTER_LEFT;
 		t.mTextFlagY		= Text::CENTER_Y;
 
-//		float gridX 		= mScene->getGridX();
 		float gridZ 		= mScene->getGridZ();
 		float centerX		= mScene->getCx();
 		float centerZ		= mScene->getCz();
@@ -70,15 +69,6 @@ namespace MoGraph
 		float dcenterX		= centerX*bound;
 		float dcenterZ		= centerZ*bound;
 
-/*
-		lprintfln("lineHeight = %f",lineHeight);
-		lprintfln("orgScale = %f", orgScale);
-		lprintfln("size = %f",size);
-*/
-
-
-
-//		bool bMirror		= (desc.flagGridLines == MoGraph::MIRRORED_GRIDS);
 		glm::vec2 scaleXZ(scale,scale);
 		glm::vec3 pos(dcenterX, 0.0f,dcenterZ);
 		glm::vec4 color(1.0f,1.0f,1.0f,1.0f);
@@ -117,13 +107,7 @@ namespace MoGraph
 		}
 
 
-		// Axis Text are scaled dependent on the entire graph size.
-
-//		scaleXZ.x 	*= 0.8f;
-//		scaleXZ.y   *= 0.8f;
-
-		// Text height is a scale factor from text line height, e.g. textLineHeight = 32 => size = 32 => 32/32
-//		float textScaleFactor 	= lineHeight * orgScale;
+		// Axis Text are scaled dependent on the entire grid size.
 
 		float totGridHeight = desc.gridStepYLines * desc.gridYLines + desc.gridStepYLines;
 		if (desc.flagGridLines == MoGraph::OFFSET_GRIDS)

@@ -196,7 +196,7 @@ namespace MoGraph
 				if (speedZ < -maxSpeedZ)
 					speedZ = -maxSpeedZ;
 
-				lprintfln("RotSpeed = %f = %f - %f",speedZ,mRotPos.z,mOldZ);
+//				lprintfln("RotSpeed = %f = %f - %f",speedZ,mRotPos.z,mOldZ);
 				mRotSpeed.z = speedZ;						// store to ouput speed
 				mOldZ 		= mRotPos.z;				// oldZ rot pos.
 			}

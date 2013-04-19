@@ -28,7 +28,7 @@ using namespace MAUtil;
 
 #define PI 3.14159265359
 
-class MyGLMoblet: public GLMoblet
+class MyGLMoblet: public GLMoblet //, public OrientationListener
 {
 private:
 
@@ -56,6 +56,7 @@ public:
 	MyGLMoblet() :
 		GLMoblet(GLMoblet::GL2) , mGraph(0), mFont(0), mColors(0), mTables(0), mOmega(0.0)
 	{
+	//	addOrientationListener(this);
 	}
 
 	// ================== Destructor ==================
@@ -65,6 +66,7 @@ public:
 	 */
 	virtual ~MyGLMoblet()
 	{
+	//	removeOrientationListener(this);
 		delete [] mTables;
 		delete [] mColors;
 		delete mGraph;					// Delete Graph
@@ -117,7 +119,23 @@ public:
 	{
 		mGraph->getTouch().multitouchReleaseEvent(p,touchId); // just forward function to the Graphs own touch handler
 	}
-
+	/**
+	* Called after the screen has finished rotating.
+	* \param 'screenOrientation' One of the
+	* \link #MA_SCREEN_ORIENTATION_PORTRAIT MA_SCREEN_ORIENTATION \endlink codes.
+	*/
+/*	virtual void orientationChanged(int orientation)
+	{
+		lprintfln("Orienttion Changed = %d",orientation);
+	}*/
+	/**
+	* Send by current screen just before it begins rotating.
+	* Note: available only on iOS platform.
+	*/
+/*	virtual void orientationWillChange()
+	{
+		lprintfln("Orienttion will Changed");
+	}*/
 	/**
 	 * init call backed from GLMoblet
 	 */
@@ -152,8 +170,8 @@ public:
 		MoGraph::GraphDesc desc;
 		desc.scrWidth 		= mWidth;
 		desc.scrHeight 		= mHeight;
-		desc.gridX 			= 20;
-		desc.gridZ 			= 20;
+		desc.gridX 			= 30;
+		desc.gridZ 			= 30;
 		desc.gridYLines 	= 10;
 		desc.gridStepYLines = 0.5f;
 		desc.gridStepValue 	= 0.5f;
@@ -195,6 +213,25 @@ public:
 
 		// just add more. here
 
+		// colors are static so we only need to build them once.
+		const int iGridZ 		= desc.gridZ;		// need to be able to read the grid size
+		const int iGridX 		= desc.gridX;
+		const int sz			= iGridX * iGridZ;
+
+
+		if (mTables == 0)					// check if array already is allocated
+			mTables = new float[sz];		// allocate an array for set data to the Bars.
+		if (mColors == 0)					// check if array already is allocated
+			mColors = new glm::vec4[sz];	// allocate an array for color table
+
+		for(int j=0; j<iGridZ; j++)			// Build the data arrays for colors and for tables.
+		{
+			for(int i=0; i<iGridX; i++)
+			{
+				const int id 	= j*iGridX+i;
+				mColors[id]		= glm::vec4((float)i/(float)iGridX,0.0f,(float)j/(float)iGridZ,1.0f);			// set color gradients
+			}
+		}
 	}
 
 	/**
@@ -204,6 +241,8 @@ public:
 	{
 		mDTime.tick();									// update delta time ticker. our fps timer (resets for every tick call)
 		MoGraph::Scene &scene 	= mGraph->getScene();	// get scene information
+		const float width 		= static_cast<float>(scene.getWidth());
+	//	const float height 		= static_cast<float>(scene.getHeight());
 		const int iGridZ 		= scene.getGridZ();		// need to be able to read the grid size
 		const int iGridX 		= scene.getGridX();
 		const int sz			= iGridX * iGridZ;
@@ -214,19 +253,13 @@ public:
 		if (mOmega > (PI*2.0f))				// for high precision make sure omega 0..2*PI
 			mOmega -= PI*2.0f;				// wrapps also faster not to use large values.
 
-		if (mTables == 0)					// check if array already is allocated
-			mTables = new float[sz];		// allocate an array for set data to the Bars.
-		if (mColors == 0)					// check if array already is allocated
-			mColors = new glm::vec4[sz];	// allocate an array for color table
-
 		for(int j=0; j<iGridZ; j++)			// Build the data arrays for colors and for tables.
 		{
 			const float jcos = cos(j*0.3f+mOmega);	// calculate the Depth Wave with cos
 			for(int i=0; i<iGridX; i++)
 			{
 				const int id 	= j*iGridX+i;
-				mTables[id] 	= 1.0f+1.0f*(sin(i*0.3f+mOmega) + jcos);					// generate a sine wave and add depth wave
-				mColors[id]		= glm::vec4(1.0f/iGridX*i,0.0f,1.0f/iGridZ*j,1.0f);			// set color gradients
+				mTables[id] 	= 2.0f+1.0f*(sin(i*0.3f+mOmega) + jcos); // generate a sine wave and add depth wave
 			}
 		}
 
@@ -236,11 +269,12 @@ public:
 		// Update data to graph
 		mGraph->draw();						// Draw the whole graph system
 
-
 		// DRAW ADDITIONAL TEXT ON SCREEN (Orthogonal projections)
 		glm::vec4 col(1.0f,1.0f,1.0f,1.0f);	// White color
 		glm::vec3 pos(0.0f,0.0f,10.0f);		// set screen position upper left corner 0,0.. note need z depth value for order.
+
 		float sy = 0.6f;
+		sy = (width*sy) * 1.0f/320.0f;		// use 320 as a reference size, and scale towards that and the font will keep same size even on different resolutions
 		mText.setScale(sy,sy);
 
 		char buf[64];						// create text string
